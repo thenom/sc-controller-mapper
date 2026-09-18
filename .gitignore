@@ -1,0 +1,23 @@
+# Node dependencies and build artifacts
+node_modules/
+dist/
+build/
+.cache/
+*.tsbuildinfo
+
+
+# Binary builds
+daemon/bin/
+daemon/sc-daemon
+daemon/sc-daemon.exe
+*.exe
+
+# Cache and temporary files
+*.scj
+*.log
+.DS_Store
+
+# Local configuration overrides
+.env
+.env.local
+game-data.json
