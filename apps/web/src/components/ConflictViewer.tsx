@@ -10,6 +10,7 @@ import {
   ShieldAlert, 
   Lightbulb,
   HelpCircle,
+  Sparkles,
   X
 } from 'lucide-react';
 
@@ -28,7 +29,7 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
   onSelectAction,
   onAutoFix
 }) => {
-  const [filterSeverity, setFilterSeverity] = useState<'all' | 'fatal' | 'warning'>('all');
+  const [filterSeverity, setFilterSeverity] = useState<'all' | 'fatal' | 'warning' | 'redundant'>('all');
   const [searchConflict, setSearchConflict] = useState('');
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
@@ -38,6 +39,7 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
   const filteredConflicts = report.conflicts.filter(c => {
     if (filterSeverity === 'fatal' && c.severity !== ConflictSeverity.Fatal) return false;
     if (filterSeverity === 'warning' && c.severity !== ConflictSeverity.Warning) return false;
+    if (filterSeverity === 'redundant' && c.severity !== ConflictSeverity.Redundant) return false;
     if (searchConflict) {
       const q = searchConflict.toLowerCase();
       return (
@@ -80,7 +82,7 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
               </button>
             </div>
             <p className="text-xs text-[#8492a6] mt-0.5">
-              Identifies overlapping inputs, distinguishes between harmless context sharing, and flags fatal collisions.
+              Identifies overlapping inputs, distinguishes between harmless context sharing, and flags fatal collisions or redundant/obsolete actions.
             </p>
           </div>
         </div>
@@ -141,6 +143,16 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
             >
               <AlertTriangle className="w-3 h-3" /> Warnings ({report.warningCount})
             </button>
+            <button
+              onClick={() => setFilterSeverity('redundant')}
+              className={`px-3 py-1 text-xs rounded font-mono transition-all flex items-center gap-1.5 ${
+                filterSeverity === 'redundant'
+                  ? 'bg-[#c084fc] text-black font-bold shadow-[0_0_12px_rgba(192,132,252,0.4)]'
+                  : 'bg-[#0d131f] text-[#c084fc] border border-[rgba(192,132,252,0.4)] hover:bg-[rgba(192,132,252,0.1)]'
+              }`}
+            >
+              <Sparkles className="w-3 h-3" /> Redundant ({report.redundantCount || 0})
+            </button>
           </div>
         </div>
       </div>
@@ -176,11 +188,32 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
         <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
           {filteredConflicts.map((c, idx) => {
             const isFatal = c.severity === ConflictSeverity.Fatal;
-            const borderCol = isFatal ? 'border-[#ff3344]' : 'border-[#ffaa00]';
-            const bgCol = isFatal ? 'bg-[rgba(255,51,68,0.06)]' : 'bg-[rgba(255,170,0,0.05)]';
+            const isWarning = c.severity === ConflictSeverity.Warning;
+            const isRedundant = c.severity === ConflictSeverity.Redundant;
+
+            const borderCol = isFatal 
+              ? 'border-[#ff3344]' 
+              : isWarning 
+                ? 'border-[#ffaa00]' 
+                : 'border-[#c084fc]';
+            const bgCol = isFatal 
+              ? 'bg-[rgba(255,51,68,0.06)]' 
+              : isWarning 
+                ? 'bg-[rgba(255,170,0,0.05)]' 
+                : 'bg-[rgba(192,132,252,0.06)]';
             const badgeCol = isFatal 
               ? 'conflict-badge-fatal' 
-              : 'conflict-badge-warning';
+              : isWarning 
+                ? 'conflict-badge-warning' 
+                : 'bg-[rgba(192,132,252,0.2)] text-[#c084fc] border border-[rgba(192,132,252,0.4)]';
+
+            const badgeText = isFatal
+              ? 'Severity 2 (Fatal)'
+              : isWarning
+                ? 'Severity 1 (Warning)'
+                : c.conflictType === 'deprecated'
+                  ? 'Obsolete (SC 3.23+)'
+                  : 'Redundant (Subsumed)';
 
             return (
               <div
@@ -190,7 +223,7 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
                 <div className="conflict-header">
                   <div className="conflict-meta">
                     <span className={`conflict-badge ${badgeCol}`}>
-                      {isFatal ? 'Severity 2 (Fatal)' : 'Severity 1 (Warning)'}
+                      {badgeText}
                     </span>
 
                     <span className="conflict-input-tag">
@@ -200,7 +233,7 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
                     <span className="text-xs text-[#8492a6] px-1">in</span>
 
                     <span className="text-xs font-mono text-[#e2e8f0] px-2 py-0.5 rounded bg-[#090d15] border border-[#2d415f]">
-                      {c.sourceContext} ↔ {c.targetContext}
+                      {c.sourceContext} {c.conflictType === 'deprecated' ? '→' : '↔'} {c.targetContext}
                     </span>
                   </div>
 
@@ -213,28 +246,38 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
                       <span>{c.sourceAction}</span>
                       <ExternalLink className="w-3 h-3" />
                     </button>
-                    <span className="text-xs text-[#8492a6] px-1">vs</span>
-                    <button
-                      onClick={() => onSelectAction(c.targetAction)}
-                      className="conflict-action-btn"
-                      title="Jump to conflicting action in binding table"
-                    >
-                      <span>{c.targetAction}</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </button>
+                    {c.conflictType !== 'deprecated' && (
+                      <>
+                        <span className="text-xs text-[#8492a6] px-1">vs</span>
+                        <button
+                          onClick={() => onSelectAction(c.targetAction)}
+                          className="conflict-action-btn"
+                          title="Jump to conflicting action in binding table"
+                        >
+                          <span>{c.targetAction}</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
 
                 <p className="text-xs text-[#cbd5e1] mb-1.5 leading-relaxed">
-                  <strong className="text-white">Rule Collision: </strong>
+                  <strong className="text-white">
+                    {c.conflictType === 'deprecated'
+                      ? 'Version Status: '
+                      : c.conflictType === 'redundancy'
+                        ? 'Rule Redundancy: '
+                        : 'Rule Collision: '}
+                  </strong>
                   {c.reason}
                 </p>
 
                 {c.recommendation && (
                   <div className="flex items-start gap-2 text-[11px] text-[#94a3b8] bg-[#07090e] p-2 rounded border border-[#1e293b]">
-                    <Lightbulb className="w-3.5 h-3.5 text-[#ffaa00] shrink-0 mt-0.5" />
+                    <Lightbulb className="w-3.5 h-3.5 text-[#00e5ff] shrink-0 mt-0.5" />
                     <span className="leading-snug">
-                      <strong className="text-[#e2e8f0]">Resolution: </strong>
+                      <strong className="text-[#e2e8f0]">Recommendation: </strong>
                       {c.recommendation}
                     </span>
                   </div>
@@ -266,17 +309,20 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
 
             <div className="space-y-3 text-xs text-[#cbd5e1] leading-relaxed">
               <p>
-                <strong>What does this section do?</strong> Star Citizen permits sharing buttons across actions, but some combinations cause input lockouts, latency, or ship crashes. This engine evaluates your entire binding tree across 3 severity levels:
+                <strong>What does this section do?</strong> Star Citizen permits sharing buttons across actions, but some combinations cause input lockouts, latency, or ship crashes. This engine evaluates your entire binding tree across 4 diagnostic classifications:
               </p>
               <ul className="space-y-2 list-disc pl-4 text-[11px] text-[#94a3b8]">
                 <li>
-                  <strong className="text-[#00ff88]">Severity 0 (Optimal / Clear):</strong> Actions share an input but exist in mutually exclusive game domains (e.g. flight vs. on-foot vs. ground vehicle) or isolated Master Modes (SCM weapons vs NAV quantum spool). Safe to fly.
+                  <strong className="text-[#00ff88]">Severity 0 (Optimal / Clear):</strong> Actions share an input but exist in mutually exclusive game domains (e.g. flight vs. on-foot) or isolated Operator/Master Modes (SCM weapons vs NAV quantum travel vs Mining). Safe to fly.
                 </li>
                 <li>
-                  <strong className="text-[#ffb700]">Severity 1 (Warning):</strong> Temporal conflicts such as <code className="text-[#00f0ff]">double_tap</code> paired with a single <code className="text-[#00f0ff]">press</code>. CryEngine delays single tap execution by ~250ms to check for a potential double-tap.
+                  <strong className="text-[#ffb700]">Severity 1 (Warning):</strong> Temporal conflicts such as <code className="text-[#00f0ff]">multiTap="2"</code> or <code className="text-[#00f0ff]">double_tap</code> paired with a single <code className="text-[#00f0ff]">press</code>. CryEngine delays single tap execution by ~250ms to buffer for a potential second tap.
                 </li>
                 <li>
-                  <strong className="text-[#ff2a4b]">Severity 2 (Fatal):</strong> Concurrent collisions where CryEngine executes both actions simultaneously (e.g. <code className="text-[#ff2a4b]">multiTap="2"</code> vs <code className="text-[#ff2a4b]">multiTap="1"</code>), or destructive commands (Eject, Self-Destruct) sharing triggers with single taps.
+                  <strong className="text-[#ff2a4b]">Severity 2 (Fatal):</strong> Concurrent collisions where CryEngine executes both actions simultaneously on the same tick, or destructive commands (Eject, Self-Destruct) sharing triggers with single taps.
+                </li>
+                <li>
+                  <strong className="text-[#c084fc]">Severity 3 (Redundant / Obsolete):</strong> Actions that are redundant on the same trigger (e.g. <code className="text-[#c084fc]">v_flightready</code> subsuming <code className="text-[#c084fc]">v_power_set_on</code>), or bindings from older game versions (pre-3.23) that were removed or superseded in current Master Modes (e.g. legacy cruise control, legacy PIP toggles).
                 </li>
               </ul>
               <div className="p-2.5 rounded bg-[#090d15] border border-[#2d415f] text-[11px]">

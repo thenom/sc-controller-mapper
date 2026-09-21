@@ -8,15 +8,17 @@ import {
 } from '@sc-mapping/shared-types';
 import { ExclusionMatrix } from './ExclusionMatrix.js';
 import { TemporalEvaluator } from './TemporalEvaluator.js';
+import { RedundancyEvaluator } from './RedundancyEvaluator.js';
 
 /**
  * Intelligent Conflict Detection Engine for Star Citizen
  * Evaluates contextual mutual exclusivity, Master Flight Modes (SCM vs NAV),
- * and temporal activation mechanics (press, hold, double_tap, multiTap).
+ * temporal activation mechanics (press, hold, double_tap, multiTap),
+ * and redundant/deprecated mappings for modern game versions.
  */
 export class ConflictResolver {
   /**
-   * Evaluates two action bindings and returns a conflict severity score (0 = None, 1 = Warning, 2 = Fatal)
+   * Evaluates two action bindings and returns a conflict severity score (0 = None, 1 = Warning, 2 = Fatal, 3 = Redundant)
    * with detailed explanatory diagnostics.
    *
    * @param mapA Action map context of first action (e.g. 'spaceship_movement')
@@ -58,6 +60,19 @@ export class ConflictResolver {
       };
     }
 
+    // Step 1b: Check if specific actions are mutually exclusive (e.g. vehicle role toggles, state sequencing, UI lifecycle)
+    if (ExclusionMatrix.areActionsMutuallyExclusive(mapA, actionA.name, mapB, actionB.name)) {
+      return {
+        severity: ConflictSeverity.None,
+        sourceContext: mapA,
+        sourceAction: actionA.name,
+        targetContext: mapB,
+        targetAction: actionB.name,
+        sharedInput: '',
+        reason: `Mutually exclusive operational modes or state-lifecycle actions (${actionA.name} vs ${actionB.name})`
+      };
+    }
+
     // Step 2: Check Star Citizen 3.23+ Master Modes (SCM vs NAV)
     // e.g. v_attack1_group1 (SCM) vs v_quantum_spool (NAV) -> Isolated, no conflict
     if (!ExclusionMatrix.areMasterModesConcurrent(actionA.name, actionB.name)) {
@@ -86,11 +101,28 @@ export class ConflictResolver {
     for (const inputA of actionA.inputs) {
       for (const inputB of actionB.inputs) {
         if (this.arePhysicalInputsEqual(inputA, inputB)) {
+          // Rule R1: Check Subsumed Action Redundancy (e.g. v_flightready + v_power_set_on)
+          const subsumed = RedundancyEvaluator.checkSubsumedPair(actionA.name, actionB.name);
+          if (subsumed.isRedundant) {
+            return {
+              severity: ConflictSeverity.Redundant,
+              conflictType: 'redundancy',
+              sourceContext: mapA,
+              sourceAction: actionA.name,
+              targetContext: mapB,
+              targetAction: actionB.name,
+              sharedInput: inputA.input,
+              reason: subsumed.reason || 'Subsumed action redundancy',
+              recommendation: subsumed.recommendation
+            };
+          }
+
           const temporal = TemporalEvaluator.evaluate(actionA, inputA, actionB, inputB);
 
           if (temporal.severity > highestConflict.severity) {
             highestConflict = {
               severity: temporal.severity,
+              conflictType: temporal.severity === ConflictSeverity.Fatal ? 'collision' : 'latency',
               sourceContext: mapA,
               sourceAction: actionA.name,
               targetContext: mapB,
@@ -114,7 +146,7 @@ export class ConflictResolver {
 
   /**
    * Helper evaluation function accepting two action objects and returning raw severity score:
-   * 0 = None, 1 = Warning, 2 = Fatal
+   * 0 = None, 1 = Warning, 2 = Fatal, 3 = Redundant
    */
   public static evaluateSeverity(
     mapA: string,
@@ -138,6 +170,7 @@ export class ConflictResolver {
       hasFatalConflicts: false,
       warningCount: 0,
       fatalCount: 0,
+      redundantCount: 0,
       conflicts: []
     };
 
@@ -161,7 +194,7 @@ export class ConflictResolver {
       }
     }
 
-    // Pairwise evaluation avoiding duplicate permutations
+    // 1. Pairwise evaluation for collisions, latency buffers, and subsumed redundancies
     for (let i = 0; i < allActions.length; i++) {
       for (let j = i + 1; j < allActions.length; j++) {
         const itemA = allActions[i];
@@ -188,7 +221,37 @@ export class ConflictResolver {
             report.hasFatalConflicts = true;
           } else if (details.severity === ConflictSeverity.Warning) {
             report.warningCount++;
+          } else if (details.severity === ConflictSeverity.Redundant) {
+            report.redundantCount++;
           }
+        }
+      }
+    }
+
+    // 2. Rule R2: Check for Deprecated / Obsolete Actions in current Star Citizen version (3.23+ Master Modes)
+    const auditedDeprecated = new Set<string>();
+    for (const item of allActions) {
+      const dep = RedundancyEvaluator.isActionDeprecated(item.action.name);
+      if (dep && !auditedDeprecated.has(item.action.name)) {
+        auditedDeprecated.add(item.action.name);
+        for (const input of item.action.inputs) {
+          if (filter && filter !== 'all') {
+            if (!input.devicePrefix.toLowerCase().startsWith(filter)) {
+              continue;
+            }
+          }
+          report.conflicts.push({
+            severity: ConflictSeverity.Redundant,
+            conflictType: 'deprecated',
+            sourceContext: item.mapName,
+            sourceAction: item.action.name,
+            targetContext: 'Current Game Version (SC 3.23+)',
+            targetAction: 'Obsolete / Superseded',
+            sharedInput: input.input,
+            reason: `Obsolete Action (${dep.deprecatedSince}): ${dep.reason}`,
+            recommendation: dep.replacement
+          });
+          report.redundantCount++;
         }
       }
     }

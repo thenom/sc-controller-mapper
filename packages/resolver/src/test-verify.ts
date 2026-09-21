@@ -87,7 +87,7 @@ if (ruleAResult.severity !== ConflictSeverity.Warning) {
 }
 console.log('✓ Rule A passed (Severity 1 - Warning)');
 
-// 4. Test Conflict Detection: Rule B (multiTap="2" vs single tap = Fatal Conflict)
+// 4. Test Conflict Detection: Rule B (multiTap="2" vs single tap = Warning Latency Buffer)
 const testActionTap1: ActionBinding = {
   name: 'test_tap1',
   inputs: [{ input: 'js1_button10', devicePrefix: 'js1', hardwareKey: 'button10', bindType: 'rebind', multiTap: 1 }]
@@ -99,10 +99,74 @@ const testActionTap2: ActionBinding = {
 const ruleBResult = ConflictResolver.evaluateActions('spaceship_movement', testActionTap1, 'spaceship_movement', testActionTap2);
 console.log('\n--- Evaluating Rule B (multiTap="2" vs single tap) ---');
 console.log('Result severity:', ruleBResult.severity, 'Reason:', ruleBResult.reason);
-if (ruleBResult.severity !== ConflictSeverity.Fatal) {
-  throw new Error(`Expected Fatal (2) for Rule B, got ${ruleBResult.severity}`);
+if (ruleBResult.severity !== ConflictSeverity.Warning) {
+  throw new Error(`Expected Warning (1) for Rule B, got ${ruleBResult.severity}`);
 }
-console.log('✓ Rule B passed (Severity 2 - Fatal)');
+console.log('✓ Rule B passed (Severity 1 - Warning)');
+
+// 4b. Test Direct Exact Collision (same activationMode AND same multiTap count = Fatal)
+const testActionExact1: ActionBinding = {
+  name: 'test_exact1',
+  inputs: [{ input: 'js1_button10', devicePrefix: 'js1', hardwareKey: 'button10', bindType: 'rebind', multiTap: 1 }]
+};
+const testActionExact2: ActionBinding = {
+  name: 'test_exact2',
+  inputs: [{ input: 'js1_button10', devicePrefix: 'js1', hardwareKey: 'button10', bindType: 'rebind', multiTap: 1 }]
+};
+const exactResult = ConflictResolver.evaluateActions('spaceship_movement', testActionExact1, 'spaceship_movement', testActionExact2);
+if (exactResult.severity !== ConflictSeverity.Fatal) {
+  throw new Error(`Expected Fatal (2) for exact collision, got ${exactResult.severity}`);
+}
+console.log('✓ Direct collision passed (Severity 2 - Fatal)');
+
+// 4c. Test Operator Modes Mutual Exclusivity (spaceship_weapons vs spaceship_mining sharing button1)
+const shipMining: ActionBinding = {
+  name: 'v_toggle_mining_laser_fire',
+  inputs: [{ input: 'js1_button1', devicePrefix: 'js1', hardwareKey: 'button1', bindType: 'rebind' }]
+};
+const operatorModeResult = ConflictResolver.evaluateActions('spaceship_weapons', testActionExact1, 'spaceship_mining', shipMining);
+if (operatorModeResult.severity !== ConflictSeverity.None) {
+  throw new Error(`Expected None (0) for Operator Modes mutual exclusivity, got ${operatorModeResult.severity}`);
+}
+console.log('✓ Operator Modes mutual exclusivity passed (Severity 0 - None)');
+
+// 4d. Test Vehicle Role Mode Toggles Exclusivity (v_toggle_mining_mode vs v_toggle_salvage_mode)
+const miningToggle: ActionBinding = {
+  name: 'v_toggle_mining_mode',
+  inputs: [{ input: 'js2_button4', devicePrefix: 'js2', hardwareKey: 'button4', bindType: 'rebind' }]
+};
+const salvageToggle: ActionBinding = {
+  name: 'v_toggle_salvage_mode',
+  inputs: [{ input: 'js2_button4', devicePrefix: 'js2', hardwareKey: 'button4', bindType: 'rebind' }]
+};
+const roleToggleResult = ConflictResolver.evaluateActions('seat_general', miningToggle, 'seat_general', salvageToggle);
+if (roleToggleResult.severity !== ConflictSeverity.None) {
+  throw new Error(`Expected None (0) for role toggles mutual exclusivity, got ${roleToggleResult.severity}`);
+}
+console.log('✓ Role Mode Toggles mutual exclusivity passed (Severity 0 - None)');
+
+// 4e. Test Rule R1: Subsumed Action Redundancy (v_flightready vs v_power_set_on)
+const flightReadyAction: ActionBinding = {
+  name: 'v_flightready',
+  inputs: [{ input: 'js1_button10', devicePrefix: 'js1', hardwareKey: 'button10', bindType: 'rebind' }]
+};
+const powerSetOnAction: ActionBinding = {
+  name: 'v_power_set_on',
+  inputs: [{ input: 'js1_button10', devicePrefix: 'js1', hardwareKey: 'button10', bindType: 'rebind' }]
+};
+const subsumedResult = ConflictResolver.evaluateActions('spaceship_general', flightReadyAction, 'spaceship_power', powerSetOnAction);
+if (subsumedResult.severity !== ConflictSeverity.Redundant) {
+  throw new Error(`Expected Redundant (3) for v_flightready vs v_power_set_on, got ${subsumedResult.severity}`);
+}
+console.log('✓ Rule R1 Subsumed Redundancy passed (Severity 3 - Redundant):', subsumedResult.reason);
+
+// 4f. Test Rule R2: Deprecated Action Detection (v_ifcs_toggle_cruise_control)
+import { RedundancyEvaluator } from './RedundancyEvaluator.js';
+const depInfo = RedundancyEvaluator.isActionDeprecated('v_ifcs_toggle_cruise_control');
+if (!depInfo || !depInfo.reason.includes('removed in Star Citizen 3.23')) {
+  throw new Error('Expected v_ifcs_toggle_cruise_control to be flagged as deprecated in 3.23!');
+}
+console.log('✓ Rule R2 Deprecation detection passed:', depInfo.reason);
 
 // 5. Test Conflict Detection: Rule C (hold vs press on Destructive action = Fatal)
 const ejectAction = parsed.actionMaps['spaceship_movement'].actions['v_eject'];

@@ -22,6 +22,7 @@ import {
   CheckCircle,
   HelpCircle,
   Table,
+  Sparkles,
   X,
   Info
 } from 'lucide-react';
@@ -54,24 +55,35 @@ export const BindingTable: React.FC<BindingTableProps> = ({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
 
-  // Set of actions that have fatal conflicts or warnings
+  // Set of actions that have fatal conflicts, warnings, or redundancies
   const actionConflictMap = useMemo(() => {
-    const map = new Map<string, 'fatal' | 'warning'>();
+    const map = new Map<string, 'fatal' | 'warning' | 'redundant' | 'deprecated'>();
     if (!conflictReport) return map;
 
     for (const c of conflictReport.conflicts) {
+      const type: 'fatal' | 'warning' | 'redundant' | 'deprecated' = 
+        c.severity === 2 
+          ? 'fatal' 
+          : c.severity === 1 
+            ? 'warning' 
+            : c.conflictType === 'deprecated' 
+              ? 'deprecated' 
+              : 'redundant';
+
       const existingA = map.get(c.sourceAction);
-      if (c.severity === 2 || existingA === 'fatal') {
+      if (!existingA || existingA === 'redundant' || existingA === 'deprecated') {
+        map.set(c.sourceAction, type);
+      } else if (type === 'fatal') {
         map.set(c.sourceAction, 'fatal');
-      } else {
-        map.set(c.sourceAction, 'warning');
       }
 
-      const existingB = map.get(c.targetAction);
-      if (c.severity === 2 || existingB === 'fatal') {
-        map.set(c.targetAction, 'fatal');
-      } else {
-        map.set(c.targetAction, 'warning');
+      if (c.targetAction && c.targetAction !== 'Obsolete / Superseded') {
+        const existingB = map.get(c.targetAction);
+        if (!existingB || existingB === 'redundant' || existingB === 'deprecated') {
+          map.set(c.targetAction, type);
+        } else if (type === 'fatal') {
+          map.set(c.targetAction, 'fatal');
+        }
       }
     }
     return map;
@@ -333,7 +345,13 @@ export const BindingTable: React.FC<BindingTableProps> = ({
                                 key={iIdx}
                                 className={`input-chip ${badgeColor}`}
                               >
-                                <span className="font-mono font-bold text-white mr-1">{inp.input}</span>
+                                {(!inp.hardwareKey || inp.hardwareKey === '' || inp.input.endsWith('_')) ? (
+                                  <span className="font-mono text-xs text-[#94a3b8] italic mr-1">
+                                    [Unbound on {inp.devicePrefix.toUpperCase()}]
+                                  </span>
+                                ) : (
+                                  <span className="font-mono font-bold text-white mr-1">{inp.input}</span>
+                                )}
 
                                 {inp.bindType === 'addbind' && (
                                   <span className="chip-tag text-[#94a3b8]">
@@ -370,6 +388,16 @@ export const BindingTable: React.FC<BindingTableProps> = ({
                         <span className="conflict-badge conflict-badge-warning">
                           <AlertTriangle className="w-3.5 h-3.5 mr-1" />
                           <span>Latency Warning</span>
+                        </span>
+                      ) : conflictStatus === 'deprecated' ? (
+                        <span className="conflict-badge bg-[rgba(192,132,252,0.18)] text-[#c084fc] border border-[rgba(192,132,252,0.4)]">
+                          <Sparkles className="w-3.5 h-3.5 mr-1" />
+                          <span>Obsolete (3.23+)</span>
+                        </span>
+                      ) : conflictStatus === 'redundant' ? (
+                        <span className="conflict-badge bg-[rgba(192,132,252,0.18)] text-[#c084fc] border border-[rgba(192,132,252,0.4)]">
+                          <Sparkles className="w-3.5 h-3.5 mr-1" />
+                          <span>Redundant</span>
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 text-xs font-mono text-[#00ff88]">

@@ -42,14 +42,15 @@ export class TemporalEvaluator {
     const multiTapA = inputA.multiTap ?? 1;
     const multiTapB = inputB.multiTap ?? 1;
 
-    // Rule B: multiTap="2" vs. single tap (multiTap="1") = Fatal Conflict (Concurrent execution)
-    // CryEngine dispatches multiTap="1" immediately upon the first button press downstroke.
-    // Therefore, attempting to double-tap fires the single-tap action synchronously on tap 1!
+    // Rule B: multiTap="2" (double tap) vs. single tap (multiTap="1") = Warning (Latency buffer)
+    // In Star Citizen / CryEngine, binding multiTap="2" alongside a single-tap action opens a ~250ms
+    // tap buffer window. If a second tap registers within that window, the double-tap action fires.
+    // The single-tap action fires only after the buffer window expires without a second tap.
     if ((multiTapA === 2 && multiTapB === 1) || (multiTapB === 2 && multiTapA === 1)) {
       return {
-        severity: ConflictSeverity.Fatal,
-        reason: 'Concurrent Execution Collision: multiTap="2" combined with a single-tap binding executes action 1 on the first downstroke before the second tap can register.',
-        recommendation: 'Use activationMode="double_tap" instead of raw multiTap="2", or assign a modifier key (e.g. LAlt) to isolate the single-tap action.'
+        severity: ConflictSeverity.Warning,
+        reason: 'Input Latency Buffer (~250ms): Pairing multiTap="2" (double-tap) with a single-tap binding delays single-tap execution by ~250ms while the engine buffers for a potential second tap.',
+        recommendation: 'Standard Star Citizen double-tap pattern (e.g. ATC Request on double-tap + Landing Gear on single-tap). Compatible, but avoid putting time-critical emergency reflex commands on the single-tap action.'
       };
     }
 

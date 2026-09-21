@@ -107,7 +107,7 @@ export class ActionMapsExporter {
   ): string {
     if (mapping.size === 0) return rawInput;
 
-    return rawInput.replace(/^js(\d+)_(.+)$/i, (fullMatch, instStr, remainder) => {
+    return rawInput.replace(/^js(\d+)_(.*)$/i, (fullMatch, instStr, remainder) => {
       const currentInst = parseInt(instStr, 10);
       const targetInst = mapping.get(currentInst) ?? currentInst;
       return `js${targetInst}_${remainder}`;

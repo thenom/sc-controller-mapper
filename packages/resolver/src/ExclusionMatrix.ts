@@ -105,6 +105,35 @@ export class ExclusionMatrix {
 
 
   /**
+   * Star Citizen Cockpit Operator Modes.
+   * Inside a spaceship, these operator modes are mutually exclusive stances.
+   * E.g. while in Mining mode, Weapons, Missiles, Salvage, and Scanning are inactive.
+   */
+  private static readonly OPERATOR_MODES: ReadonlySet<string> = new Set([
+    'spaceship_weapons',
+    'spaceship_missiles',
+    'spaceship_mining',
+    'spaceship_salvage',
+    'spaceship_scanning'
+  ]);
+
+  /**
+   * Mutually exclusive action pairs across vehicle roles, state machines, or UI lifecycles.
+   */
+  private static readonly MUTUALLY_EXCLUSIVE_ROLE_TOGGLES: ReadonlySet<string> = new Set([
+    'v_toggle_mining_mode',
+    'v_toggle_salvage_mode'
+  ]);
+
+  private static readonly UI_LIFECYCLE_ACTIONS: ReadonlySet<string> = new Set([
+    'ready',
+    'respawn',
+    'retry',
+    'flashui_return',
+    'ui_hide_hint'
+  ]);
+
+  /**
    * Star Citizen 3.23+ Master Modes Action Registry
    * Maps specific actions to their operational flight mode (SCM vs NAV).
    */
@@ -112,6 +141,8 @@ export class ExclusionMatrix {
     // SCM Mode (Standard Control Model / Weapons active, shields up, speed capped)
     'v_attack1_group1': 'SCM',
     'v_attack1_group2': 'SCM',
+    'v_attack_group1': 'SCM',
+    'v_attack_group2': 'SCM',
     'v_target_lock_selected': 'SCM',
     'v_target_cycle_pinned': 'SCM',
     'v_missile_launch': 'SCM',
@@ -120,13 +151,15 @@ export class ExclusionMatrix {
     // NAV Mode (Quantum spooling / High-speed flight / Guns & Shields offline)
     'v_quantum_spool': 'NAV',
     'v_quantum_travel': 'NAV',
+    'v_toggle_quantum_mode': 'NAV',
+    'v_toggle_qdrive_engagement': 'NAV',
     'v_nav_flight_mode_toggle': 'NAV',
     'v_nav_flt_speed_boost': 'NAV'
   };
 
   /**
    * Checks whether two actionmaps can ever be active simultaneously in the engine.
-   * Returns false if the actionmaps belong to mutually exclusive domains.
+   * Returns false if the actionmaps belong to mutually exclusive domains or operator modes.
    */
   public static areContextsConcurrent(mapA: string, mapB: string): boolean {
     const lowerA = mapA.toLowerCase();
@@ -135,6 +168,23 @@ export class ExclusionMatrix {
     // Inside the exact same actionmap, contexts are concurrent
     if (lowerA === lowerB) {
       return true;
+    }
+
+    // Check Operator Mode exclusivity:
+    // spaceship_weapons, spaceship_missiles, spaceship_mining, spaceship_salvage, spaceship_scanning
+    // are mutually exclusive cockpit operator stances.
+    if (this.OPERATOR_MODES.has(lowerA) && this.OPERATOR_MODES.has(lowerB)) {
+      return false; // Mutually exclusive Operator Modes!
+    }
+
+    // Check Industrial / Dedicated Operator Modes vs Combat Sub-targeting:
+    // When in Mining, Salvage, or Missile operator modes, specialized industrial/missile
+    // sub-controls (consumables, beam modifiers, missile cycling) supersede combat targeting
+    if (
+      (lowerA === 'spaceship_targeting_advanced' && (lowerB === 'spaceship_mining' || lowerB === 'spaceship_salvage' || lowerB === 'spaceship_missiles')) ||
+      (lowerB === 'spaceship_targeting_advanced' && (lowerA === 'spaceship_mining' || lowerA === 'spaceship_salvage' || lowerA === 'spaceship_missiles'))
+    ) {
+      return false;
     }
 
     const domainA = this.resolveDomain(lowerA);
@@ -151,6 +201,65 @@ export class ExclusionMatrix {
 
     // Global ambient actionmaps (e.g. 'seat_general', 'view') overlap with active modes
     return true;
+  }
+
+  /**
+   * Checks whether two specific actions are mutually exclusive by vehicle specialization,
+   * state machine sequencing (e.g. quantum spool vs engage), or UI screen lifecycle.
+   */
+  public static areActionsMutuallyExclusive(
+    mapA: string,
+    actionA: string,
+    mapB: string,
+    actionB: string
+  ): boolean {
+    const actA = actionA.toLowerCase();
+    const actB = actionB.toLowerCase();
+    const mA = mapA.toLowerCase();
+    const mB = mapB.toLowerCase();
+
+    // 1. Vehicle specialization mode toggles (Mining vs Salvage)
+    if (this.MUTUALLY_EXCLUSIVE_ROLE_TOGGLES.has(actA) && this.MUTUALLY_EXCLUSIVE_ROLE_TOGGLES.has(actB)) {
+      return true;
+    }
+
+    // 2. UI screen lifecycle states in 'default' or screen UI (e.g. Arena Commander ready vs respawn vs retry)
+    if ((mA === 'default' && mB === 'default') || (mA.includes('ui') && mB.includes('ui'))) {
+      if (this.UI_LIFECYCLE_ACTIONS.has(actA) && this.UI_LIFECYCLE_ACTIONS.has(actB)) {
+        return true;
+      }
+    }
+
+    // 3. Sequential quantum travel state machine: spooling vs engaging drive
+    // In Star Citizen, toggling spool mode ('v_toggle_quantum_mode') and engaging the drive
+    // ('v_toggle_qdrive_engagement') are bound to the same input because engagement cannot occur
+    // until the drive is spooled and aligned.
+    if (
+      (actA === 'v_toggle_quantum_mode' && actB === 'v_toggle_qdrive_engagement') ||
+      (actB === 'v_toggle_quantum_mode' && actA === 'v_toggle_qdrive_engagement')
+    ) {
+      return true;
+    }
+
+    // 4. Operator mode entry toggle vs actions inside other operator modes
+    // (e.g. entering missile mode vs toggling mining laser type)
+    if (
+      (actA === 'v_toggle_missile_mode' && (mB === 'spaceship_mining' || mB === 'spaceship_salvage')) ||
+      (actB === 'v_toggle_missile_mode' && (mA === 'spaceship_mining' || mA === 'spaceship_salvage'))
+    ) {
+      return true;
+    }
+
+    // 5. Operator mode toggle vs hold action inside the same operator mode
+    // (e.g. tapping to toggle missile mode vs holding for bombing impact point)
+    if (
+      (actA === 'v_toggle_missile_mode' && actB === 'v_weapon_bombing_toggle_desired_impact_point_hold') ||
+      (actB === 'v_toggle_missile_mode' && actA === 'v_weapon_bombing_toggle_desired_impact_point_hold')
+    ) {
+      return true;
+    }
+
+    return false;
   }
 
   private static resolveDomain(mapName: string): string | undefined {

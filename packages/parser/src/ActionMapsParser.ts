@@ -210,7 +210,7 @@ export class ActionMapsParser {
     let modifiers: string[] | undefined = undefined;
 
     // Detect hardware prefix (e.g. js1_, kb1_, mo1_, gp1_)
-    const prefixMatch = rawInput.match(/^([a-z0-9]+)_(.+)$/i);
+    const prefixMatch = rawInput.match(/^([a-z0-9]+)_(.*)$/i);
     if (prefixMatch) {
       devicePrefix = prefixMatch[1].toLowerCase() as HardwarePrefix;
       hardwareKey = prefixMatch[2];

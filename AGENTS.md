@@ -64,14 +64,18 @@ When modifying or extending this codebase, adhere to these domain invariants:
 - Device instance numbers are 1-based (`js1`, `js2`, etc.).
 
 ### C. Conflict Evaluation Pipeline
-Conflicts are rated using a tri-state severity:
-- `Severity 0 (None)`: Non-overlapping operational contexts (e.g. `spaceship_movement` vs `player_input_onfoot`) or isolated Master Modes (`SCM` weapons vs `NAV` quantum spool).
+Conflicts are rated across a 4-tier severity spectrum:
+- `Severity 0 (None)`: Non-overlapping operational contexts (e.g. `spaceship_movement` vs `player_input_onfoot`), mutually exclusive cockpit **Operator Modes** (`spaceship_weapons`, `spaceship_missiles`, `spaceship_mining`, `spaceship_salvage`, `spaceship_scanning`), mode toggles (`v_toggle_mining_mode` vs `v_toggle_salvage_mode`), or isolated Master Modes (`SCM` weapons vs `NAV` quantum spool).
 - `Severity 1 (Warning)`: Contextual overlap or latency penalty:
   - *Rule A*: `double_tap` vs `press` (~250ms buffer latency).
+  - *Rule B*: `multiTap="2"` vs `multiTap="1"` (~250ms buffer latency on single-tap while engine checks for double-tap; standard pattern for ATC / Target pins).
   - *Rule C*: `hold` vs `press` on non-destructive commands.
 - `Severity 2 (Fatal)`: Concurrent or destructive execution:
-  - *Rule B*: `multiTap="2"` vs `multiTap="1"` (CryEngine fires tap 1 on the first downstroke).
+  - *Direct Action Collision*: Identical activation mode and tap count inside concurrent contexts.
   - *Rule C Escalation*: `hold` vs `press` sharing an input where one action is destructive (`v_eject`, `v_self_destruct`, `v_jettison_cargo`, `player_suicide`).
+- `Severity 3 (Redundant / Obsolete)`: Subsumed functionality or legacy version deprecation:
+  - *Rule R1 (Subsumed Action Redundancy)*: Sharing an input where one command functionally encompasses the other (e.g. `v_flightready` + `v_power_set_on`, `v_open_all_doors` + `v_unlock_all_doors`).
+  - *Rule R2 (Current Version Deprecation)*: Mappings for flight or combat systems that were removed or superseded in modern Star Citizen builds (e.g. legacy cruise control `v_ifcs_toggle_cruise_control`, legacy speed limiter reset, legacy quantum mode toggles, legacy PIP toggles).
 
 ### D. Device Re-Indexing
 - Swapping device numbers in `DeviceRack` must update `<options>` instance attributes AND rewrite all matching `jsX_` prefixes across all actions during export.
