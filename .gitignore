@@ -19,5 +19,4 @@ daemon/sc-daemon.exe
 
 # Local configuration overrides
 .env
-.env.local
-game-data.json
+/game-data.json
