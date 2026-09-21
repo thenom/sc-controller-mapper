@@ -1,15 +1,15 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  ActionMapsParser, 
-  ActionMapsExporter, 
-  LocalizationMerger 
+import {
+  ActionMapsParser,
+  ActionMapsExporter,
+  LocalizationMerger
 } from '@sc-mapping/parser';
-import { 
-  ConflictResolver, 
-  ConflictSeverity 
+import {
+  ConflictResolver,
+  ConflictSeverity
 } from '@sc-mapping/resolver';
-import type { 
-  ActionMapsDocument, 
+import type {
+  ActionMapsDocument,
   JoystickDeviceOption,
   ActionBinding,
   BindingInput
@@ -20,16 +20,16 @@ import { BindingTable } from './components/BindingTable';
 import { BindingEditorModal } from './components/BindingEditorModal';
 import { HardwareInspector } from './components/HardwareInspector';
 import { HardwareGeneratorModal } from './components/HardwareGeneratorModal';
-import { 
-  SupporterFuelBadge, 
-  HardwareAffiliateCard, 
-  AdSenseSlot 
+import {
+  SupporterFuelBadge,
+  HardwareAffiliateCard,
+  AdSenseSlot
 } from './components/MonetizationSlot';
 import { useGamepadListener } from './hooks/useGamepadListener';
-import { 
-  Upload, 
-  Download, 
-  Cpu, 
+import {
+  Upload,
+  Download,
+  Cpu,
   Database,
   RefreshCw,
   Sparkles,
@@ -352,7 +352,7 @@ export const App: React.FC = () => {
         <div className="flex items-center flex-wrap gap-2.5">
           <SupporterFuelBadge />
 
-          <button 
+          <button
             onClick={() => setIsHardwareStudioOpen(true)}
             className="btn-sci-fi text-[#ffb700] border-[#ffb700] hover:bg-[rgba(255,183,0,0.12)] shadow-[0_0_12px_rgba(255,183,0,0.25)]"
             title="Open Hardware Studio: generate options, presets, or community hardware definitions"
@@ -372,8 +372,8 @@ export const App: React.FC = () => {
             Export XML
           </button>
 
-          <button 
-            onClick={() => setIsContributorToolsOpen(true)} 
+          <button
+            onClick={() => setIsContributorToolsOpen(true)}
             className="btn-sci-fi text-[#8492a6] border-[#2d415f] hover:text-[#00e5ff] hover:border-[#00e5ff]"
             title="Developer & Contributor Hub: sc-daemon extraction, local sync, and game patch PR tools"
           >
@@ -592,8 +592,8 @@ export const App: React.FC = () => {
                   Game Version Compatibility & Architecture
                 </h2>
               </div>
-              <button 
-                onClick={() => setIsVersionInfoOpen(false)} 
+              <button
+                onClick={() => setIsVersionInfoOpen(false)}
                 className="text-[#94a3b8] hover:text-white p-1 rounded hover:bg-white/10 transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -661,7 +661,7 @@ export const App: React.FC = () => {
                   Contributor Hub & Extraction Daemon (<code className="text-[#00f0ff]">sc-daemon</code>)
                 </h3>
               </div>
-              <button 
+              <button
                 onClick={() => setIsContributorToolsOpen(false)}
                 className="text-[#94a3b8] hover:text-white p-1 rounded hover:bg-white/10 transition-colors"
               >
@@ -692,16 +692,16 @@ export const App: React.FC = () => {
                   </span>
                 </div>
                 <div className="flex items-center gap-2 pt-2 border-t border-[#2d415f]/50">
-                  <button 
-                    onClick={handleSyncDaemon} 
+                  <button
+                    onClick={handleSyncDaemon}
                     className="btn-sci-fi text-[#00ff88] border-[#00ff88] hover:bg-[rgba(0,255,136,0.12)] text-xs flex-1"
                     title="Connect to sc-daemon HTTP API at 127.0.0.1:8765"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                     Sync with Local Daemon
                   </button>
-                  <button 
-                    onClick={handleLoadLiveData} 
+                  <button
+                    onClick={handleLoadLiveData}
                     className="btn-sci-fi text-[#00f0ff] border-[#00f0ff] hover:bg-[rgba(0,240,255,0.12)] text-xs flex-1"
                     disabled={isLoadingLive}
                     title="Load extracted Star Citizen LIVE base profile"

@@ -183,7 +183,7 @@ export class ConflictResolver {
         if (action.inputs && action.inputs.length > 0) {
           // If deviceFilter is specified, only include actions containing that device prefix
           if (filter && filter !== 'all') {
-            const matches = action.inputs.some(i => 
+            const matches = action.inputs.some(i =>
               i.devicePrefix.toLowerCase().startsWith(filter) ||
               (filter === 'js' && i.devicePrefix.toLowerCase().startsWith('js'))
             );

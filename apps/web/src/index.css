@@ -42,7 +42,7 @@ body {
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  background-image: 
+  background-image:
     radial-gradient(circle at 10% 10%, rgba(0, 240, 255, 0.05) 0%, transparent 45%),
     radial-gradient(circle at 90% 90%, rgba(255, 183, 0, 0.04) 0%, transparent 45%),
     linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
@@ -811,5 +811,3 @@ code {
 .hover\:bg-\[rgba\(0\,240\,255\,0\.12\)\]:hover { background-color: rgba(0, 240, 255, 0.12); }
 .hover\:bg-\[rgba\(0\,255\,136\,0\.12\)\]:hover { background-color: rgba(0, 255, 136, 0.12); }
 .hover\:bg-\[rgba\(0\,240\,255\,0\.18\)\]:hover { background-color: rgba(0, 240, 255, 0.18); }
-
-

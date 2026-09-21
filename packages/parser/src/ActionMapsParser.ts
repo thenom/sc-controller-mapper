@@ -41,11 +41,11 @@ export class ActionMapsParser {
 
     const result: ActionMapsDocument = {
       version: parseInt(root.getAttribute('version') || '1', 10),
-      optionsVersion: root.hasAttribute('optionsVersion') 
-        ? parseInt(root.getAttribute('optionsVersion')!, 10) 
+      optionsVersion: root.hasAttribute('optionsVersion')
+        ? parseInt(root.getAttribute('optionsVersion')!, 10)
         : 2,
-      rebindVersion: root.hasAttribute('rebindVersion') 
-        ? parseInt(root.getAttribute('rebindVersion')!, 10) 
+      rebindVersion: root.hasAttribute('rebindVersion')
+        ? parseInt(root.getAttribute('rebindVersion')!, 10)
         : 2,
       profileName: root.getAttribute('profileName') || (root.tagName === 'profile' ? 'defaultProfile' : 'custom'),
       devices: [],

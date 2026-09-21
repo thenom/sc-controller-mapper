@@ -188,4 +188,3 @@ This section tracks items that are currently optional or deferred for future sta
   2. Populate `infra/tofu/terraform.tfvars` with your project ID and friend IP CIDR blocks.
   3. Deploy Stage 2 with `tofu apply` (Cloud Run / GCS + Global HTTPS LB + Cloud Armor IP whitelist).
   4. Transition to Stage 3 (Cloud Armor Geo-fencing + OWASP WAF rules + Google Edge DDoS).
-

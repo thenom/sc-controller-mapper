@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import type { 
-  ActionBinding, 
-  BindingInput, 
-  BindType, 
-  ActivationMode, 
-  HardwarePrefix 
+import type {
+  ActionBinding,
+  BindingInput,
+  BindType,
+  ActivationMode,
+  HardwarePrefix
 } from '@sc-mapping/shared-types';
-import { 
-  X, 
-  Radio, 
-  Plus, 
-  Trash2, 
-  Save, 
-  HelpCircle, 
+import {
+  X,
+  Radio,
+  Plus,
+  Trash2,
+  Save,
+  HelpCircle,
   Layers,
   Gamepad2
 } from 'lucide-react';

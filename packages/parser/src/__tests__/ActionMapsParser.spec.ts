@@ -51,7 +51,7 @@ describe('ActionMapsParser', () => {
   it('should preserve rebind and addbind distinctly without collapsing inputs', () => {
     const doc = ActionMapsParser.parseXML(sampleXml);
     const pitchAction = doc.actionMaps['spaceship_movement'].actions['v_pitch'];
-    
+
     expect(pitchAction).toBeDefined();
     expect(pitchAction.inputs).toHaveLength(2);
     expect(pitchAction.inputs[0].bindType).toBe('rebind');

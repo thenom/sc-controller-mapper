@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import type { ConflictReport, ConflictDetails } from '@sc-mapping/shared-types';
 import { ConflictSeverity } from '@sc-mapping/shared-types';
-import { 
-  AlertOctagon, 
-  AlertTriangle, 
-  CheckCircle2, 
-  Search, 
-  ExternalLink, 
-  ShieldAlert, 
+import {
+  AlertOctagon,
+  AlertTriangle,
+  CheckCircle2,
+  Search,
+  ExternalLink,
+  ShieldAlert,
   Lightbulb,
   HelpCircle,
   Sparkles,
@@ -191,20 +191,20 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
             const isWarning = c.severity === ConflictSeverity.Warning;
             const isRedundant = c.severity === ConflictSeverity.Redundant;
 
-            const borderCol = isFatal 
-              ? 'border-[#ff3344]' 
-              : isWarning 
-                ? 'border-[#ffaa00]' 
+            const borderCol = isFatal
+              ? 'border-[#ff3344]'
+              : isWarning
+                ? 'border-[#ffaa00]'
                 : 'border-[#c084fc]';
-            const bgCol = isFatal 
-              ? 'bg-[rgba(255,51,68,0.06)]' 
-              : isWarning 
-                ? 'bg-[rgba(255,170,0,0.05)]' 
+            const bgCol = isFatal
+              ? 'bg-[rgba(255,51,68,0.06)]'
+              : isWarning
+                ? 'bg-[rgba(255,170,0,0.05)]'
                 : 'bg-[rgba(192,132,252,0.06)]';
-            const badgeCol = isFatal 
-              ? 'conflict-badge-fatal' 
-              : isWarning 
-                ? 'conflict-badge-warning' 
+            const badgeCol = isFatal
+              ? 'conflict-badge-fatal'
+              : isWarning
+                ? 'conflict-badge-warning'
                 : 'bg-[rgba(192,132,252,0.2)] text-[#c084fc] border border-[rgba(192,132,252,0.4)]';
 
             const badgeText = isFatal
@@ -299,8 +299,8 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
                   Conflict Diagnostics • Architecture Guide
                 </h3>
               </div>
-              <button 
-                onClick={() => setIsHelpOpen(false)} 
+              <button
+                onClick={() => setIsHelpOpen(false)}
                 className="text-[#94a3b8] hover:text-white p-1"
               >
                 <X className="w-5 h-5" />

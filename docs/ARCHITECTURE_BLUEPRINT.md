@@ -94,11 +94,11 @@ Star Citizen's `actionmaps.xml` structure distinguishes cleanly between root opt
 
 export type HardwarePrefix = 'kb1' | 'mo1' | 'gp1' | `js${number}`;
 
-export type ActivationMode = 
-  | 'press' 
-  | 'hold' 
-  | 'double_tap' 
-  | 'delayed_press' 
+export type ActivationMode =
+  | 'press'
+  | 'hold'
+  | 'double_tap'
+  | 'delayed_press'
   | 'smart_toggle';
 
 export interface BindingInput {
@@ -248,13 +248,13 @@ Using `@xmldom/xmldom` to ensure non-destructive attribute preservation, hardwar
 
 ```typescript
 import { DOMParser } from '@xmldom/xmldom';
-import type { 
-  ActionMapsDocument, 
-  ActionMapGroup, 
-  ActionBinding, 
-  BindingInput, 
-  DeviceOption, 
-  JoystickDeviceOption 
+import type {
+  ActionMapsDocument,
+  ActionMapGroup,
+  ActionBinding,
+  BindingInput,
+  DeviceOption,
+  JoystickDeviceOption
 } from '@sc-mapping/shared-types';
 
 export class ActionMapsParser {
@@ -285,7 +285,7 @@ export class ActionMapsParser {
         const instance = parseInt(opt.getAttribute('instance') || '1', 10);
         const product = opt.getAttribute('Product') || `Joystick ${instance}`;
         const guid = opt.getAttribute('ProductGUID') || undefined;
-        
+
         const inversions: Record<string, boolean> = {};
         const invertNodes = opt.getElementsByTagName('invert');
         for (let j = 0; j < invertNodes.length; j++) {
@@ -341,7 +341,7 @@ export class ActionMapsParser {
             if (!rawInput) continue;
 
             const parsedInput = this.parseInputDescriptor(
-              rawInput, 
+              rawInput,
               tagName as 'rebind' | 'addbind',
               child
             );
@@ -359,7 +359,7 @@ export class ActionMapsParser {
   }
 
   private static parseInputDescriptor(
-    rawInput: string, 
+    rawInput: string,
     bindType: 'rebind' | 'addbind',
     element: Element
   ): BindingInput {
@@ -469,9 +469,9 @@ export class ExclusionMatrix {
 ### 2.2 Temporal State Machine Evaluator & `ConflictResolver`
 
 ```typescript
-import { 
-  ActionBinding, 
-  BindingInput 
+import {
+  ActionBinding,
+  BindingInput
 } from '@sc-mapping/shared-types';
 import { ExclusionMatrix, ConflictSeverity, ConflictDetails } from './ExclusionMatrix';
 
@@ -589,8 +589,8 @@ export class ConflictResolver {
       (actModeA === 'hold' && actModeB === 'press') ||
       (actModeB === 'hold' && actModeA === 'press')
     ) {
-      const isDestructive = 
-        this.DESTRUCTIVE_ACTIONS.has(actionA.name) || 
+      const isDestructive =
+        this.DESTRUCTIVE_ACTIONS.has(actionA.name) ||
         this.DESTRUCTIVE_ACTIONS.has(actionB.name);
 
       if (isDestructive) {

@@ -1,19 +1,19 @@
 import React, { useState, useMemo } from 'react';
-import type { 
-  ActionMapsDocument, 
-  ActionBinding, 
+import type {
+  ActionMapsDocument,
+  ActionBinding,
   BindingInput,
-  ConflictReport 
+  ConflictReport
 } from '@sc-mapping/shared-types';
-import { 
-  Search, 
-  Radio, 
-  AlertOctagon, 
-  AlertTriangle, 
-  Edit3, 
-  Plus, 
-  Layers, 
-  Filter, 
+import {
+  Search,
+  Radio,
+  AlertOctagon,
+  AlertTriangle,
+  Edit3,
+  Plus,
+  Layers,
+  Filter,
   Gamepad2,
   Keyboard,
   Mouse,
@@ -61,13 +61,13 @@ export const BindingTable: React.FC<BindingTableProps> = ({
     if (!conflictReport) return map;
 
     for (const c of conflictReport.conflicts) {
-      const type: 'fatal' | 'warning' | 'redundant' | 'deprecated' = 
-        c.severity === 2 
-          ? 'fatal' 
-          : c.severity === 1 
-            ? 'warning' 
-            : c.conflictType === 'deprecated' 
-              ? 'deprecated' 
+      const type: 'fatal' | 'warning' | 'redundant' | 'deprecated' =
+        c.severity === 2
+          ? 'fatal'
+          : c.severity === 1
+            ? 'warning'
+            : c.conflictType === 'deprecated'
+              ? 'deprecated'
               : 'redundant';
 
       const existingA = map.get(c.sourceAction);
@@ -111,7 +111,7 @@ export const BindingTable: React.FC<BindingTableProps> = ({
       for (const [actName, action] of Object.entries(group.actions)) {
         // Device filtering
         if (selectedDevice !== 'all') {
-          const hasDevice = action.inputs.some(i => 
+          const hasDevice = action.inputs.some(i =>
             i.devicePrefix.toLowerCase() === selectedDevice.toLowerCase() ||
             i.input.toLowerCase().startsWith(selectedDevice.toLowerCase() + '_')
           );
@@ -468,8 +468,8 @@ export const BindingTable: React.FC<BindingTableProps> = ({
                   Keybinding Matrix • Guide
                 </h3>
               </div>
-              <button 
-                onClick={() => setIsHelpOpen(false)} 
+              <button
+                onClick={() => setIsHelpOpen(false)}
                 className="text-[#94a3b8] hover:text-white p-1"
               >
                 <X className="w-5 h-5" />

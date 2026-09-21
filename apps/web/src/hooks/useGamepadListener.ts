@@ -19,7 +19,7 @@ export function useGamepadListener({
 }: UseGamepadListenerOptions) {
   const [activeDevices, setActiveDevices] = useState<string[]>([]);
   const animFrameId = useRef<number | null>(null);
-  
+
   // Track button state to trigger only on leading-edge (press down)
   const prevButtonStates = useRef<Map<string, boolean>>(new Map());
   // Track axis state to prevent rapid repeating triggers while holding an axis deflected

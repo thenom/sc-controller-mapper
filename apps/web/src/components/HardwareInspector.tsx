@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { ActionMapsDocument, ActionBinding, JoystickDeviceOption } from '@sc-mapping/shared-types';
-import { 
-  Gamepad2, 
-  Activity, 
-  ExternalLink, 
-  Sliders, 
-  Radio, 
-  CheckCircle2, 
+import {
+  Gamepad2,
+  Activity,
+  ExternalLink,
+  Sliders,
+  Radio,
+  CheckCircle2,
   Crosshair,
   HelpCircle,
   Zap,
@@ -315,8 +315,8 @@ export const HardwareInspector: React.FC<HardwareInspectorProps> = ({
                 const percent = Math.round(((val + 1) / 2) * 100);
 
                 return (
-                  <div 
-                    key={aIdx} 
+                  <div
+                    key={aIdx}
                     onClick={() => setPersistentPressed(scName)}
                     className="p-2.5 rounded bg-[#06080d] border border-[#1e293b] hover:border-[#00f0ff] cursor-pointer transition-all"
                   >

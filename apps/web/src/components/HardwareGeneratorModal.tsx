@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { JoystickDeviceOption, HardwareDeviceDefinition } from '@sc-mapping/shared-types';
-import { 
-  X, 
-  Gamepad2, 
-  Download, 
-  Copy, 
-  Check, 
-  Cpu, 
-  Sliders, 
-  Layers, 
-  Sparkles, 
-  FileText, 
-  CheckCircle2, 
+import {
+  X,
+  Gamepad2,
+  Download,
+  Copy,
+  Check,
+  Cpu,
+  Sliders,
+  Layers,
+  Sparkles,
+  FileText,
+  CheckCircle2,
   RotateCcw,
   RefreshCw,
   Info
@@ -308,11 +308,11 @@ ${generatedOptionsXML}
   // Generate GitHub PR / Issue Community Submission Markdown
   const generatedSubmissionMarkdown = `### 🎮 Hardware Device Definition Contribution
 
-**Device Model:** ${productName}  
-**Manufacturer:** ${manufacturer}  
-**Role:** ${role} (Recommended logical instance: \`js${instance}\`)  
-**Product GUID:** \`${guid || 'Auto-generated'}\`  
-**Physical Inputs:** ${axisCount} Axes, ${buttonCount} Buttons  
+**Device Model:** ${productName}
+**Manufacturer:** ${manufacturer}
+**Role:** ${role} (Recommended logical instance: \`js${instance}\`)
+**Product GUID:** \`${guid || 'Auto-generated'}\`
+**Physical Inputs:** ${axisCount} Axes, ${buttonCount} Buttons
 
 #### Recommended Star Citizen \`<options>\` Configuration:
 \`\`\`xml
@@ -380,7 +380,7 @@ ${JSON.stringify(generatedHardwareJSON, null, 2)}
               </p>
             </div>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-1.5 text-[#94a3b8] hover:text-white hover:bg-white/10 rounded transition-colors"
           >
@@ -566,18 +566,18 @@ ${JSON.stringify(generatedHardwareJSON, null, 2)}
 
               <div className="grid grid-cols-2 gap-2 pt-1">
                 {Object.entries(inversions).map(([axis, isInverted]) => (
-                  <label 
-                    key={axis} 
+                  <label
+                    key={axis}
                     className={`flex items-center justify-between p-2 rounded cursor-pointer border transition-all ${
-                      isInverted 
-                        ? 'bg-[rgba(0,240,255,0.12)] border-[#00f0ff] text-[#00f0ff]' 
+                      isInverted
+                        ? 'bg-[rgba(0,240,255,0.12)] border-[#00f0ff] text-[#00f0ff]'
                         : 'bg-[#090d15] border-[#2d415f] text-[#94a3b8] hover:border-white/40'
                     }`}
                   >
                     <span className="font-mono text-xs font-semibold uppercase">{axis}</span>
-                    <input 
-                      type="checkbox" 
-                      checked={isInverted} 
+                    <input
+                      type="checkbox"
+                      checked={isInverted}
                       onChange={() => toggleInversion(axis)}
                       className="accent-[#00f0ff] w-4 h-4"
                     />
@@ -661,7 +661,7 @@ ${JSON.stringify(generatedHardwareJSON, null, 2)}
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => {
-                    const text = 
+                    const text =
                       outputTab === 'xml' ? generatedOptionsXML :
                       outputTab === 'json' ? JSON.stringify(generatedHardwareJSON, null, 2) :
                       outputTab === 'layout' ? generatedStarterXML : generatedSubmissionMarkdown;
@@ -720,8 +720,8 @@ ${JSON.stringify(generatedHardwareJSON, null, 2)}
             <Info className="w-4 h-4 text-[#00f0ff]" />
             <span>Targeting Star Citizen CryEngine XML AST Format (v1.0.0 Options Spec)</span>
           </div>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="px-4 py-1.5 rounded bg-[#1e293b] text-white hover:bg-[#334155] transition-colors"
           >
             Close

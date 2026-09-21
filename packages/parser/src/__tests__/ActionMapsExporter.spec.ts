@@ -41,7 +41,7 @@ describe('ActionMapsExporter', () => {
 
   it('should cleanly rewrite jsX_ hardware prefixes and swap device options when re-indexing', () => {
     const parsed = ActionMapsParser.parseXML(baseXml);
-    
+
     // Swap Joystick 1 and Joystick 2
     const swapMapping = new Map<number, number>([
       [1, 2],

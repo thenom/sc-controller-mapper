@@ -1,10 +1,10 @@
 import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { 
-  SupporterFuelBadge, 
-  HardwareAffiliateCard, 
-  AdSenseSlot 
+import {
+  SupporterFuelBadge,
+  HardwareAffiliateCard,
+  AdSenseSlot
 } from '../MonetizationSlot';
 
 describe('Monetization Components', () => {

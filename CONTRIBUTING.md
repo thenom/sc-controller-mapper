@@ -10,7 +10,7 @@ Before starting, ensure your local development environment has:
 
 - **Node.js**: `v20.x` or `v22.x` (LTS recommended)
 - **npm**: `v10.x` or higher
-- **OpenTofu**: `tofu` CLI `>= 1.6.0`  
+- **OpenTofu**: `tofu` CLI `>= 1.6.0`
   *(Note: All infrastructure and `.tf` files in this repository strictly use the `tofu` binary, not proprietary Terraform)*
 - **Docker & Docker Compose**: For local containerized testing
 - **Go**: `v1.22+` *(only needed if modifying the native extraction daemon in `daemon/`)*

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Zap, 
-  ExternalLink, 
-  Gamepad2, 
-  Sparkles, 
-  Shield, 
-  Radio, 
+import {
+  Zap,
+  ExternalLink,
+  Gamepad2,
+  Sparkles,
+  Shield,
+  Radio,
   Heart,
   ChevronRight,
   HelpCircle
@@ -123,7 +123,7 @@ export const AdSenseSlot: React.FC<MonetizationProps> = ({ className = '' }) => 
   const mode = (import.meta.env.VITE_MONETIZATION_MODE as MonetizationMode) || 'mock';
   const clientId = import.meta.env.VITE_ADSENSE_CLIENT_ID || 'ca-pub-0000000000000000';
   const slotId = import.meta.env.VITE_ADSENSE_SLOT_ID || '0000000000';
-  
+
   const [adBlocked, setAdBlocked] = useState<boolean>(false);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
@@ -177,7 +177,7 @@ export const AdSenseSlot: React.FC<MonetizationProps> = ({ className = '' }) => 
   }
 
   return (
-    <div 
+    <div
       data-testid="monetization-slot-container"
       className={`relative rounded-xl border border-slate-800/90 bg-slate-950/80 p-3 overflow-hidden backdrop-blur-md shadow-md ${className}`}
     >
