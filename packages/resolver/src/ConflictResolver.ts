@@ -180,16 +180,18 @@ export class ConflictResolver {
     const allActions: Array<{ mapName: string; action: ActionBinding }> = [];
     for (const [mapName, group] of Object.entries(doc.actionMaps)) {
       for (const action of Object.values(group.actions)) {
-        if (action.inputs && action.inputs.length > 0) {
+        // Filter out unbound placeholders (e.g. 'js1_', 'js2_', '') so they don't enter pairwise comparison
+        const physicalInputs = (action.inputs || []).filter(i => !this.isUnboundPlaceholder(i));
+        if (physicalInputs.length > 0) {
           // If deviceFilter is specified, only include actions containing that device prefix
           if (filter && filter !== 'all') {
-            const matches = action.inputs.some(i =>
+            const matches = physicalInputs.some(i =>
               i.devicePrefix.toLowerCase().startsWith(filter) ||
               (filter === 'js' && i.devicePrefix.toLowerCase().startsWith('js'))
             );
             if (!matches) continue;
           }
-          allActions.push({ mapName, action });
+          allActions.push({ mapName, action: { ...action, inputs: physicalInputs } });
         }
       }
     }
@@ -260,9 +262,28 @@ export class ConflictResolver {
   }
 
   /**
+   * Determines whether an input descriptor is an unbound placeholder rather than a physical hardware binding.
+   * Star Citizen writes '<rebind input="js1_ "/>' or '<rebind input="js1_"/>' or '' when an action is unbound
+   * for a specific controller. These placeholders have no hardware key and can never physically conflict.
+   */
+  public static isUnboundPlaceholder(input?: BindingInput): boolean {
+    if (!input || !input.input) return true;
+    const trimmed = input.input.trim().toLowerCase();
+    if (trimmed === '' || trimmed === 'none') return true;
+    if (trimmed.endsWith('_')) return true; // e.g. 'js1_', 'js2_', 'kb1_'
+    if (!input.hardwareKey || input.hardwareKey.trim() === '') return true;
+    return false;
+  }
+
+  /**
    * Checks if two inputs share the exact physical hardware trigger (prefix + key + modifiers)
    */
   private static arePhysicalInputsEqual(a: BindingInput, b: BindingInput): boolean {
+    // Unbound placeholders (e.g. 'js1_', 'js2_', '') can never conflict with anything
+    if (this.isUnboundPlaceholder(a) || this.isUnboundPlaceholder(b)) {
+      return false;
+    }
+
     // If inputs are identical strings, they match immediately
     if (a.input && b.input && a.input.toLowerCase() === b.input.toLowerCase()) {
       return true;

@@ -125,4 +125,46 @@ describe('ConflictResolver', () => {
     expect(result.severity).toBe(ConflictSeverity.Redundant);
     expect(result.reason).toContain('Subsumed');
   });
+
+  it('should ignore unbound controller placeholders (e.g. js1_, js2_) and not report false positive conflicts', () => {
+    const unboundA: ActionBinding = {
+      name: 'v_pitch',
+      inputs: [{ input: 'js1_', devicePrefix: 'js1', hardwareKey: '', bindType: 'rebind' }]
+    };
+    const unboundB: ActionBinding = {
+      name: 'v_yaw',
+      inputs: [{ input: 'js1_', devicePrefix: 'js1', hardwareKey: '', bindType: 'rebind' }]
+    };
+
+    const directEval = ConflictResolver.evaluateActions(
+      'spaceship_movement',
+      unboundA,
+      'spaceship_movement',
+      unboundB
+    );
+    expect(directEval.severity).toBe(ConflictSeverity.None);
+
+    const doc = {
+      profileName: 'unbound_test',
+      devices: [],
+      actionMaps: {
+        spaceship_movement: {
+          name: 'spaceship_movement',
+          actions: {
+            v_pitch: unboundA,
+            v_yaw: unboundB,
+            v_roll: {
+              name: 'v_roll',
+              inputs: [{ input: 'js1_', devicePrefix: 'js1', hardwareKey: '', bindType: 'rebind' }]
+            }
+          }
+        }
+      }
+    };
+
+    const report = ConflictResolver.auditDocument(doc);
+    expect(report.hasFatalConflicts).toBe(false);
+    expect(report.fatalCount).toBe(0);
+    expect(report.conflicts).toHaveLength(0);
+  });
 });

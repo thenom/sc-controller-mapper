@@ -304,14 +304,28 @@ export const App: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  // Save modified binding inputs from modal
-  const handleSaveActionInputs = (mapName: string, actionName: string, inputs: BindingInput[]) => {
+  // Save modified binding inputs from modal (handles existing, unbound catalog, or newly created custom actions)
+  const handleSaveActionInputs = (mapName: string, actionName: string, inputs: BindingInput[], label?: string) => {
     if (!doc) return;
     const nextDoc: ActionMapsDocument = JSON.parse(JSON.stringify(doc));
-    if (nextDoc.actionMaps[mapName] && nextDoc.actionMaps[mapName].actions[actionName]) {
-      nextDoc.actionMaps[mapName].actions[actionName].inputs = inputs;
-      setDoc(nextDoc);
+    if (!nextDoc.actionMaps[mapName]) {
+      nextDoc.actionMaps[mapName] = {
+        name: mapName,
+        actions: {}
+      };
     }
+    if (!nextDoc.actionMaps[mapName].actions[actionName]) {
+      nextDoc.actionMaps[mapName].actions[actionName] = {
+        name: actionName,
+        label: label,
+        inputs: []
+      };
+    }
+    nextDoc.actionMaps[mapName].actions[actionName].inputs = inputs;
+    if (label && !nextDoc.actionMaps[mapName].actions[actionName].label) {
+      nextDoc.actionMaps[mapName].actions[actionName].label = label;
+    }
+    setDoc(nextDoc);
   };
 
   return (

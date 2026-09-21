@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/sc-mapping/daemon/pkg/cache"
+	"github.com/sc-mapping/daemon/pkg/catalog"
 	"github.com/sc-mapping/daemon/pkg/config"
 	"github.com/sc-mapping/daemon/pkg/locator"
 	"github.com/sc-mapping/daemon/pkg/p4k"
@@ -20,12 +21,14 @@ const Version = "1.0.0"
 
 func main() {
 	var (
-		gamePathFlag   string
-		outputFlag     string
-		runDaemonFlag  bool
-		daemonPortFlag int
-		versionFlag    bool
-		sanitizeFlag   bool
+		gamePathFlag      string
+		outputFlag        string
+		runDaemonFlag     bool
+		daemonPortFlag    int
+		versionFlag       bool
+		sanitizeFlag      bool
+		updateProjectFlag bool
+		projectRootFlag   string
 	)
 
 	flag.StringVar(&gamePathFlag, "game-path", "", "Path to Star Citizen install directory (e.g. D:\\Games\\Roberts Space Industries\\StarCitizen)")
@@ -37,6 +40,9 @@ func main() {
 	flag.BoolVar(&versionFlag, "version", false, "Print daemon version and exit")
 	flag.BoolVar(&versionFlag, "v", false, "Shorthand for --version")
 	flag.BoolVar(&sanitizeFlag, "sanitize", true, "Sanitize personal home directories in exported config")
+	flag.BoolVar(&updateProjectFlag, "update-project", false, "Update project action catalog files (packages/parser and apps/web/public)")
+	flag.BoolVar(&updateProjectFlag, "u", false, "Shorthand for --update-project")
+	flag.StringVar(&projectRootFlag, "project-root", ".", "Path to project root monorepo directory (default: current directory)")
 	flag.Parse()
 
 	if versionFlag {
@@ -67,6 +73,29 @@ func main() {
 			log.Printf("[daemon] Extraction error: %v\n", err)
 		} else {
 			fmt.Printf("[daemon] ✓ Generated web application config at: %s\n", outputFlag)
+		}
+	}
+
+	// 2b. If --update-project flag set, parse and update monorepo action catalog files
+	if gameData != nil && updateProjectFlag {
+		fmt.Printf("[daemon] Generating master action catalog for project at '%s'...\n", projectRootFlag)
+		cat, err := catalog.GenerateCatalogFromGameData(gameData.DefaultProfileXML, gameData.Localization)
+		if err != nil {
+			log.Printf("[daemon] Error generating action catalog: %v\n", err)
+		} else {
+			written, err := catalog.UpdateProjectCatalogFiles(projectRootFlag, cat)
+			if err != nil {
+				log.Printf("[daemon] Error updating project catalog files: %v\n", err)
+			} else {
+				totalActions := 0
+				for _, m := range cat {
+					totalActions += len(m.Actions)
+				}
+				fmt.Printf("[daemon] ✓ Successfully updated project catalog (%d action maps, %d actions):\n", len(cat), totalActions)
+				for _, w := range written {
+					fmt.Printf("         - %s\n", w)
+				}
+			}
 		}
 	}
 

@@ -1,0 +1,225 @@
+package catalog
+
+import (
+	"encoding/json"
+	"encoding/xml"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"unicode"
+)
+
+// ActionCatalogEntry represents a single action within the catalog
+type ActionCatalogEntry struct {
+	Name        string `json:"name"`
+	Label       string `json:"label"`
+	Category    string `json:"category,omitempty"`
+	Description string `json:"description,omitempty"`
+}
+
+// ActionMapCatalog represents an action map category and its child actions
+type ActionMapCatalog struct {
+	MapName string               `json:"mapName"`
+	Label   string               `json:"label"`
+	Domain  string               `json:"domain"`
+	Actions []ActionCatalogEntry `json:"actions"`
+}
+
+// MasterActionCatalog maps ActionMap identifiers to ActionMapCatalog definitions
+type MasterActionCatalog map[string]ActionMapCatalog
+
+// Intermediate XML structs for decoding defaultProfile.xml
+type xmlGenericProfile struct {
+	ActionMaps []xmlActionMap `xml:"actionmap"`
+}
+
+type xmlActionMap struct {
+	Name    string      `xml:"name,attr"`
+	Actions []xmlAction `xml:"action"`
+}
+
+type xmlAction struct {
+	Name string `xml:"name,attr"`
+}
+
+// GenerateCatalogFromGameData parses defaultProfile.xml and global.ini tokens into MasterActionCatalog
+func GenerateCatalogFromGameData(defaultProfileXML string, loc map[string]string) (MasterActionCatalog, error) {
+	var profile xmlGenericProfile
+	if err := xml.Unmarshal([]byte(defaultProfileXML), &profile); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal defaultProfile.xml: %w", err)
+	}
+
+	result := make(MasterActionCatalog)
+
+	for _, m := range profile.ActionMaps {
+		mapName := strings.TrimSpace(m.Name)
+		if mapName == "" {
+			continue
+		}
+
+		mapLabel := resolveMapLabel(mapName, loc)
+		domain := resolveDomain(mapName)
+
+		catalogActions := make([]ActionCatalogEntry, 0, len(m.Actions))
+		seenActions := make(map[string]bool)
+
+		for _, a := range m.Actions {
+			actName := strings.TrimSpace(a.Name)
+			if actName == "" || seenActions[actName] {
+				continue
+			}
+			seenActions[actName] = true
+
+			label, desc := resolveActionLocalization(actName, mapName, loc)
+			category := categorizeAction(actName, mapName)
+
+			catalogActions = append(catalogActions, ActionCatalogEntry{
+				Name:        actName,
+				Label:       label,
+				Category:    category,
+				Description: desc,
+			})
+		}
+
+		result[mapName] = ActionMapCatalog{
+			MapName: mapName,
+			Label:   mapLabel,
+			Domain:  domain,
+			Actions: catalogActions,
+		}
+	}
+
+	return result, nil
+}
+
+// UpdateProjectCatalogFiles writes the serialized catalog into monorepo target files
+func UpdateProjectCatalogFiles(projectRoot string, catalog MasterActionCatalog) ([]string, error) {
+	paths := []string{
+		filepath.Join(projectRoot, "packages", "parser", "src", "catalog", "sc_action_catalog.json"),
+		filepath.Join(projectRoot, "apps", "web", "public", "data", "sc_action_catalog.json"),
+	}
+
+	data, err := json.MarshalIndent(catalog, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal action catalog: %w", err)
+	}
+
+	var written []string
+	for _, p := range paths {
+		dir := filepath.Dir(p)
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return written, fmt.Errorf("failed to create directory %s: %w", dir, err)
+		}
+		if err := os.WriteFile(p, data, 0644); err != nil {
+			return written, fmt.Errorf("failed to write %s: %w", p, err)
+		}
+		written = append(written, p)
+	}
+
+	return written, nil
+}
+
+func resolveActionLocalization(actName, mapName string, loc map[string]string) (string, string) {
+	if loc == nil {
+		return humanizeIdentifier(actName), ""
+	}
+
+	candidates := []string{
+		"ui_" + actName,
+		"ui_ci_" + actName,
+		"ui_" + mapName + "_" + actName,
+		actName,
+	}
+
+	for _, c := range candidates {
+		if val, exists := loc[strings.ToLower(c)]; exists && strings.TrimSpace(val) != "" {
+			// Check if there is an accompanying tooltip / description
+			descKey := strings.ToLower(c) + "_desc"
+			desc := loc[descKey]
+			return val, desc
+		}
+	}
+
+	return humanizeIdentifier(actName), ""
+}
+
+func resolveMapLabel(mapName string, loc map[string]string) string {
+	if loc != nil {
+		candidates := []string{
+			"ui_" + mapName,
+			"ui_ci_" + mapName,
+			mapName,
+		}
+		for _, c := range candidates {
+			if val, exists := loc[strings.ToLower(c)]; exists && strings.TrimSpace(val) != "" {
+				return val
+			}
+		}
+	}
+
+	return humanizeIdentifier(mapName)
+}
+
+func resolveDomain(mapName string) string {
+	lower := strings.ToLower(mapName)
+	switch {
+	case strings.HasPrefix(lower, "spaceship_") || strings.HasPrefix(lower, "seat_") || strings.HasPrefix(lower, "ifcs_"):
+		return "spaceship"
+	case strings.HasPrefix(lower, "vehicle_") || strings.HasPrefix(lower, "ground_vehicle"):
+		return "ground_vehicle"
+	case strings.HasPrefix(lower, "player") || lower == "prone" || lower == "mining":
+		return "onfoot"
+	case strings.HasPrefix(lower, "zero_gravity") || lower == "eva":
+		return "eva"
+	case strings.HasPrefix(lower, "turret"):
+		return "turret"
+	case strings.HasPrefix(lower, "view_") || lower == "flycam" || lower == "spectator":
+		return "spectator"
+	default:
+		return "general"
+	}
+}
+
+func categorizeAction(actName, mapName string) string {
+	lower := strings.ToLower(actName)
+	switch {
+	case strings.Contains(lower, "pitch") || strings.Contains(lower, "yaw") || strings.Contains(lower, "roll") || strings.Contains(lower, "strafe"):
+		return "Flight Movement"
+	case strings.Contains(lower, "attack") || strings.Contains(lower, "weapon") || strings.Contains(lower, "fire"):
+		return "Weapons & Combat"
+	case strings.Contains(lower, "missile"):
+		return "Missile Systems"
+	case strings.Contains(lower, "shield") || strings.Contains(lower, "countermeasure") || strings.Contains(lower, "flare"):
+		return "Defensive & Shields"
+	case strings.Contains(lower, "target") || strings.Contains(lower, "pin"):
+		return "Targeting & Radar"
+	case strings.Contains(lower, "mining"):
+		return "Mining Operations"
+	case strings.Contains(lower, "salvage"):
+		return "Salvage Operations"
+	case strings.Contains(lower, "scan") || strings.Contains(lower, "ping"):
+		return "Scanning"
+	case strings.Contains(lower, "power"):
+		return "Power Management"
+	case strings.Contains(lower, "quantum"):
+		return "Quantum Travel"
+	case strings.Contains(lower, "door") || strings.Contains(lower, "exit") || strings.Contains(lower, "eject"):
+		return "Seat & Access"
+	default:
+		return humanizeIdentifier(mapName)
+	}
+}
+
+func humanizeIdentifier(s string) string {
+	s = strings.TrimPrefix(s, "v_")
+	parts := strings.Split(s, "_")
+	for i, p := range parts {
+		if len(p) > 0 {
+			r := []rune(p)
+			r[0] = unicode.ToUpper(r[0])
+			parts[i] = string(r)
+		}
+	}
+	return strings.Join(parts, " ")
+}

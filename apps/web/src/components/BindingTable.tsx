@@ -24,8 +24,12 @@ import {
   Table,
   Sparkles,
   X,
-  Info
+  Info,
+  Eye,
+  EyeOff
 } from 'lucide-react';
+import { CatalogManager } from '@sc-mapping/parser';
+import { AddCustomActionModal } from './AddCustomActionModal';
 
 interface BindingTableProps {
   doc: ActionMapsDocument | null;
@@ -52,8 +56,12 @@ export const BindingTable: React.FC<BindingTableProps> = ({
 }) => {
   const [selectedMap, setSelectedMap] = useState<string>('all');
   const [selectedDevice, setSelectedDevice] = useState<string>('all');
+  const [showUnbound, setShowUnbound] = useState<boolean>(true);
+  const [isAddCustomModalOpen, setIsAddCustomModalOpen] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
+
+  const catalogManager = useMemo(() => new CatalogManager(), []);
 
   // Set of actions that have fatal conflicts, warnings, or redundancies
   const actionConflictMap = useMemo(() => {
@@ -89,63 +97,114 @@ export const BindingTable: React.FC<BindingTableProps> = ({
     return map;
   }, [conflictReport]);
 
-  // Available Action Maps list
+  // Available Action Maps list (combines profile maps + master catalog maps)
   const actionMapsList = useMemo(() => {
-    if (!doc) return [];
-    return Object.keys(doc.actionMaps).sort();
-  }, [doc]);
+    const mapSet = new Set<string>();
+    if (doc) {
+      Object.keys(doc.actionMaps).forEach((m) => mapSet.add(m));
+    }
+    catalogManager.getAllActionMaps().forEach((m) => mapSet.add(m.mapName));
+    return Array.from(mapSet).sort();
+  }, [doc, catalogManager]);
 
-  // Filtered Actions List
+  // Count of unbound catalog actions in current map scope
+  const unboundCount = useMemo(() => {
+    if (!doc) return catalogManager.getAllActions().length;
+    return catalogManager.getUnboundActions(doc, selectedMap === 'all' ? undefined : selectedMap).length;
+  }, [doc, catalogManager, selectedMap]);
+
+  // Filtered Actions List (combines active profile actions + unbound catalog actions)
   const filteredList = useMemo(() => {
-    if (!doc) return [];
     const result: Array<{
       mapName: string;
       action: ActionBinding;
+      isUnbound?: boolean;
     }> = [];
 
+    const boundKeys = new Set<string>();
     const q = searchQuery.toLowerCase().trim();
 
-    for (const [mapName, group] of Object.entries(doc.actionMaps)) {
-      if (selectedMap !== 'all' && mapName !== selectedMap) continue;
+    // 1. Process actions present in the active document
+    if (doc) {
+      for (const [mapName, group] of Object.entries(doc.actionMaps)) {
+        if (selectedMap !== 'all' && mapName.toLowerCase() !== selectedMap.toLowerCase()) continue;
 
-      for (const [actName, action] of Object.entries(group.actions)) {
-        // Device filtering
-        if (selectedDevice !== 'all') {
-          const hasDevice = action.inputs.some(i =>
-            i.devicePrefix.toLowerCase() === selectedDevice.toLowerCase() ||
-            i.input.toLowerCase().startsWith(selectedDevice.toLowerCase() + '_')
-          );
-          if (!hasDevice) continue;
+        for (const [actName, action] of Object.entries(group.actions)) {
+          boundKeys.add(`${mapName.toLowerCase()}::${actName.toLowerCase()}`);
+
+          // Device filtering
+          if (selectedDevice !== 'all') {
+            const hasDevice = action.inputs.some(i =>
+              i.devicePrefix.toLowerCase() === selectedDevice.toLowerCase() ||
+              i.input.toLowerCase().startsWith(selectedDevice.toLowerCase() + '_')
+            );
+            if (!hasDevice) continue;
+          }
+
+          // Query filtering
+          if (q) {
+            const stripMod = (s: string) => s.includes('+') ? s.split('+').pop()! : s;
+            const matches =
+              actName.toLowerCase().includes(q) ||
+              (action.label && action.label.toLowerCase().includes(q)) ||
+              mapName.toLowerCase().includes(q) ||
+              (action.description && action.description.toLowerCase().includes(q)) ||
+              action.inputs.some(i => {
+                const raw = i.input.toLowerCase();
+                const stripped = stripMod(raw);
+                return raw.includes(q) || stripped.includes(q) || stripped === q;
+              });
+
+            if (!matches) continue;
+          }
+
+          result.push({ mapName, action, isUnbound: false });
+        }
+      }
+    }
+
+    // 2. Process unbound catalog actions if enabled or searching (and device filter is 'all')
+    if ((showUnbound || q) && selectedDevice === 'all') {
+      for (const item of catalogManager.getAllActions()) {
+        const key = `${item.mapName.toLowerCase()}::${item.action.name.toLowerCase()}`;
+        if (boundKeys.has(key)) continue;
+
+        if (selectedMap !== 'all' && item.mapName.toLowerCase() !== selectedMap.toLowerCase()) {
+          continue;
         }
 
-        // Query filtering — also matches full hardware input strings (e.g. 'js2_button8')
         if (q) {
-          // Normalise: strip any leading modifier (e.g. 'lalt+js2_button8' → 'js2_button8')
-          const stripMod = (s: string) => s.includes('+') ? s.split('+').pop()! : s;
           const matches =
-            actName.toLowerCase().includes(q) ||
-            (action.label && action.label.toLowerCase().includes(q)) ||
-            mapName.toLowerCase().includes(q) ||
-            action.inputs.some(i => {
-              const raw = i.input.toLowerCase();
-              const stripped = stripMod(raw);
-              return raw.includes(q) || stripped.includes(q) || stripped === q;
-            });
+            item.action.name.toLowerCase().includes(q) ||
+            item.action.label.toLowerCase().includes(q) ||
+            (item.action.category && item.action.category.toLowerCase().includes(q)) ||
+            (item.action.description && item.action.description.toLowerCase().includes(q)) ||
+            item.mapName.toLowerCase().includes(q) ||
+            item.mapLabel.toLowerCase().includes(q);
 
           if (!matches) continue;
         }
 
-        result.push({ mapName, action });
+        result.push({
+          mapName: item.mapName,
+          action: {
+            name: item.action.name,
+            label: item.action.label,
+            description: item.action.description,
+            inputs: []
+          },
+          isUnbound: true
+        });
       }
     }
 
     return result;
-  }, [doc, searchQuery, selectedMap, selectedDevice]);
+  }, [doc, searchQuery, selectedMap, selectedDevice, showUnbound, catalogManager]);
 
   // Reset page when search or filters change
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedMap, selectedDevice]);
+  }, [searchQuery, selectedMap, selectedDevice, showUnbound]);
 
   const totalPages = Math.max(1, Math.ceil(filteredList.length / ITEMS_PER_PAGE));
   const paginatedActions = useMemo(() => {
@@ -259,6 +318,30 @@ export const BindingTable: React.FC<BindingTableProps> = ({
               </button>
             ))}
           </div>
+
+          {/* Unbound Catalog Toggle */}
+          <button
+            onClick={() => setShowUnbound(!showUnbound)}
+            className={`px-2.5 py-1.5 text-xs font-mono rounded flex items-center gap-1.5 transition-all border ${
+              showUnbound
+                ? 'bg-[#00f0ff]/10 text-[#00f0ff] border-[#00f0ff]/40 shadow-[0_0_10px_rgba(0,240,255,0.15)] font-semibold'
+                : 'bg-[#090d15] text-[#8492a6] border-[#2d415f] hover:text-white'
+            }`}
+            title="Toggle display of Star Citizen catalog actions that are currently unbound in this profile"
+          >
+            {showUnbound ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5 text-slate-500" />}
+            <span>Unbound Catalog ({unboundCount})</span>
+          </button>
+
+          {/* Add Custom Action Button */}
+          <button
+            onClick={() => setIsAddCustomModalOpen(true)}
+            className="px-2.5 py-1.5 text-xs font-mono rounded bg-white/5 hover:bg-[#00f0ff]/10 border border-[#2d415f] hover:border-[#00f0ff]/50 text-[#e2e8f0] hover:text-[#00f0ff] flex items-center gap-1.5 transition-all"
+            title="Define and bind a new or unlisted Star Citizen action"
+          >
+            <Plus className="w-3.5 h-3.5 text-[#00f0ff]" />
+            <span>+ Custom Action</span>
+          </button>
         </div>
       </div>
 
@@ -308,18 +391,25 @@ export const BindingTable: React.FC<BindingTableProps> = ({
                 </td>
               </tr>
             ) : (
-              paginatedActions.map(({ mapName, action }) => {
+              paginatedActions.map(({ mapName, action, isUnbound }) => {
                 const conflictStatus = actionConflictMap.get(action.name);
 
                 return (
                   <tr
                     key={`${mapName}-${action.name}`}
-                    className="hover:bg-[rgba(0,229,255,0.03)] transition-colors group"
+                    className={`hover:bg-[rgba(0,229,255,0.03)] transition-colors group ${
+                      isUnbound ? 'opacity-80 hover:opacity-100 bg-[#060a10]/50' : ''
+                    }`}
                   >
                     {/* Action Info */}
                     <td className="py-3 px-3 align-top max-w-[280px]">
-                      <div className="text-sm font-semibold text-white group-hover:text-[#00e5ff] transition-colors">
-                        {action.label || action.name}
+                      <div className="text-sm font-semibold text-white group-hover:text-[#00e5ff] transition-colors flex items-center gap-2">
+                        <span>{action.label || action.name}</span>
+                        {isUnbound && (
+                          <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                            catalog
+                          </span>
+                        )}
                       </div>
                       <div className="action-meta-row">
                         <span className="badge-context">
@@ -328,12 +418,22 @@ export const BindingTable: React.FC<BindingTableProps> = ({
                         <span className="badge-action-code">
                           {action.name}
                         </span>
+                        {action.description && (
+                          <span className="text-[11px] text-[#64748b] truncate max-w-[160px]" title={action.description}>
+                            {action.description}
+                          </span>
+                        )}
                       </div>
                     </td>
 
                     {/* Inputs */}
                     <td className="py-3 px-3 align-top">
-                      {action.inputs.length === 0 ? (
+                      {isUnbound ? (
+                        <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-slate-800/50 text-slate-400 border border-slate-700/60 inline-flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                          Unbound in Profile
+                        </span>
+                      ) : action.inputs.length === 0 ? (
                         <span className="text-xs text-[#64748b] italic">Unbound</span>
                       ) : (
                         <div className="input-chips-container">
@@ -379,7 +479,11 @@ export const BindingTable: React.FC<BindingTableProps> = ({
 
                     {/* Conflict Status */}
                     <td className="py-3 px-3 align-top">
-                      {conflictStatus === 'fatal' ? (
+                      {isUnbound ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-mono text-slate-500 italic">
+                          Ready to bind
+                        </span>
+                      ) : conflictStatus === 'fatal' ? (
                         <span className="conflict-badge conflict-badge-fatal">
                           <AlertOctagon className="w-3.5 h-3.5 mr-1" />
                           <span>Fatal Conflict</span>
@@ -409,14 +513,25 @@ export const BindingTable: React.FC<BindingTableProps> = ({
 
                     {/* Actions */}
                     <td className="py-3 px-3 align-top text-right">
-                      <button
-                        onClick={() => onEditAction(mapName, action)}
-                        className="px-2.5 py-1.5 rounded bg-[#090d15] border border-[#2d415f] hover:border-[#00e5ff] text-[#94a3b8] hover:text-[#00e5ff] transition-all inline-flex items-center gap-1.5 text-xs font-mono"
-                        title="Edit bindings for this action"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                        <span>Edit</span>
-                      </button>
+                      {isUnbound ? (
+                        <button
+                          onClick={() => onEditAction(mapName, action)}
+                          className="px-3 py-1.5 rounded bg-[rgba(0,240,255,0.12)] hover:bg-[#00f0ff] text-[#00f0ff] hover:text-black border border-[#00f0ff]/40 hover:border-[#00f0ff] transition-all inline-flex items-center gap-1.5 text-xs font-mono font-bold shadow-[0_0_10px_rgba(0,240,255,0.15)]"
+                          title="Assign hardware binding to this catalog action"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>+ Bind</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => onEditAction(mapName, action)}
+                          className="px-2.5 py-1.5 rounded bg-[#090d15] border border-[#2d415f] hover:border-[#00e5ff] text-[#94a3b8] hover:text-[#00e5ff] transition-all inline-flex items-center gap-1.5 text-xs font-mono"
+                          title="Edit bindings for this action"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                          <span>Edit</span>
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );
@@ -507,6 +622,20 @@ export const BindingTable: React.FC<BindingTableProps> = ({
           </div>
         </div>
       )}
+
+      {/* Add Custom Action Modal */}
+      <AddCustomActionModal
+        isOpen={isAddCustomModalOpen}
+        onClose={() => setIsAddCustomModalOpen(false)}
+        onAddAction={(mapName, actionName, label) => {
+          onEditAction(mapName, {
+            name: actionName,
+            label: label,
+            inputs: []
+          });
+        }}
+        knownActionMaps={actionMapsList}
+      />
     </div>
   );
 };

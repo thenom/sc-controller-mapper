@@ -23,7 +23,7 @@ interface BindingEditorModalProps {
   action: ActionBinding;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (mapName: string, actionName: string, inputs: BindingInput[]) => void;
+  onSave: (mapName: string, actionName: string, inputs: BindingInput[], label?: string) => void;
 }
 
 export const BindingEditorModal: React.FC<BindingEditorModalProps> = ({
@@ -117,7 +117,7 @@ export const BindingEditorModal: React.FC<BindingEditorModalProps> = ({
   };
 
   const handleSave = () => {
-    onSave(mapName, action.name, inputs);
+    onSave(mapName, action.name, inputs, action.label);
     onClose();
   };
 

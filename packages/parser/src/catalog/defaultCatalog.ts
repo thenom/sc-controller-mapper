@@ -1,0 +1,206 @@
+import type { MasterActionCatalog } from '@sc-mapping/shared-types';
+
+export const MASTER_ACTION_CATALOG: MasterActionCatalog = {
+  spaceship_movement: {
+    mapName: "spaceship_movement",
+    label: "Spaceship Flight & Movement",
+    domain: "spaceship",
+    actions: [
+      { name: "v_pitch", label: "Pitch", category: "Flight Controls", description: "Rotate spaceship pitch up/down axis" },
+      { name: "v_yaw", label: "Yaw", category: "Flight Controls", description: "Rotate spaceship yaw left/right axis" },
+      { name: "v_roll", label: "Roll", category: "Flight Controls", description: "Roll spaceship banking left/right axis" },
+      { name: "v_strafe_lateral", label: "Strafe Lateral", category: "Flight Controls", description: "Translate spaceship left/right axis" },
+      { name: "v_strafe_longitudinal", label: "Strafe Longitudinal (Throttle)", category: "Flight Controls", description: "Translate spaceship forward/backward axis" },
+      { name: "v_strafe_vertical", label: "Strafe Vertical", category: "Flight Controls", description: "Translate spaceship up/down axis" },
+      { name: "v_strafe_forward", label: "Strafe Forward", category: "Flight Controls", description: "Translate forward direction" },
+      { name: "v_strafe_back", label: "Strafe Back", category: "Flight Controls", description: "Translate backward direction" },
+      { name: "v_strafe_left", label: "Strafe Left", category: "Flight Controls", description: "Translate left direction" },
+      { name: "v_strafe_right", label: "Strafe Right", category: "Flight Controls", description: "Translate right direction" },
+      { name: "v_strafe_up", label: "Strafe Up", category: "Flight Controls", description: "Translate up direction" },
+      { name: "v_strafe_down", label: "Strafe Down", category: "Flight Controls", description: "Translate down direction" },
+      { name: "v_boost", label: "Afterburner / Boost", category: "Flight Movement", description: "Engage engine boost to enhance thrust output and acceleration" },
+      { name: "v_spacebreak", label: "Spacebrake", category: "Flight Movement", description: "Engage retro thrusters to bring the spaceship to an immediate halt" },
+      { name: "v_nav_flight_mode_toggle", label: "Master Modes SCM / NAV Toggle", category: "Flight Movement", description: "Toggle between Standard Control Model (SCM) and Navigation (NAV) flight modes" },
+      { name: "v_flightready", label: "Flight Ready", category: "Flight Systems", description: "Power on all vehicle systems, shields, engines, and avionics" },
+      { name: "v_gear", label: "Landing Gear", category: "Flight Systems", description: "Deploy or retract landing gear assemblies" },
+      { name: "v_autoland", label: "Autoland", category: "Flight Systems", description: "Request automated landing on designated landing pad or hangar" },
+      { name: "v_vtol_toggle", label: "VTOL Mode Toggle", category: "Flight Movement", description: "Toggle variable thruster geometry between horizontal flight and vertical takeoff" },
+      { name: "v_decoupled", label: "Decoupled Mode Toggle", category: "Flight Movement", description: "Toggle IFCS vector coupling on/off" },
+      { name: "v_lights_toggle", label: "Headlights Toggle", category: "Cockpit General", description: "Toggle exterior ship headlights" },
+      { name: "v_eject", label: "Emergency Eject", category: "Cockpit General", description: "Eject pilot seat from vehicle" },
+      { name: "v_self_destruct", label: "Self Destruct", category: "Cockpit General", description: "Initiate ship self-destruct sequence countdown" },
+      { name: "v_jettison_cargo", label: "Jettison Cargo", category: "Cargo Operations", description: "Release exterior cargo grid clamps and dump containers" }
+    ]
+  },
+  spaceship_weapons: {
+    mapName: "spaceship_weapons",
+    label: "Spaceship Weapons",
+    domain: "spaceship",
+    actions: [
+      { name: "v_attack1_group1", label: "Fire Weapon Group 1", category: "Weapons", description: "Discharge primary weapon group (Guns / Lasers)", masterFlightMode: "SCM" },
+      { name: "v_attack1_group2", label: "Fire Weapon Group 2", category: "Weapons", description: "Discharge secondary weapon group", masterFlightMode: "SCM" },
+      { name: "v_weapon_pip_type_toggle", label: "Cycle Lead / Lag PIP", category: "Combat HUD", description: "Toggle targeting predictive indicator between lead reticle and lag reticle", masterFlightMode: "SCM" },
+      { name: "v_weapon_manual_gimbal_mode", label: "Cycle Gimbal Modes", category: "Weapons", description: "Cycle between Fixed, Auto-Gimbal, and Manual Gimbal target tracking" },
+      { name: "v_weapon_cycle_convergence", label: "Cycle Weapon Convergence", category: "Weapons", description: "Adjust weapon convergence focal distance" }
+    ]
+  },
+  spaceship_missiles: {
+    mapName: "spaceship_missiles",
+    label: "Spaceship Missiles",
+    domain: "spaceship",
+    actions: [
+      { name: "v_missile_mode_toggle", label: "Missile Operator Mode (MOM)", category: "Missiles", description: "Enter or exit dedicated missile targeting and lock mode", masterFlightMode: "SCM" },
+      { name: "v_missile_launch", label: "Launch Armed Missiles", category: "Missiles", description: "Fire missile(s) currently locked on target", masterFlightMode: "SCM" },
+      { name: "v_missile_lock_focus", label: "Acquire Missile Lock", category: "Missiles", description: "Initiate radar / IR / EM seeker lock on targeted vehicle", masterFlightMode: "SCM" },
+      { name: "v_missile_cycle_type", label: "Cycle Missile Payload", category: "Missiles", description: "Cycle between equipped missile rack types" },
+      { name: "v_missile_increase_armed_count", label: "Increase Armed Missile Count", category: "Missiles", description: "Arm additional concurrent missiles for salvo fire" },
+      { name: "v_missile_decrease_armed_count", label: "Decrease Armed Missile Count", category: "Missiles", description: "Reduce concurrent armed missile count" }
+    ]
+  },
+  spaceship_defensive: {
+    mapName: "spaceship_defensive",
+    label: "Spaceship Defensive & Countermeasures",
+    domain: "spaceship",
+    actions: [
+      { name: "v_countermeasure_launch", label: "Launch Decoy (Flare)", category: "Countermeasures", description: "Deploy decoy to distract incoming radar and heat-seeking missiles" },
+      { name: "v_countermeasure_panic", label: "Launch Noise (Chaff)", category: "Countermeasures", description: "Deploy noise cloud to break enemy target tracking lock" },
+      { name: "v_shield_raise_level_forward", label: "Shield Divert Forward", category: "Shields", description: "Divert shield power to front quadrant" },
+      { name: "v_shield_raise_level_back", label: "Shield Divert Aft", category: "Shields", description: "Divert shield power to rear quadrant" },
+      { name: "v_shield_raise_level_left", label: "Shield Divert Left", category: "Shields", description: "Divert shield power to port quadrant" },
+      { name: "v_shield_raise_level_right", label: "Shield Divert Right", category: "Shields", description: "Divert shield power to starboard quadrant" },
+      { name: "v_shield_reset_levels", label: "Shield Equalize", category: "Shields", description: "Reset shield distribution to equal quadrants" }
+    ]
+  },
+  spaceship_target_targeting: {
+    mapName: "spaceship_target_targeting",
+    label: "Spaceship Targeting",
+    domain: "spaceship",
+    actions: [
+      { name: "v_target_lock_selected", label: "Lock Selected Target", category: "Targeting", description: "Set locked target state on vessel in crosshair", masterFlightMode: "SCM" },
+      { name: "v_target_lock_selected_closest_hostile", label: "Target Nearest Hostile", category: "Targeting", description: "Instantly lock closest hostile combatant", masterFlightMode: "SCM" },
+      { name: "v_target_cycle_hostile_fwd", label: "Cycle Hostiles (Next)", category: "Targeting", description: "Target next enemy vehicle in radar range" },
+      { name: "v_target_cycle_hostile_back", label: "Cycle Hostiles (Prev)", category: "Targeting", description: "Target previous enemy vehicle in radar range" },
+      { name: "v_target_cycle_all_fwd", label: "Cycle All Contacts (Next)", category: "Targeting", description: "Cycle next radar contact (allied, neutral, hostile)" },
+      { name: "v_target_cycle_pinned", label: "Cycle Pinned Targets", category: "Targeting", description: "Cycle active target selection through pinned contact slots" },
+      { name: "v_target_pin_selected", label: "Pin Selected Target", category: "Targeting", description: "Pin current target into HUD quick-tracking slot" },
+      { name: "v_target_unpin_selected", label: "Unpin Selected Target", category: "Targeting", description: "Remove current target from pinned slot" },
+      { name: "v_target_cycle_subtarget_fwd", label: "Cycle Sub-Target (Next)", category: "Targeting", description: "Target specific subsystem (engines, weapons, power plant)" }
+    ]
+  },
+  spaceship_quantum: {
+    mapName: "spaceship_quantum",
+    label: "Quantum Travel",
+    domain: "spaceship",
+    actions: [
+      { name: "v_quantum_spool", label: "Quantum Spool / Align", category: "Quantum Travel", description: "Spool quantum drive engine toward selected navigation beacon", masterFlightMode: "NAV" },
+      { name: "v_quantum_travel", label: "Engage Quantum Travel", category: "Quantum Travel", description: "Jump into quantum space towards calibrated beacon", masterFlightMode: "NAV" }
+    ]
+  },
+  spaceship_mining: {
+    mapName: "spaceship_mining",
+    label: "Mining Operator Mode",
+    domain: "spaceship",
+    actions: [
+      { name: "v_toggle_mining_mode", label: "Mining Operator Mode Toggle", category: "Mining", description: "Toggle cockpit into dedicated mining laser stance" },
+      { name: "v_toggle_mining_laser_type", label: "Toggle Mining Laser Mode", category: "Mining", description: "Switch mining laser between Fracture beam and Extraction beam" },
+      { name: "v_mining_throttle", label: "Mining Laser Throttle", category: "Mining", description: "Adjust mining laser power intensity (0-100%)" },
+      { name: "v_mining_use_consumable_1", label: "Use Mining Module 1", category: "Mining", description: "Activate equipped laser sub-module consumable 1" },
+      { name: "v_mining_use_consumable_2", label: "Use Mining Module 2", category: "Mining", description: "Activate equipped laser sub-module consumable 2" },
+      { name: "v_mining_use_consumable_3", label: "Use Mining Module 3", category: "Mining", description: "Activate equipped laser sub-module consumable 3" }
+    ]
+  },
+  spaceship_salvage: {
+    mapName: "spaceship_salvage",
+    label: "Salvage Operator Mode",
+    domain: "spaceship",
+    actions: [
+      { name: "v_toggle_salvage_mode", label: "Salvage Operator Mode Toggle", category: "Salvage", description: "Toggle cockpit into dedicated hull scraping / structural salvage mode" },
+      { name: "v_salvage_axis", label: "Salvage Gimbal Axis", category: "Salvage", description: "Aim salvage laser scraping heads" },
+      { name: "v_salvage_beam_spacing_increase", label: "Increase Beam Spacing", category: "Salvage", description: "Widen salvage scraping head separation" },
+      { name: "v_salvage_beam_spacing_decrease", label: "Decrease Beam Spacing", category: "Salvage", description: "Narrow salvage scraping head separation" },
+      { name: "v_salvage_cycle_focus", label: "Cycle Salvage Beam Focus", category: "Salvage", description: "Switch between scraping and disintegration laser mode" }
+    ]
+  },
+  spaceship_scanning: {
+    mapName: "spaceship_scanning",
+    label: "Scanning & Radar",
+    domain: "spaceship",
+    actions: [
+      { name: "v_toggle_scan_mode", label: "Scanning Operator Mode Toggle", category: "Scanning & Radar", description: "Enter scanning mode to analyze vessels and signatures" },
+      { name: "v_ping", label: "Radar Active Ping", category: "Scanning & Radar", description: "Send active radar pulse to reveal distant signatures and mineables" },
+      { name: "v_scan_increase_angle", label: "Increase Radar Ping Angle", category: "Scanning & Radar", description: "Expand radar cone width (up to 360 deg)" },
+      { name: "v_scan_decrease_angle", label: "Decrease Radar Ping Angle", category: "Scanning & Radar", description: "Narrow radar cone for deep concentrated sensor sweep" }
+    ]
+  },
+  spaceship_power: {
+    mapName: "spaceship_power",
+    label: "Spaceship Power Systems",
+    domain: "spaceship",
+    actions: [
+      { name: "v_power_toggle", label: "Power Plant Master Toggle", category: "Power Management", description: "Toggle main ship power distribution on/off" },
+      { name: "v_power_set_thrusters_on", label: "Engines Power Toggle", category: "Power Management", description: "Toggle power specifically to maneuvering and main thrusters" },
+      { name: "v_power_set_shields_on", label: "Shields Power Toggle", category: "Power Management", description: "Toggle power to shield generators" },
+      { name: "v_power_set_weapons_on", label: "Weapons Power Toggle", category: "Power Management", description: "Toggle power to weapons and capacitors" },
+      { name: "v_power_triangle_up", label: "Power Triangle: Weapons Priority", category: "Power Triangle", description: "Divert maximum generator power to weapons recharge" },
+      { name: "v_power_triangle_left", label: "Power Triangle: Engines Priority", category: "Power Triangle", description: "Divert maximum generator power to boost and thruster recharge" },
+      { name: "v_power_triangle_right", label: "Power Triangle: Shields Priority", category: "Power Triangle", description: "Divert maximum generator power to shield pool regen" },
+      { name: "v_power_triangle_reset", label: "Power Triangle: Balance", category: "Power Triangle", description: "Reset power allocation equally (33% / 33% / 33%)" }
+    ]
+  },
+  seat_general: {
+    mapName: "seat_general",
+    label: "Seat & Ship Access",
+    domain: "spaceship",
+    actions: [
+      { name: "v_emergency_exit", label: "Emergency Exit Seat", category: "Seat General", description: "Instantly vacate pilot or operator chair" },
+      { name: "v_open_all_doors", label: "Open All Exterior Doors", category: "Ship Access", description: "Open all ship ramps, airlocks, and elevators" },
+      { name: "v_close_all_doors", label: "Close All Exterior Doors", category: "Ship Access", description: "Close all exterior ship entry points" },
+      { name: "v_lock_all_doors", label: "Lock All Doors", category: "Ship Access", description: "Engage security lock on all doors and ramps" },
+      { name: "v_unlock_all_doors", label: "Unlock All Doors", category: "Ship Access", description: "Disengage security lock on all doors and ramps" }
+    ]
+  },
+  ground_vehicle_movement: {
+    mapName: "ground_vehicle_movement",
+    label: "Ground Vehicle Movement",
+    domain: "ground_vehicle",
+    actions: [
+      { name: "v_accelerate", label: "Accelerate (Drive)", category: "Ground Driving", description: "Drive ground vehicle forward" },
+      { name: "v_decelerate", label: "Brake / Reverse", category: "Ground Driving", description: "Apply brakes or drive in reverse" },
+      { name: "v_steer_left", label: "Steer Left", category: "Ground Driving", description: "Steer wheels or tracks left" },
+      { name: "v_steer_right", label: "Steer Right", category: "Ground Driving", description: "Steer wheels or tracks right" },
+      { name: "v_handbrake", label: "Handbrake", category: "Ground Driving", description: "Engage emergency parking brake for tight turns or slides" },
+      { name: "v_boost", label: "Ground Vehicle Boost", category: "Ground Driving", description: "Engage vehicle engine overcharge" }
+    ]
+  },
+  player: {
+    mapName: "player",
+    label: "Player On-Foot & EVA",
+    domain: "onfoot",
+    actions: [
+      { name: "player_move_forward", label: "Move Forward", category: "On-Foot Movement", description: "Walk / run forward" },
+      { name: "player_move_backward", label: "Move Backward", category: "On-Foot Movement", description: "Walk / run backward" },
+      { name: "player_strafe_left", label: "Strafe Left", category: "On-Foot Movement", description: "Step left" },
+      { name: "player_strafe_right", label: "Strafe Right", category: "On-Foot Movement", description: "Step right" },
+      { name: "player_sprint", label: "Sprint", category: "On-Foot Movement", description: "Run at maximum sprint speed" },
+      { name: "player_jump", label: "Jump", category: "On-Foot Movement", description: "Vault or leap obstacle" },
+      { name: "player_crouch", label: "Crouch", category: "On-Foot Movement", description: "Lower stance into crouch" },
+      { name: "player_prone", label: "Prone", category: "On-Foot Movement", description: "Lie prone on ground" },
+      { name: "player_interact", label: "Interact (Inner Thought)", category: "Interaction", description: "Open interaction wheel / press cockpit button" },
+      { name: "weapon_fire", label: "Fire Held Weapon", category: "FPS Combat", description: "Discharge equipped firearm or multi-tool" },
+      { name: "weapon_aim", label: "Aim Down Sights (ADS)", category: "FPS Combat", description: "Look through optic or iron sights" },
+      { name: "weapon_reload", label: "Reload Weapon", category: "FPS Combat", description: "Insert fresh magazine into weapon" }
+    ]
+  },
+  turret: {
+    mapName: "turret",
+    label: "Manned & Remote Turrets",
+    domain: "turret",
+    actions: [
+      { name: "turret_pitch", label: "Turret Pitch", category: "Manned Turret", description: "Aim turret vertical elevation axis" },
+      { name: "turret_yaw", label: "Turret Yaw", category: "Manned Turret", description: "Aim turret horizontal azimuth axis" },
+      { name: "turret_fire", label: "Fire Turret Guns", category: "Manned Turret", description: "Fire mounted turret weapons" },
+      { name: "turret_gyromode", label: "Turret Gyro Mode Toggle", category: "Manned Turret", description: "Toggle turret gyroscope stabilization relative to ship hull" },
+      { name: "turret_recenter", label: "Recenter Turret", category: "Manned Turret", description: "Return turret orientation to default forward position" }
+    ]
+  }
+};
