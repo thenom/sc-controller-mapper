@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "license": "AGPL-3.0-or-later",
   "description": "Star Citizen Keybinding Management Suite - Architecture and Core Modules",
   "workspaces": [
     "packages/*",
