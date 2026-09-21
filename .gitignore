@@ -3,8 +3,8 @@ node_modules/
 dist/
 build/
 .cache/
+coverage/
 *.tsbuildinfo
-
 
 # Binary builds
 daemon/bin/
@@ -19,4 +19,23 @@ daemon/sc-daemon.exe
 
 # Local configuration overrides
 .env
+.env.local
+*.env.local
 /game-data.json
+
+# OpenTofu & Terraform Local State & Variables
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform/
+.tofu/
+.terraform.lock.hcl
+crash.log
+
+# Cloud Provider Credentials & Secrets
+*gcp-key*.json
+service-account*.json
+credentials.json
+*.pem
+*.key

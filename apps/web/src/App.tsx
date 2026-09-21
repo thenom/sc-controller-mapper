@@ -20,6 +20,11 @@ import { BindingTable } from './components/BindingTable';
 import { BindingEditorModal } from './components/BindingEditorModal';
 import { HardwareInspector } from './components/HardwareInspector';
 import { HardwareGeneratorModal } from './components/HardwareGeneratorModal';
+import { 
+  SupporterFuelBadge, 
+  HardwareAffiliateCard, 
+  AdSenseSlot 
+} from './components/MonetizationSlot';
 import { useGamepadListener } from './hooks/useGamepadListener';
 import { 
   Upload, 
@@ -344,8 +349,9 @@ export const App: React.FC = () => {
         </div>
 
         {/* Global Action Toolbar */}
-        {/* Global Action Toolbar */}
         <div className="flex items-center flex-wrap gap-2.5">
+          <SupporterFuelBadge />
+
           <button 
             onClick={() => setIsHardwareStudioOpen(true)}
             className="btn-sci-fi text-[#ffb700] border-[#ffb700] hover:bg-[rgba(255,183,0,0.12)] shadow-[0_0_12px_rgba(255,183,0,0.25)]"
@@ -550,6 +556,12 @@ export const App: React.FC = () => {
           />
         </div>
       )}
+
+      {/* Monetization & Community Telemetry */}
+      <section className="mt-8 space-y-4">
+        <AdSenseSlot />
+        <HardwareAffiliateCard />
+      </section>
 
       {/* Interactive Binding Editor Modal */}
       {editingTarget && (

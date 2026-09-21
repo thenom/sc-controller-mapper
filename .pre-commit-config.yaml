@@ -1,0 +1,45 @@
+# See https://pre-commit.com for more information
+# To install: pip install pre-commit && pre-commit install
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        exclude: ^(\.github/|helm/)
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=2048']
+
+  # Secret and credential leak prevention
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.2
+    hooks:
+      - id: gitleaks
+
+  # Local validation hooks
+  - repo: local
+    hooks:
+      - id: tofu-fmt
+        name: OpenTofu Format Check
+        entry: tofu fmt -check
+        language: system
+        files: \.tf$
+        pass_filenames: false
+
+      - id: npm-typecheck
+        name: TypeScript Workspace Typecheck
+        entry: npm run build
+        language: system
+        files: \.(ts|tsx)$
+        pass_filenames: false
+
+      - id: vitest-unit-tests
+        name: Vitest Unit & Component Tests
+        entry: npm test
+        language: system
+        files: \.(ts|tsx)$
+        pass_filenames: false

@@ -263,11 +263,20 @@ export class ConflictResolver {
    * Checks if two inputs share the exact physical hardware trigger (prefix + key + modifiers)
    */
   private static arePhysicalInputsEqual(a: BindingInput, b: BindingInput): boolean {
-    if (a.devicePrefix.toLowerCase() !== b.devicePrefix.toLowerCase()) {
+    // If inputs are identical strings, they match immediately
+    if (a.input && b.input && a.input.toLowerCase() === b.input.toLowerCase()) {
+      return true;
+    }
+
+    const prefixA = a.devicePrefix || (a.input && a.input.includes('_') ? a.input.split('_')[0] : '');
+    const prefixB = b.devicePrefix || (b.input && b.input.includes('_') ? b.input.split('_')[0] : '');
+    if (prefixA.toLowerCase() !== prefixB.toLowerCase()) {
       return false;
     }
 
-    if (a.hardwareKey.toLowerCase() !== b.hardwareKey.toLowerCase()) {
+    const keyA = a.hardwareKey || (a.input && a.input.includes('_') ? a.input.split('_').slice(1).join('_') : a.input || '');
+    const keyB = b.hardwareKey || (b.input && b.input.includes('_') ? b.input.split('_').slice(1).join('_') : b.input || '');
+    if (keyA.toLowerCase() !== keyB.toLowerCase()) {
       return false;
     }
 

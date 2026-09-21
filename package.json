@@ -2,6 +2,7 @@
   "name": "sc-mapping-workspace",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Star Citizen Keybinding Management Suite - Architecture and Core Modules",
   "workspaces": [
     "packages/*",
@@ -10,17 +11,21 @@
   "scripts": {
     "dev": "npm run --workspace=@sc-mapping/web dev",
     "build": "npm run --workspace=@sc-mapping/shared-types build && npm run --workspace=@sc-mapping/parser build && npm run --workspace=@sc-mapping/resolver build && npm run --workspace=@sc-mapping/web build",
-    "test": "npm run --workspaces --if-present test",
+    "test": "vitest run",
     "daemon:build": "cd daemon && go build -o bin/sc-daemon main.go"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "^26.6.1",
-    "typescript": "^5.9.3"
+    "jsdom": "^30.1.0",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.1"
   },
   "dependencies": {
     "@xmldom/xmldom": "^0.9.12",
     "lucide-react": "^1.47.0",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   }
 }
