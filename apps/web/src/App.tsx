@@ -38,6 +38,7 @@ import {
   AlertOctagon,
   Info,
   ShieldCheck,
+  Terminal,
   X
 } from 'lucide-react';
 
@@ -126,6 +127,7 @@ export const App: React.FC = () => {
 
   // Hardware Generator / Submission Studio Modal State
   const [isHardwareStudioOpen, setIsHardwareStudioOpen] = useState(false);
+  const [isContributorToolsOpen, setIsContributorToolsOpen] = useState(false);
 
   // Modal State for Interactive Binding Editor
   const [editingTarget, setEditingTarget] = useState<{
@@ -308,7 +310,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="w-full max-w-7xl mx-auto px-4 py-8">
       {/* Cockpit HUD Header */}
       <header className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 pb-6 border-b border-[#2d415f] mb-6">
         <div>
@@ -342,6 +344,7 @@ export const App: React.FC = () => {
         </div>
 
         {/* Global Action Toolbar */}
+        {/* Global Action Toolbar */}
         <div className="flex items-center flex-wrap gap-2.5">
           <button 
             onClick={() => setIsHardwareStudioOpen(true)}
@@ -352,28 +355,9 @@ export const App: React.FC = () => {
             Hardware Studio
           </button>
 
-          <button 
-            onClick={handleLoadLiveData} 
-            className="btn-sci-fi text-[#00f0ff] border-[#00f0ff] hover:bg-[rgba(0,240,255,0.12)]"
-            disabled={isLoadingLive}
-            title="Load live base game profile extracted from Data.p4k"
-          >
-            <Database className="w-4 h-4" />
-            {isLoadingLive ? 'Loading...' : 'LIVE Game Data'}
-          </button>
-
-          <button 
-            onClick={handleSyncDaemon} 
-            className="btn-sci-fi text-[#00ff88] border-[#00ff88] hover:bg-[rgba(0,255,136,0.12)]"
-            title="Sync from sc-daemon HTTP API at 127.0.0.1:8765"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Sync Daemon {daemonStatus && `(${daemonStatus})`}
-          </button>
-
-          <label className="btn-sci-fi cursor-pointer" title="Import an actionmaps.xml or daemon game-data.json">
+          <label className="btn-sci-fi cursor-pointer" title="Import an actionmaps.xml or custom profile">
             <Upload className="w-4 h-4" />
-            Import
+            Import XML
             <input type="file" accept=".xml,.json" onChange={handleFileUpload} className="hidden" />
           </label>
 
@@ -381,15 +365,27 @@ export const App: React.FC = () => {
             <Download className="w-4 h-4" />
             Export XML
           </button>
+
+          <button 
+            onClick={() => setIsContributorToolsOpen(true)} 
+            className="btn-sci-fi text-[#8492a6] border-[#2d415f] hover:text-[#00e5ff] hover:border-[#00e5ff]"
+            title="Developer & Contributor Hub: sc-daemon extraction, local sync, and game patch PR tools"
+          >
+            <Terminal className="w-4 h-4" />
+            Contributor Tools
+          </button>
         </div>
       </header>
 
       {/* Profile Telemetry Bar */}
       <div className="glass-panel p-3.5 mb-6 flex flex-wrap items-center justify-between gap-4 text-xs">
-        {/* Presets */}
-        <div className="flex items-center gap-2">
+        {/* Starter Presets (Templates) */}
+        <div className="flex items-center gap-2 flex-wrap">
           <Sparkles className="w-4 h-4 text-[#ffb700]" />
-          <span className="text-[#94a3b8] font-semibold uppercase tracking-wider text-[11px]">Presets:</span>
+          <div className="flex items-center gap-1.5 mr-1">
+            <span className="text-[#94a3b8] font-semibold uppercase tracking-wider text-[11px]">Starter Presets:</span>
+            <span className="text-[10px] text-[#64748b] hidden sm:inline" title="Baseline example templates for popular setups. They do not alter engine rules.">(Templates)</span>
+          </div>
           <div className="flex items-center gap-1.5 flex-wrap">
             <button
               onClick={() => handleLoadSamplePreset('vkb_evo_hosas_omni.xml', 'Dual VKB (Right + Omni Left)')}
@@ -398,6 +394,7 @@ export const App: React.FC = () => {
                   ? 'bg-[#00f0ff] text-black font-bold shadow-[0_0_12px_rgba(0,240,255,0.4)]'
                   : 'bg-[#090d15] text-[#94a3b8] border border-[#2d415f] hover:border-[#00f0ff]'
               }`}
+              title="Starter template: Right VKB Gladiator EVO + Left Omni-Throttle (OTA)"
             >
               Dual VKB (Right + Omni Left OTA)
             </button>
@@ -408,6 +405,7 @@ export const App: React.FC = () => {
                   ? 'bg-[#00f0ff] text-black font-bold shadow-[0_0_12px_rgba(0,240,255,0.4)]'
                   : 'bg-[#090d15] text-[#94a3b8] border border-[#2d415f] hover:border-[#00f0ff]'
               }`}
+              title="Starter template: Dual standard VKB Gladiator EVO flight sticks"
             >
               Dual VKB EVO (HOSAS)
             </button>
@@ -418,6 +416,7 @@ export const App: React.FC = () => {
                   ? 'bg-[#00f0ff] text-black font-bold shadow-[0_0_12px_rgba(0,240,255,0.4)]'
                   : 'bg-[#090d15] text-[#94a3b8] border border-[#2d415f] hover:border-[#00f0ff]'
               }`}
+              title="Starter template: Thrustmaster T.16000M Flight Stick + TWCS Throttle"
             >
               Thrustmaster T.16000M (HOTAS)
             </button>
@@ -630,6 +629,95 @@ export const App: React.FC = () => {
             <div className="pt-2 flex justify-end">
               <button
                 onClick={() => setIsVersionInfoOpen(false)}
+                className="px-4 py-1.5 rounded bg-[#1e293b] hover:bg-[#334155] text-white text-xs font-semibold transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Contributor & Maintainer Tools Modal */}
+      {isContributorToolsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="glass-panel w-full max-w-xl p-6 border-[#2d415f] shadow-[0_0_30px_rgba(0,0,0,0.8)] space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#2d415f]">
+              <div className="flex items-center gap-2 text-[#00f0ff]">
+                <Terminal className="w-5 h-5" />
+                <h3 className="text-base font-bold text-white tracking-wide">
+                  Contributor Hub & Extraction Daemon (<code className="text-[#00f0ff]">sc-daemon</code>)
+                </h3>
+              </div>
+              <button 
+                onClick={() => setIsContributorToolsOpen(false)}
+                className="text-[#94a3b8] hover:text-white p-1 rounded hover:bg-white/10 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3.5 text-xs text-[#cbd5e1] leading-relaxed">
+              <div className="p-3 rounded bg-[rgba(0,240,255,0.06)] border border-[#00f0ff]/30 space-y-1.5">
+                <div className="text-[#00f0ff] font-semibold flex items-center gap-1.5">
+                  <Info className="w-4 h-4" />
+                  Who is this for?
+                </div>
+                <p className="text-[11px] text-[#e2e8f0]">
+                  This section is <strong>only for developers and project contributors</strong> updating this repository with new Star Citizen game patches. Regular players do not need to run or sync the daemon to remap, re-index, or export their keybinding profiles.
+                </p>
+              </div>
+
+              <p>
+                When RSI releases a patch (e.g. 4.10.x), contributors run <code className="text-[#00f0ff]">sc-daemon</code> locally against their installed Star Citizen game files to decrypt CryEngine assets, extract updated actions/tokens, and submit a Pull Request.
+              </p>
+
+              <div className="p-3.5 rounded bg-[#090d15] border border-[#2d415f] space-y-2">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-[#94a3b8]">Local Daemon Status:</span>
+                  <span className={`font-mono font-bold ${daemonStatus ? 'text-[#00ff88]' : 'text-[#8492a6]'}`}>
+                    {daemonStatus ? `Active (${daemonStatus})` : 'Idle / Standby (127.0.0.1:8765)'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 pt-2 border-t border-[#2d415f]/50">
+                  <button 
+                    onClick={handleSyncDaemon} 
+                    className="btn-sci-fi text-[#00ff88] border-[#00ff88] hover:bg-[rgba(0,255,136,0.12)] text-xs flex-1"
+                    title="Connect to sc-daemon HTTP API at 127.0.0.1:8765"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    Sync with Local Daemon
+                  </button>
+                  <button 
+                    onClick={handleLoadLiveData} 
+                    className="btn-sci-fi text-[#00f0ff] border-[#00f0ff] hover:bg-[rgba(0,240,255,0.12)] text-xs flex-1"
+                    disabled={isLoadingLive}
+                    title="Load extracted Star Citizen LIVE base profile"
+                  >
+                    <Database className="w-3.5 h-3.5" />
+                    {isLoadingLive ? 'Loading...' : 'Load Extracted LIVE Data'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <span className="text-[11px] font-semibold text-[#94a3b8]">Contributor CLI Workflow:</span>
+                <pre className="p-2.5 rounded bg-[#090d15] border border-[#2d415f] text-[11px] font-mono text-[#00f0ff] overflow-x-auto">
+{`# 1. Build the extraction binary
+npm run daemon:build
+
+# 2. Extract Data.p4k game assets for PR submission
+./daemon/bin/sc-daemon extract --p4k="<path>/LIVE/Data.p4k"
+
+# 3. (Optional) Run the local HTTP server
+./daemon/bin/sc-daemon serve --port=8765`}
+                </pre>
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setIsContributorToolsOpen(false)}
                 className="px-4 py-1.5 rounded bg-[#1e293b] hover:bg-[#334155] text-white text-xs font-semibold transition-colors"
               >
                 Close

@@ -19,7 +19,11 @@ import {
   Mouse,
   ChevronLeft,
   ChevronRight,
-  CheckCircle
+  CheckCircle,
+  HelpCircle,
+  Table,
+  X,
+  Info
 } from 'lucide-react';
 
 interface BindingTableProps {
@@ -48,6 +52,7 @@ export const BindingTable: React.FC<BindingTableProps> = ({
   const [selectedMap, setSelectedMap] = useState<string>('all');
   const [selectedDevice, setSelectedDevice] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
 
   // Set of actions that have fatal conflicts or warnings
   const actionConflictMap = useMemo(() => {
@@ -141,6 +146,29 @@ export const BindingTable: React.FC<BindingTableProps> = ({
 
   return (
     <div className="glass-panel p-5">
+      {/* Section Header with Description and Help Modal */}
+      <div className="flex items-center justify-between pb-3 mb-4 border-b border-[#2d415f]">
+        <div>
+          <div className="flex items-center gap-2">
+            <Table className="w-4 h-4 text-[#00f0ff]" />
+            <h2 className="text-base text-[#e2e8f0] font-semibold tracking-wider">
+              Keybinding Matrix & Rebind Engine
+            </h2>
+            <button
+              onClick={() => setIsHelpOpen(true)}
+              className="btn-help"
+              title="Learn what the Keybinding Matrix does and how to use it"
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+              <span>What's this?</span>
+            </button>
+          </div>
+          <p className="text-xs text-[#94a3b8] mt-1">
+            Search, filter, and inspect actions across all 50 CryEngine action maps. Rebind inputs, add chords, or customize activation modes.
+          </p>
+        </div>
+      </div>
+
       {/* Controls & Filter Bar */}
       <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 mb-6 pb-4 border-b border-[#2d415f]">
         {/* Search & Hardware Listening */}
@@ -233,12 +261,14 @@ export const BindingTable: React.FC<BindingTableProps> = ({
 
       {/* Action Table Header */}
       <div className="flex items-center justify-between text-xs text-[#8492a6] mb-3 px-1">
-        <span>
-          Showing <strong className="text-white">{filteredList.length}</strong> actions
+        <div>
+          Showing <strong className="text-white font-mono">{filteredList.length}</strong> actions
           {selectedMap !== 'all' && ` in ${selectedMap}`}
           {selectedDevice !== 'all' && ` (Device: ${selectedDevice.toUpperCase()})`}
-        </span>
-        <span>Page {currentPage} of {totalPages}</span>
+        </div>
+        <div className="font-mono">
+          Page {currentPage} of {totalPages}
+        </div>
       </div>
 
       {/* Table Container */}
@@ -273,11 +303,11 @@ export const BindingTable: React.FC<BindingTableProps> = ({
                       <div className="text-sm font-semibold text-white group-hover:text-[#00e5ff] transition-colors">
                         {action.label || action.name}
                       </div>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#090d15] text-[#8492a6] border border-[#1e293b]">
+                      <div className="action-meta-row">
+                        <span className="badge-context">
                           {mapName}
                         </span>
-                        <span className="text-[11px] font-mono text-[#64748b]">
+                        <span className="badge-action-code">
                           {action.name}
                         </span>
                       </div>
@@ -288,31 +318,31 @@ export const BindingTable: React.FC<BindingTableProps> = ({
                       {action.inputs.length === 0 ? (
                         <span className="text-xs text-[#64748b] italic">Unbound</span>
                       ) : (
-                        <div className="flex flex-wrap gap-1.5">
+                        <div className="input-chips-container">
                           {action.inputs.map((inp, iIdx) => {
                             const badgeColor = getDeviceBadgeColor(inp.devicePrefix);
 
                             return (
                               <div
                                 key={iIdx}
-                                className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-mono border ${badgeColor}`}
+                                className={`input-chip ${badgeColor}`}
                               >
-                                <span className="font-bold">{inp.input}</span>
+                                <span className="font-mono font-bold text-white mr-1">{inp.input}</span>
 
                                 {inp.bindType === 'addbind' && (
-                                  <span className="text-[9px] uppercase px-1 rounded bg-black/40 text-[#8492a6]">
+                                  <span className="chip-tag text-[#94a3b8]">
                                     add
                                   </span>
                                 )}
 
                                 {inp.activationMode && (
-                                  <span className="text-[9px] uppercase px-1 rounded bg-black/40 text-[#00e5ff]">
+                                  <span className="chip-tag text-[#00e5ff]">
                                     {inp.activationMode}
                                   </span>
                                 )}
 
                                 {inp.multiTap && inp.multiTap > 1 && (
-                                  <span className="text-[9px] uppercase px-1 rounded bg-black/40 text-[#ffaa00]">
+                                  <span className="chip-tag text-[#ffaa00]">
                                     {inp.multiTap}x
                                   </span>
                                 )}
@@ -326,16 +356,19 @@ export const BindingTable: React.FC<BindingTableProps> = ({
                     {/* Conflict Status */}
                     <td className="py-3 px-3 align-top">
                       {conflictStatus === 'fatal' ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-[rgba(255,51,68,0.15)] text-[#ff3344] border border-[rgba(255,51,68,0.3)]">
-                          <AlertOctagon className="w-3.5 h-3.5" /> Fatal Conflict
+                        <span className="conflict-badge conflict-badge-fatal">
+                          <AlertOctagon className="w-3.5 h-3.5 mr-1" />
+                          <span>Fatal Conflict</span>
                         </span>
                       ) : conflictStatus === 'warning' ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-[rgba(255,170,0,0.15)] text-[#ffaa00] border border-[rgba(255,170,0,0.3)]">
-                          <AlertTriangle className="w-3.5 h-3.5" /> Latency Warning
+                        <span className="conflict-badge conflict-badge-warning">
+                          <AlertTriangle className="w-3.5 h-3.5 mr-1" />
+                          <span>Latency Warning</span>
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-mono text-[#00ff88]">
-                          <CheckCircle className="w-3.5 h-3.5 opacity-70" /> Clear
+                        <span className="inline-flex items-center gap-1.5 text-xs font-mono text-[#00ff88]">
+                          <CheckCircle className="w-3.5 h-3.5 opacity-80" />
+                          <span>Clear</span>
                         </span>
                       )}
                     </td>
@@ -344,11 +377,11 @@ export const BindingTable: React.FC<BindingTableProps> = ({
                     <td className="py-3 px-3 align-top text-right">
                       <button
                         onClick={() => onEditAction(mapName, action)}
-                        className="p-1.5 rounded bg-[#090d15] border border-[#2d415f] hover:border-[#00e5ff] text-[#8492a6] hover:text-[#00e5ff] transition-all inline-flex items-center gap-1"
+                        className="px-2.5 py-1.5 rounded bg-[#090d15] border border-[#2d415f] hover:border-[#00e5ff] text-[#94a3b8] hover:text-[#00e5ff] transition-all inline-flex items-center gap-1.5 text-xs font-mono"
                         title="Edit bindings for this action"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
-                        <span className="text-[11px]">Edit</span>
+                        <span>Edit</span>
                       </button>
                     </td>
                   </tr>
@@ -386,6 +419,57 @@ export const BindingTable: React.FC<BindingTableProps> = ({
             >
               <ChevronRight className="w-4 h-4" />
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* What's this? Help Modal */}
+      {isHelpOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="glass-panel w-full max-w-lg p-6 shadow-2xl border border-[#00f0ff]/40 rounded-lg space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#2d415f]">
+              <div className="flex items-center gap-2">
+                <Table className="w-5 h-5 text-[#00f0ff]" />
+                <h3 className="text-base font-bold text-white tracking-wide">
+                  Keybinding Matrix • Guide
+                </h3>
+              </div>
+              <button 
+                onClick={() => setIsHelpOpen(false)} 
+                className="text-[#94a3b8] hover:text-white p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-[#cbd5e1] leading-relaxed">
+              <p>
+                <strong>What does this section do?</strong> The Keybinding Matrix gives you a unified, searchable view of every input mapping in your Star Citizen configuration.
+              </p>
+              <ul className="space-y-2 list-disc pl-4 text-[11px] text-[#94a3b8]">
+                <li>
+                  <strong className="text-white">Primary vs. Additive Inputs:</strong> Star Citizen supports binding multiple triggers to the same action. Primary inputs replace engine defaults (<code className="text-[#00f0ff]">rebind</code>), while extra inputs act concurrently (<code className="text-[#94a3b8]">addbind</code>).
+                </li>
+                <li>
+                  <strong className="text-white">Activation Modes:</strong> Configure whether an action triggers on simple <code className="text-[#00f0ff]">press</code>, <code className="text-[#00f0ff]">hold</code>, or <code className="text-[#00f0ff]">double_tap</code>.
+                </li>
+                <li>
+                  <strong className="text-white">Hardware Listener:</strong> Toggle the listener and press any button or deflect an axis on your physical HOTAS/HOSAS to instantly jump to that control in the table.
+                </li>
+                <li>
+                  <strong className="text-white">Editing:</strong> Click <strong>Edit</strong> on any row to add or modify inputs and change activation modes without hand-editing XML.
+                </li>
+              </ul>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setIsHelpOpen(false)}
+                className="px-4 py-1.5 rounded bg-[#1e293b] hover:bg-[#334155] text-white text-xs font-semibold"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

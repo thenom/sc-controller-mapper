@@ -8,7 +8,9 @@ import {
   Search, 
   ExternalLink, 
   ShieldAlert, 
-  Lightbulb
+  Lightbulb,
+  HelpCircle,
+  X
 } from 'lucide-react';
 
 interface ConflictViewerProps {
@@ -28,6 +30,7 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
 }) => {
   const [filterSeverity, setFilterSeverity] = useState<'all' | 'fatal' | 'warning'>('all');
   const [searchConflict, setSearchConflict] = useState('');
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   if (!report) return null;
 
@@ -54,20 +57,30 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
         <div className="flex items-center gap-3">
           <ShieldAlert className="w-6 h-6 text-[#00e5ff]" />
           <div>
-            <h2 className="text-base text-white font-semibold tracking-wider flex items-center gap-2">
-              Conflict Audit Engine
-              {totalConflicts === 0 ? (
-                <span className="text-xs px-2 py-0.5 rounded bg-[rgba(0,255,136,0.15)] text-[#00ff88] font-mono font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Optimal (0 Conflicts)
-                </span>
-              ) : (
-                <span className="text-xs px-2 py-0.5 rounded bg-[rgba(255,51,68,0.2)] text-[#ff3344] font-mono font-bold">
-                  {totalConflicts} Detected
-                </span>
-              )}
-            </h2>
-            <p className="text-xs text-[#8492a6]">
-              Temporal state analysis • Master Mode isolation • Operational context validation
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h2 className="text-base text-white font-semibold tracking-wider flex items-center gap-2">
+                Conflict Diagnostics Engine
+                {totalConflicts === 0 ? (
+                  <span className="text-xs px-2 py-0.5 rounded bg-[rgba(0,255,136,0.15)] text-[#00ff88] font-mono font-bold flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Optimal (0 Conflicts)
+                  </span>
+                ) : (
+                  <span className="text-xs px-2 py-0.5 rounded bg-[rgba(255,51,68,0.2)] text-[#ff3344] font-mono font-bold">
+                    {totalConflicts} Detected
+                  </span>
+                )}
+              </h2>
+              <button
+                onClick={() => setIsHelpOpen(true)}
+                className="btn-help"
+                title="Learn how Conflict Diagnostics works and how to read conflicts"
+              >
+                <HelpCircle className="w-3.5 h-3.5" />
+                <span>What's this?</span>
+              </button>
+            </div>
+            <p className="text-xs text-[#8492a6] mt-0.5">
+              Identifies overlapping inputs, distinguishes between harmless context sharing, and flags fatal collisions.
             </p>
           </div>
         </div>
@@ -106,7 +119,7 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
                   : 'bg-[#0d131f] text-[#8492a6] border border-[#2d415f] hover:border-[#00e5ff]'
               }`}
             >
-              All ({totalConflicts})
+              All ({report.conflicts.length})
             </button>
             <button
               onClick={() => setFilterSeverity('fatal')}
@@ -166,43 +179,44 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
             const borderCol = isFatal ? 'border-[#ff3344]' : 'border-[#ffaa00]';
             const bgCol = isFatal ? 'bg-[rgba(255,51,68,0.06)]' : 'bg-[rgba(255,170,0,0.05)]';
             const badgeCol = isFatal 
-              ? 'bg-[rgba(255,51,68,0.2)] text-[#ff3344]' 
-              : 'bg-[rgba(255,170,0,0.2)] text-[#ffaa00]';
+              ? 'conflict-badge-fatal' 
+              : 'conflict-badge-warning';
 
             return (
               <div
                 key={`${c.sourceAction}-${c.targetAction}-${idx}`}
                 className={`p-3.5 rounded border ${borderCol} ${bgCol} transition-all`}
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`text-[11px] font-mono px-2 py-0.5 rounded font-bold uppercase ${badgeCol}`}>
+                <div className="conflict-header">
+                  <div className="conflict-meta">
+                    <span className={`conflict-badge ${badgeCol}`}>
                       {isFatal ? 'Severity 2 (Fatal)' : 'Severity 1 (Warning)'}
                     </span>
 
-                    <span className="text-xs font-mono font-bold text-[#00e5ff] px-2 py-0.5 rounded bg-[rgba(0,229,255,0.1)] border border-[rgba(0,229,255,0.3)]">
+                    <span className="conflict-input-tag">
                       {c.sharedInput}
                     </span>
 
-                    <span className="text-xs text-[#8492a6]">in</span>
-                    <span className="text-xs font-mono text-[#e2e8f0]">
+                    <span className="text-xs text-[#8492a6] px-1">in</span>
+
+                    <span className="text-xs font-mono text-[#e2e8f0] px-2 py-0.5 rounded bg-[#090d15] border border-[#2d415f]">
                       {c.sourceContext} ↔ {c.targetContext}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="conflict-actions-nav">
                     <button
                       onClick={() => onSelectAction(c.sourceAction)}
-                      className="text-xs text-[#8492a6] hover:text-[#00e5ff] flex items-center gap-1 transition-colors px-2 py-1 rounded bg-[#090d15]"
+                      className="conflict-action-btn"
                       title="Jump to source action in binding table"
                     >
                       <span>{c.sourceAction}</span>
                       <ExternalLink className="w-3 h-3" />
                     </button>
-                    <span className="text-xs text-[#8492a6]">vs</span>
+                    <span className="text-xs text-[#8492a6] px-1">vs</span>
                     <button
                       onClick={() => onSelectAction(c.targetAction)}
-                      className="text-xs text-[#8492a6] hover:text-[#00e5ff] flex items-center gap-1 transition-colors px-2 py-1 rounded bg-[#090d15]"
+                      className="conflict-action-btn"
                       title="Jump to conflicting action in binding table"
                     >
                       <span>{c.targetAction}</span>
@@ -228,6 +242,57 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* What's this? Help Modal */}
+      {isHelpOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="glass-panel w-full max-w-lg p-6 shadow-2xl border border-[#00f0ff]/40 rounded-lg space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#2d415f]">
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="w-5 h-5 text-[#00f0ff]" />
+                <h3 className="text-base font-bold text-white tracking-wide">
+                  Conflict Diagnostics • Architecture Guide
+                </h3>
+              </div>
+              <button 
+                onClick={() => setIsHelpOpen(false)} 
+                className="text-[#94a3b8] hover:text-white p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-[#cbd5e1] leading-relaxed">
+              <p>
+                <strong>What does this section do?</strong> Star Citizen permits sharing buttons across actions, but some combinations cause input lockouts, latency, or ship crashes. This engine evaluates your entire binding tree across 3 severity levels:
+              </p>
+              <ul className="space-y-2 list-disc pl-4 text-[11px] text-[#94a3b8]">
+                <li>
+                  <strong className="text-[#00ff88]">Severity 0 (Optimal / Clear):</strong> Actions share an input but exist in mutually exclusive game domains (e.g. flight vs. on-foot vs. ground vehicle) or isolated Master Modes (SCM weapons vs NAV quantum spool). Safe to fly.
+                </li>
+                <li>
+                  <strong className="text-[#ffb700]">Severity 1 (Warning):</strong> Temporal conflicts such as <code className="text-[#00f0ff]">double_tap</code> paired with a single <code className="text-[#00f0ff]">press</code>. CryEngine delays single tap execution by ~250ms to check for a potential double-tap.
+                </li>
+                <li>
+                  <strong className="text-[#ff2a4b]">Severity 2 (Fatal):</strong> Concurrent collisions where CryEngine executes both actions simultaneously (e.g. <code className="text-[#ff2a4b]">multiTap="2"</code> vs <code className="text-[#ff2a4b]">multiTap="1"</code>), or destructive commands (Eject, Self-Destruct) sharing triggers with single taps.
+                </li>
+              </ul>
+              <div className="p-2.5 rounded bg-[#090d15] border border-[#2d415f] text-[11px]">
+                <strong className="text-white">Tip:</strong> Filter by <strong>Joysticks (HOTAS/HOSAS)</strong> to view only collisions relevant to your flight sticks, or click any action button to jump directly to it in the matrix.
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setIsHelpOpen(false)}
+                className="px-4 py-1.5 rounded bg-[#1e293b] hover:bg-[#334155] text-white text-xs font-semibold"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

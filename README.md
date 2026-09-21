@@ -61,20 +61,32 @@ sc-mapping/
 - Locates Star Citizen via `--game-path` argument (or auto-discovers from RSI launcher logs).
 - Streams bytes directly from `Data.p4k` using Zip64 central directory seek semantics (no 90GB RAM consumption).
 - Decrypts entries with the CryEngine cipher key.
+- Decodes Crytek's binary `CryXmlB` format and decompresses Zstandard chunks.
 - Caches compressed `.scj` payloads to prevent redundant extractions.
-- Writes a standalone `game-data.json` config file for the web app.
+- Writes standalone `game-data.json` config fixtures for offline web app consumption.
+
+### Phase 5: Interactive Web UI, Hardware Studio & Contributor Workflow
+- **Hardware Device Inspector & Live Controller HUD**: Real-time 32-button matrix and analog axis deflection meters via HTML5 Gamepad API. Translates 0-based DirectInput indices into Star Citizen 1-based codes (`js1_button12`) and supports offline profile simulation mode.
+- **Hardware Studio & Preset Generator**: Generates `<options>` blocks, community hardware definitions, starter XML templates, and PR submission templates for new hardware.
+- **Starter Presets**: Built-in 1-click templates for Dual VKB Gladiator EVO (HOSAS), Dual VKB with Left Omni-Throttle (OTA 6DOF), and Thrustmaster T.16000M + TWCS.
+- **Contributor Hub**: Dedicated developer modal separating `sc-daemon` extraction and PR submission tools from everyday player workflows.
+- **Pure Vanilla CSS Architecture**: Clean, high-performance styling without heavy framework overhead, complete with constrained SVG icons, badges, and integrated `? What's this?` guidance modals across all major views.
 
 ---
 
 ## Verification & Testing
 
-To run the automated verification suite:
+To run the full monorepo build:
 ```bash
-npm run --workspace=@sc-mapping/resolver build
+npm run build
+```
+
+To run the resolver automated verification suite:
+```bash
 node packages/resolver/dist/test-verify.js
 ```
 
-To build the Go extraction daemon:
+To build and run the Go extraction daemon (contributors updating game assets):
 ```bash
 npm run daemon:build
 ./daemon/bin/sc-daemon --help

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { JoystickDeviceOption } from '@sc-mapping/shared-types';
-import { Gamepad2, ArrowRightLeft, CheckCircle, AlertTriangle, RotateCw } from 'lucide-react';
+import { Gamepad2, ArrowRightLeft, CheckCircle, AlertTriangle, RotateCw, HelpCircle, X, Info } from 'lucide-react';
 
 interface DeviceRackProps {
   devices: JoystickDeviceOption[];
@@ -50,16 +50,32 @@ export const DeviceRack: React.FC<DeviceRackProps> = ({
     onMappingChange(defaultMap);
   };
 
+  const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
+
   return (
     <div className="glass-panel p-5 mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <Gamepad2 className="w-5 h-5 text-[#00e5ff]" />
-          <h2 className="text-base text-[#e2e8f0] font-semibold tracking-wider">
-            Hardware Device Rack & Logical Instance Remapper
-          </h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 mb-4 border-b border-[#2d415f]">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <Gamepad2 className="w-5 h-5 text-[#00f0ff]" />
+            <h2 className="text-base text-[#e2e8f0] font-semibold tracking-wider">
+              Hardware Device Rack & Logical Instance Remapper
+            </h2>
+            <button
+              onClick={() => setIsHelpOpen(true)}
+              className="btn-help"
+              title="Learn what the Device Rack does and how to re-index devices"
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+              <span>What's this?</span>
+            </button>
+          </div>
+          <p className="text-xs text-[#94a3b8] mt-1">
+            Drag and drop controller cards to swap joystick IDs (<code className="text-[#00f0ff]">js1</code>, <code className="text-[#00f0ff]">js2</code>). Bypasses Windows DirectInput re-enumeration bugs and Star Citizen's 4-device console limitation.
+          </p>
         </div>
-        <div className="flex items-center gap-2.5">
+
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
           {onOpenHardwareStudio && (
             <button
               onClick={onOpenHardwareStudio}
@@ -71,7 +87,7 @@ export const DeviceRack: React.FC<DeviceRackProps> = ({
           )}
           <button
             onClick={handleReset}
-            className="text-xs text-[#8492a6] hover:text-[#00e5ff] flex items-center gap-1 transition-colors"
+            className="text-xs text-[#8492a6] hover:text-[#00e5ff] flex items-center gap-1 transition-colors px-2 py-1 rounded hover:bg-[#1e293b]"
             title="Reset device indices to default"
           >
             <RotateCw className="w-3.5 h-3.5" />
@@ -79,11 +95,6 @@ export const DeviceRack: React.FC<DeviceRackProps> = ({
           </button>
         </div>
       </div>
-
-      <p className="text-xs text-[#8492a6] mb-4 leading-relaxed">
-        Drag and drop devices to re-index logical joystick IDs (<code className="text-[#00e5ff]">js1</code>, <code className="text-[#00e5ff]">js2</code>).
-        Solves Windows DirectInput device swap bugs without using the broken in-game <code className="text-[#ffaa00]">pp_resortdevices</code> command.
-      </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {devices.map(dev => {
@@ -140,6 +151,54 @@ export const DeviceRack: React.FC<DeviceRackProps> = ({
           </div>
         )}
       </div>
+
+      {/* Help Modal */}
+      {isHelpOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="glass-panel w-full max-w-xl p-6 border-[#00f0ff]/50 shadow-[0_0_30px_rgba(0,240,255,0.2)] space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#2d415f]">
+              <div className="flex items-center gap-2 text-[#00f0ff]">
+                <Gamepad2 className="w-5 h-5" />
+                <h3 className="text-base font-bold text-white tracking-wide">
+                  Device Rack & Logical Instance Remapping
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsHelpOpen(false)}
+                className="text-[#94a3b8] hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-[#cbd5e1] leading-relaxed">
+              <p>
+                <strong>What problem does this solve?</strong> In Star Citizen, Windows DirectInput frequently re-orders physical USB flight sticks (e.g. your Right stick becomes <code className="text-[#00f0ff]">js2</code> and Left stick becomes <code className="text-[#00f0ff]">js1</code>) after a PC reboot or USB disconnect.
+              </p>
+              <ul className="space-y-2 list-disc pl-4 text-[11px] text-[#94a3b8]">
+                <li>
+                  <strong className="text-white">The Broken In-Game Command:</strong> The console command <code className="text-[#ffaa00]">pp_resortdevices</code> fails when more than 4 input devices are attached (e.g. dual sticks, rudder pedals, throttle quadrant, button box).
+                </li>
+                <li>
+                  <strong className="text-white">Drag-and-Drop Instance Swapping:</strong> Simply drag any device card and drop it onto another. This swaps their logical IDs (<code className="text-[#00f0ff]">js1</code> ↔ <code className="text-[#00f0ff]">js2</code>).
+                </li>
+                <li>
+                  <strong className="text-white">AST-Level XML Export:</strong> When you export your XML, the suite automatically rewrites all matching input prefixes (<code className="text-[#00f0ff]">js1_button4</code> → <code className="text-[#00f0ff]">js2_button4</code>) and updates the XML <code className="text-[#00f0ff]">&lt;options&gt;</code> blocks losslessly.
+                </li>
+              </ul>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setIsHelpOpen(false)}
+                className="px-4 py-1.5 rounded bg-[#1e293b] hover:bg-[#334155] text-white text-xs font-semibold"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

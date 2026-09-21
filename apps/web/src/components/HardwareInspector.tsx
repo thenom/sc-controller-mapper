@@ -10,7 +10,8 @@ import {
   Crosshair,
   HelpCircle,
   Zap,
-  Info
+  Info,
+  X
 } from 'lucide-react';
 
 interface HardwareInspectorProps {
@@ -39,6 +40,7 @@ export const HardwareInspector: React.FC<HardwareInspectorProps> = ({
   const [connectedDevices, setConnectedDevices] = useState<Array<{ index: number; id: string; buttons: number; axes: number }>>([]);
   const [inputState, setInputState] = useState<DetectedInputState | null>(null);
   const [persistentPressed, setPersistentPressed] = useState<string | null>(null);
+  const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
 
   const reqRef = useRef<number | null>(null);
 
@@ -188,18 +190,28 @@ export const HardwareInspector: React.FC<HardwareInspectorProps> = ({
             <Crosshair className="w-6 h-6 animate-pulse" />
           </div>
           <div>
-            <h2 className="text-lg text-white font-bold tracking-wider flex items-center gap-2">
-              Hardware Device Inspector & Live Controller HUD
-              {activeDevice?.isLive ? (
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-[rgba(0,255,136,0.15)] text-[#00ff88] font-mono font-bold border border-[rgba(0,255,136,0.3)] flex items-center gap-1">
-                  <Zap className="w-3 h-3" /> Live Hardware Connected
-                </span>
-              ) : (
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-[rgba(255,183,0,0.15)] text-[#ffb700] font-mono font-bold border border-[rgba(255,183,0,0.3)] flex items-center gap-1">
-                  <Info className="w-3 h-3" /> Profile Simulation Mode
-                </span>
-              )}
-            </h2>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-lg text-white font-bold tracking-wider flex items-center gap-2 flex-wrap">
+                Hardware Device Inspector & Live Controller HUD
+                {activeDevice?.isLive ? (
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-[rgba(0,255,136,0.15)] text-[#00ff88] font-mono font-bold border border-[rgba(0,255,136,0.3)] flex items-center gap-1">
+                    <Zap className="w-3 h-3" /> Live Hardware Connected
+                  </span>
+                ) : (
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-[rgba(255,183,0,0.15)] text-[#ffb700] font-mono font-bold border border-[rgba(255,183,0,0.3)] flex items-center gap-1">
+                    <Info className="w-3 h-3" /> Profile Simulation Mode
+                  </span>
+                )}
+              </h2>
+              <button
+                onClick={() => setIsHelpOpen(true)}
+                className="btn-help"
+                title="Learn how the Hardware Inspector works"
+              >
+                <HelpCircle className="w-3.5 h-3.5" />
+                <span>What's this?</span>
+              </button>
+            </div>
             <p className="text-xs text-[#94a3b8] mt-0.5">
               Press any physical button on your stick, or click any button in the grid below to see its exact Star Citizen code and mapped actions.
             </p>
@@ -407,6 +419,57 @@ export const HardwareInspector: React.FC<HardwareInspectorProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Help Modal */}
+      {isHelpOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="glass-panel w-full max-w-xl p-6 border-[#00f0ff]/50 shadow-[0_0_30px_rgba(0,240,255,0.2)] space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#2d415f]">
+              <div className="flex items-center gap-2 text-[#00f0ff]">
+                <Crosshair className="w-5 h-5" />
+                <h3 className="text-base font-bold text-white tracking-wide">
+                  Hardware Device Inspector & Live Controller HUD
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsHelpOpen(false)}
+                className="text-[#94a3b8] hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-[#cbd5e1] leading-relaxed">
+              <p>
+                <strong>What does this section do?</strong> It bridges physical controller hardware to Star Citizen's binding terminology, helping you instantly identify which physical button or axis corresponds to what XML input ID.
+              </p>
+              <ul className="space-y-2 list-disc pl-4 text-[11px] text-[#94a3b8]">
+                <li>
+                  <strong className="text-white">Live Controller Detection:</strong> Connect any USB joystick, throttle, or gamepad. The inspector uses the HTML5 Gamepad API to monitor live button presses and deflection axes in real time.
+                </li>
+                <li>
+                  <strong className="text-white">1-Based Button Mapping:</strong> DirectInput internal indices start at 0, while Star Citizen uses 1-based indices (<code className="text-[#00f0ff]">js1_button1</code> is DirectInput button 0). The inspector handles this translation automatically so you always see the exact game code.
+                </li>
+                <li>
+                  <strong className="text-white">Profile Simulation Mode:</strong> If your physical controllers are not currently plugged in, you can click any button or axis in the matrix to simulate pressing it and view all bound ship commands.
+                </li>
+                <li>
+                  <strong className="text-white">Quick Jump to Matrix:</strong> Click <em>View</em> next to any bound command to jump directly to it in the Keybinding Matrix for immediate editing.
+                </li>
+              </ul>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setIsHelpOpen(false)}
+                className="px-4 py-1.5 rounded bg-[#1e293b] hover:bg-[#334155] text-white text-xs font-semibold"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

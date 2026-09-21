@@ -1,7 +1,7 @@
 # Star Citizen Keybinding Management Suite — Project State & Roadmap
 
 **Last Updated**: 2026-09-21  
-**Current Milestone**: Phase 4 Real-World Game Integration Complete; Phase 5 Interactive Web UI Enhancement in progress.
+**Current Milestone**: Phase 4 Real-World Game Integration Complete; Phase 5 Interactive Web UI, Hardware Studio & Contributor Workflow Complete.
 
 ---
 
@@ -17,11 +17,16 @@ This project provides a lossless, high-performance Keybinding Management Suite f
 | :--- | :--- | :---: | :--- |
 | **Shared Types** | `packages/shared-types` | **Complete** | AST interfaces, `BindingInput` (`rebind` vs `addbind`), `ConflictSeverity` (0, 1, 2), hardware device options. |
 | **XML Parser & Serializer** | `packages/parser` | **Complete** | Non-destructive DOM parsing via `@xmldom/xmldom`. Supports both user `<ActionMaps>` and base game `<profile>`. Preserves `<options>`, inversions, GUIDs, and chorded modifiers. Lossless export with `jsX_` remapping. |
-| **Conflict Detection Engine** | `packages/resolver` | **Complete** | Exclusionary context matrix (on-foot vs flight vs turret). SC 3.23+ SCM vs NAV Master Mode isolation. Temporal rules: Rule A (double-tap latency), Rule B (multiTap collision), Rule C (hold vs tap with destructive action safety). |
+| **Conflict Detection Engine** | `packages/resolver` | **Complete** | Exclusionary context matrix across all 50 SC action maps. SCM vs NAV Master Mode isolation. Temporal rules: Rule A (double-tap latency), Rule B (multiTap collision), Rule C (hold vs tap with destructive action safety). |
 | **Hardware Listener** | `apps/web/src/hooks/useGamepadListener.ts` | **Complete** | HTML5 Gamepad API polling with 0.65 deadzone and leading-edge button detection. Emits `jsX_buttonY` and `jsX_axis` events. |
-| **Device Rack Remapper** | `apps/web/src/components/DeviceRack.tsx` | **Complete** | Drag-and-drop joystick instance re-ordering. Generates instance remapping table for AST-level recompilation. |
-| **Go Extraction Daemon** | `daemon/` | **Complete** | Direct Zip64 central directory streamer (`io.ReaderAt`). CryEngine 16-byte XOR cipher decryptor. Zero-dependency `CryXmlB` binary XML decoder. Method 100 (zstd) decompression. Local `.scj` cache and HTTP server (`:8765`). |
-| **Web UI Application** | `apps/web/` | **Complete** | React 18 / Vite app with sci-fi HUD styling. Includes DeviceRack remapping, ConflictViewer diagnostics, filterable & paginated BindingTable, interactive BindingEditorModal with Gamepad API capture, and 1-click Preset Quick-Loader. |
+| **Device Rack Remapper** | `apps/web/src/components/DeviceRack.tsx` | **Complete** | Drag-and-drop joystick instance re-ordering with interactive `? What's this?` guide. Bypasses 4-device limit for AST-level recompilation. |
+| **Hardware Inspector & Live HUD** | `apps/web/src/components/HardwareInspector.tsx` | **Complete** | Live 32-button matrix and analog axis deflection meters. Identifies physical button presses, translates DirectInput 0-based indices to Star Citizen 1-based codes, and supports offline profile simulation mode. |
+| **Hardware Studio & Generator** | `apps/web/src/components/HardwareGeneratorModal.tsx` | **Complete** | Generates `<options>` blocks, community hardware JSON profiles, starter XML templates, and PR contribution templates for unmapped devices. |
+| **Binding Table & Rebind Engine** | `apps/web/src/components/BindingTable.tsx` | **Complete** | Filterable, paginated 50-map matrix with live hardware listening, separated metadata tags, device chips, and inline rebind editor. |
+| **Conflict Viewer Diagnostics** | `apps/web/src/components/ConflictViewer.tsx` | **Complete** | Multi-severity conflict explorer with device-scoping, formatted tokens, and resolution suggestions. |
+| **Contributor Hub** | `apps/web/src/App.tsx` | **Complete** | Dedicated maintainer hub separating `sc-daemon` patch extraction and PR submission tools from regular player workflows. |
+| **Go Extraction Daemon** | `daemon/` | **Complete** | Direct Zip64 central directory streamer (`io.ReaderAt`). CryEngine 16-byte XOR cipher decryptor. Zero-dependency `CryXmlB` binary XML decoder. Method 100 (zstd) decompression. Local `.scj` cache, CLI flags (`--version`, `--game-path`), sanitized paths, and HTTP server (`:8765`). |
+| **Vanilla CSS Design System** | `apps/web/src/index.css` | **Complete** | Pure Vanilla CSS design system with constrained icon sizing, layout utilities, sci-fi glassmorphism cards, and interactive modal dialogs without Tailwind dependency. |
 
 ---
 
@@ -75,4 +80,5 @@ When integrating against real Star Citizen game files (`.../StarCitizen/LIVE/Dat
 - [x] **Hardware Studio & Preset Generator**: Interactive modal to detect physical gamepads or pick templates, configure axis inversions, and generate Star Citizen `<options>` XML blocks, community JSON hardware definitions, starter XML layouts, and GitHub PR contribution templates.
 - [x] **Dedicated VKB Gladiator EVO Right + Left Omni-Throttle (OTA) 6DOF Profile**: Added `sample-data/vkb_evo_hosas_omni.xml` and 1-click web UI preset for dual VKB sticks with left Omni-Throttle 6DOF strafe mapping.
 - [ ] **Device Visualizer**: Interactive SVG mapping visualizer for HOTAS/HOSAS hardware.
+- [ ] **Comprehensive UI/UX Redesign & Reshuffle**: Full aesthetic and structural overhaul to polish layout hierarchy, text justification/alignment, typography scale, responsive breakpoints, card spacing, and icon-to-text balance across all viewports for a cohesive, professional experience.
 
