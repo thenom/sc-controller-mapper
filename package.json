@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "dev": "npm run --workspace=@sc-mapping/web dev",
-    "build": "npm run --workspaces --if-present build",
+    "build": "npm run --workspace=@sc-mapping/shared-types build && npm run --workspace=@sc-mapping/parser build && npm run --workspace=@sc-mapping/resolver build && npm run --workspace=@sc-mapping/web build",
     "test": "npm run --workspaces --if-present test",
     "daemon:build": "cd daemon && go build -o bin/sc-daemon main.go"
   },

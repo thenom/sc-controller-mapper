@@ -35,8 +35,8 @@ export class ActionMapsParser {
     const doc = parser.parseFromString(xmlContent, 'text/xml');
     const root = doc.documentElement;
 
-    if (!root || root.tagName !== 'ActionMaps') {
-      throw new Error("Invalid Star Citizen XML: Root element must be <ActionMaps>");
+    if (!root || (root.tagName !== 'ActionMaps' && root.tagName !== 'profile')) {
+      throw new Error("Invalid Star Citizen XML: Root element must be <ActionMaps> or <profile>");
     }
 
     const result: ActionMapsDocument = {
@@ -47,7 +47,7 @@ export class ActionMapsParser {
       rebindVersion: root.hasAttribute('rebindVersion') 
         ? parseInt(root.getAttribute('rebindVersion')!, 10) 
         : 2,
-      profileName: root.getAttribute('profileName') || 'custom',
+      profileName: root.getAttribute('profileName') || (root.tagName === 'profile' ? 'defaultProfile' : 'custom'),
       devices: [],
       actionMaps: {}
     };
@@ -126,6 +126,7 @@ export class ActionMapsParser {
 
       const group: ActionMapGroup = {
         name: mapName,
+        label: amNode.getAttribute('UILabel') || undefined,
         actions: {}
       };
 
@@ -137,10 +138,28 @@ export class ActionMapsParser {
 
         const actionBinding: ActionBinding = {
           name: actionName,
+          label: actNode.getAttribute('UILabel') || undefined,
+          description: actNode.getAttribute('UIDescription') || undefined,
           inputs: []
         };
 
-        // Extract both <rebind> and <addbind> elements
+        // Direct device attributes (e.g. defaultProfile.xml keyboard="...", mouse="...", etc.)
+        const deviceAttrs: Array<{ attr: string; prefix: string }> = [
+          { attr: 'keyboard', prefix: 'kb1_' },
+          { attr: 'mouse', prefix: 'mo1_' },
+          { attr: 'gamepad', prefix: 'gp1_' },
+          { attr: 'joystick', prefix: 'js1_' }
+        ];
+
+        for (const { attr, prefix } of deviceAttrs) {
+          const val = actNode.getAttribute(attr)?.trim();
+          if (val && val !== '') {
+            const rawInput = val.includes('_') ? val : prefix + val;
+            actionBinding.inputs.push(this.parseInputDescriptor(rawInput, 'rebind', actNode));
+          }
+        }
+
+        // Extract <rebind>, <addbind>, and device-specific child elements
         const childNodes = actNode.childNodes;
         for (let k = 0; k < childNodes.length; k++) {
           const child = childNodes[k] as Element;
@@ -148,7 +167,7 @@ export class ActionMapsParser {
 
           const tagName = child.tagName;
           if (tagName === 'rebind' || tagName === 'addbind') {
-            const rawInput = child.getAttribute('input');
+            const rawInput = child.getAttribute('input')?.trim();
             if (!rawInput) continue;
 
             const parsedInput = this.parseInputDescriptor(
@@ -157,6 +176,13 @@ export class ActionMapsParser {
               child
             );
             actionBinding.inputs.push(parsedInput);
+          } else if (tagName === 'keyboard' || tagName === 'mouse' || tagName === 'gamepad' || tagName === 'joystick') {
+            const rawInput = child.getAttribute('input')?.trim();
+            if (rawInput && rawInput !== '') {
+              const prefix = tagName === 'keyboard' ? 'kb1_' : tagName === 'mouse' ? 'mo1_' : tagName === 'gamepad' ? 'gp1_' : 'js1_';
+              const inputStr = rawInput.includes('_') ? rawInput : prefix + rawInput;
+              actionBinding.inputs.push(this.parseInputDescriptor(inputStr, 'rebind', child));
+            }
           }
         }
 

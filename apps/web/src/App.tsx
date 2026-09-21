@@ -24,7 +24,9 @@ import {
   CheckCircle2, 
   Cpu, 
   Sparkles,
-  Layers
+  Layers,
+  Database,
+  RefreshCw
 } from 'lucide-react';
 
 const SAMPLE_XML = `<?xml version="1.0" encoding="utf-8"?>
@@ -119,7 +121,58 @@ export const App: React.FC = () => {
     return ConflictResolver.auditDocument(doc);
   }, [doc]);
 
-  // File Upload Handler
+  const [isLoadingLive, setIsLoadingLive] = useState(false);
+  const [daemonStatus, setDaemonStatus] = useState<string | null>(null);
+
+  const loadGameDataConfig = (data: any) => {
+    if (!data.default_profile_xml) {
+      throw new Error("Invalid config: missing default_profile_xml");
+    }
+    const parsed = ActionMapsParser.parseXML(data.default_profile_xml);
+    if (data.localization && Object.keys(data.localization).length > 0) {
+      const merger = new LocalizationMerger();
+      merger.loadDictionary(data.localization);
+      merger.enrichDocument(parsed);
+    }
+    setDoc(parsed);
+    const initialMap = new Map<number, number>();
+    parsed.devices.forEach(d => {
+      if (d.type === 'joystick') initialMap.set(d.instance, d.instance);
+    });
+    setHardwareMapping(initialMap);
+  };
+
+  // Load from local static /game-data.json
+  const handleLoadLiveData = async () => {
+    setIsLoadingLive(true);
+    try {
+      const res = await fetch('/game-data.json');
+      if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to load /game-data.json`);
+      const data = await res.json();
+      loadGameDataConfig(data);
+    } catch (err: any) {
+      alert(`Error loading LIVE game data: ${err.message}`);
+    } finally {
+      setIsLoadingLive(false);
+    }
+  };
+
+  // Sync from Go Daemon HTTP API
+  const handleSyncDaemon = async () => {
+    setDaemonStatus('Connecting...');
+    try {
+      const res = await fetch('http://127.0.0.1:8765/api/v1/game-data');
+      if (!res.ok) throw new Error(`HTTP ${res.status}: Daemon returned error`);
+      const data = await res.json();
+      loadGameDataConfig(data);
+      setDaemonStatus('Connected');
+    } catch (err: any) {
+      setDaemonStatus('Offline');
+      alert(`Could not connect to sc-daemon at http://127.0.0.1:8765: ${err.message}\nMake sure to run: ./daemon/bin/sc-daemon --daemon`);
+    }
+  };
+
+  // File Upload Handler (.xml or .json)
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -128,15 +181,20 @@ export const App: React.FC = () => {
     reader.onload = (event) => {
       const content = event.target?.result as string;
       try {
-        const parsed = ActionMapsParser.parseXML(content);
-        setDoc(parsed);
-        const initialMap = new Map<number, number>();
-        parsed.devices.forEach(d => {
-          if (d.type === 'joystick') initialMap.set(d.instance, d.instance);
-        });
-        setHardwareMapping(initialMap);
+        if (file.name.endsWith('.json')) {
+          const data = JSON.parse(content);
+          loadGameDataConfig(data);
+        } else {
+          const parsed = ActionMapsParser.parseXML(content);
+          setDoc(parsed);
+          const initialMap = new Map<number, number>();
+          parsed.devices.forEach(d => {
+            if (d.type === 'joystick') initialMap.set(d.instance, d.instance);
+          });
+          setHardwareMapping(initialMap);
+        }
       } catch (err: any) {
-        alert(`Error parsing XML: ${err.message}`);
+        alert(`Error parsing file: ${err.message}`);
       }
     };
     reader.readAsText(file);
@@ -210,11 +268,29 @@ export const App: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <label className="btn-sci-fi">
+        <div className="flex items-center flex-wrap gap-3">
+          <button 
+            onClick={handleLoadLiveData} 
+            className="btn-sci-fi text-[#00e5ff] border-[#00e5ff] hover:bg-[rgba(0,229,255,0.1)]"
+            disabled={isLoadingLive}
+          >
+            <Database className="w-4 h-4" />
+            {isLoadingLive ? 'Loading LIVE Data...' : 'Load Star Citizen LIVE Data'}
+          </button>
+
+          <button 
+            onClick={handleSyncDaemon} 
+            className="btn-sci-fi text-[#00ff88] border-[#00ff88] hover:bg-[rgba(0,255,136,0.1)]"
+            title="Sync from sc-daemon HTTP API at 127.0.0.1:8765"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Sync Daemon {daemonStatus && `(${daemonStatus})`}
+          </button>
+
+          <label className="btn-sci-fi cursor-pointer">
             <Upload className="w-4 h-4" />
-            Import XML
-            <input type="file" accept=".xml" onChange={handleFileUpload} className="hidden" />
+            Import (.xml / .json)
+            <input type="file" accept=".xml,.json" onChange={handleFileUpload} className="hidden" />
           </label>
 
           <button onClick={handleExportXML} className="btn-sci-fi" disabled={!doc}>
