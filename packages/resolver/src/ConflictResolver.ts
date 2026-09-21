@@ -128,8 +128,12 @@ export class ConflictResolver {
 
   /**
    * Full document auditor: Scans an entire ActionMapsDocument and returns a categorized ConflictReport.
+   * Optionally filters analysis to a specific device family (e.g. 'js' for joysticks, 'kb' for keyboard).
    */
-  public static auditDocument(doc: ActionMapsDocument): ConflictReport {
+  public static auditDocument(
+    doc: ActionMapsDocument,
+    options?: { deviceFilter?: string }
+  ): ConflictReport {
     const report: ConflictReport = {
       hasFatalConflicts: false,
       warningCount: 0,
@@ -137,11 +141,21 @@ export class ConflictResolver {
       conflicts: []
     };
 
+    const filter = options?.deviceFilter?.toLowerCase();
+
     // Flatten all actions into a comparable list
     const allActions: Array<{ mapName: string; action: ActionBinding }> = [];
     for (const [mapName, group] of Object.entries(doc.actionMaps)) {
       for (const action of Object.values(group.actions)) {
         if (action.inputs && action.inputs.length > 0) {
+          // If deviceFilter is specified, only include actions containing that device prefix
+          if (filter && filter !== 'all') {
+            const matches = action.inputs.some(i => 
+              i.devicePrefix.toLowerCase().startsWith(filter) ||
+              (filter === 'js' && i.devicePrefix.toLowerCase().startsWith('js'))
+            );
+            if (!matches) continue;
+          }
           allActions.push({ mapName, action });
         }
       }
@@ -161,6 +175,13 @@ export class ConflictResolver {
         );
 
         if (details.severity !== ConflictSeverity.None) {
+          // If device filter active, ensure sharedInput matches the filter
+          if (filter && filter !== 'all') {
+            if (!details.sharedInput.toLowerCase().startsWith(filter)) {
+              continue;
+            }
+          }
+
           report.conflicts.push(details);
           if (details.severity === ConflictSeverity.Fatal) {
             report.fatalCount++;

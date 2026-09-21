@@ -13,12 +13,16 @@ import {
 
 interface ConflictViewerProps {
   report: ConflictReport | null;
+  deviceScope: string;
+  onDeviceScopeChange: (scope: string) => void;
   onSelectAction: (actionName: string) => void;
   onAutoFix?: (conflict: ConflictDetails) => void;
 }
 
 export const ConflictViewer: React.FC<ConflictViewerProps> = ({
   report,
+  deviceScope,
+  onDeviceScopeChange,
   onSelectAction,
   onAutoFix
 }) => {
@@ -68,38 +72,63 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
           </div>
         </div>
 
-        {/* Severity Metrics Badges */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setFilterSeverity('all')}
-            className={`px-3 py-1 text-xs rounded font-mono transition-all flex items-center gap-1.5 ${
-              filterSeverity === 'all'
-                ? 'bg-[#00e5ff] text-black font-bold shadow-[0_0_12px_rgba(0,229,255,0.4)]'
-                : 'bg-[#0d131f] text-[#8492a6] border border-[#2d415f] hover:border-[#00e5ff]'
-            }`}
-          >
-            All ({totalConflicts})
-          </button>
-          <button
-            onClick={() => setFilterSeverity('fatal')}
-            className={`px-3 py-1 text-xs rounded font-mono transition-all flex items-center gap-1.5 ${
-              filterSeverity === 'fatal'
-                ? 'bg-[#ff3344] text-white font-bold shadow-[0_0_12px_rgba(255,51,68,0.4)]'
-                : 'bg-[#0d131f] text-[#ff3344] border border-[rgba(255,51,68,0.4)] hover:bg-[rgba(255,51,68,0.1)]'
-            }`}
-          >
-            <AlertOctagon className="w-3 h-3" /> Fatal ({report.fatalCount})
-          </button>
-          <button
-            onClick={() => setFilterSeverity('warning')}
-            className={`px-3 py-1 text-xs rounded font-mono transition-all flex items-center gap-1.5 ${
-              filterSeverity === 'warning'
-                ? 'bg-[#ffaa00] text-black font-bold shadow-[0_0_12px_rgba(255,170,0,0.4)]'
-                : 'bg-[#0d131f] text-[#ffaa00] border border-[rgba(255,170,0,0.4)] hover:bg-[rgba(255,170,0,0.1)]'
-            }`}
-          >
-            <AlertTriangle className="w-3 h-3" /> Warnings ({report.warningCount})
-          </button>
+        {/* Device Scope and Severity Filters */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Device Scope Selector */}
+          <div className="flex items-center gap-1 bg-[#090d15] p-1 rounded border border-[#2d415f] text-xs font-mono">
+            <span className="text-[10px] text-[#8492a6] px-1.5 uppercase font-bold">Scope:</span>
+            {[
+              { id: 'all', label: 'All Devices' },
+              { id: 'js', label: 'Joysticks (HOTAS/HOSAS)' },
+              { id: 'kb', label: 'Keyboard' }
+            ].map(s => (
+              <button
+                key={s.id}
+                onClick={() => onDeviceScopeChange(s.id)}
+                className={`px-2.5 py-1 rounded transition-all ${
+                  deviceScope === s.id
+                    ? 'bg-[#00e5ff] text-black font-bold'
+                    : 'text-[#8492a6] hover:text-white'
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Severity Metrics Badges */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setFilterSeverity('all')}
+              className={`px-3 py-1 text-xs rounded font-mono transition-all flex items-center gap-1.5 ${
+                filterSeverity === 'all'
+                  ? 'bg-[#00e5ff] text-black font-bold shadow-[0_0_12px_rgba(0,229,255,0.4)]'
+                  : 'bg-[#0d131f] text-[#8492a6] border border-[#2d415f] hover:border-[#00e5ff]'
+              }`}
+            >
+              All ({totalConflicts})
+            </button>
+            <button
+              onClick={() => setFilterSeverity('fatal')}
+              className={`px-3 py-1 text-xs rounded font-mono transition-all flex items-center gap-1.5 ${
+                filterSeverity === 'fatal'
+                  ? 'bg-[#ff3344] text-white font-bold shadow-[0_0_12px_rgba(255,51,68,0.4)]'
+                  : 'bg-[#0d131f] text-[#ff3344] border border-[rgba(255,51,68,0.4)] hover:bg-[rgba(255,51,68,0.1)]'
+              }`}
+            >
+              <AlertOctagon className="w-3 h-3" /> Fatal ({report.fatalCount})
+            </button>
+            <button
+              onClick={() => setFilterSeverity('warning')}
+              className={`px-3 py-1 text-xs rounded font-mono transition-all flex items-center gap-1.5 ${
+                filterSeverity === 'warning'
+                  ? 'bg-[#ffaa00] text-black font-bold shadow-[0_0_12px_rgba(255,170,0,0.4)]'
+                  : 'bg-[#0d131f] text-[#ffaa00] border border-[rgba(255,170,0,0.4)] hover:bg-[rgba(255,170,0,0.1)]'
+              }`}
+            >
+              <AlertTriangle className="w-3 h-3" /> Warnings ({report.warningCount})
+            </button>
+          </div>
         </div>
       </div>
 

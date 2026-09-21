@@ -10,34 +10,76 @@ export class ExclusionMatrix {
    */
   private static readonly DOMAIN_MAPPINGS: Record<string, string> = {
     // Spaceship / Cockpit flight domains
-    'spaceship_movement': 'spaceship',
-    'spaceship_weapons': 'spaceship',
-    'spaceship_target_locking': 'spaceship',
-    'spaceship_general': 'spaceship',
-    'spaceship_power': 'spaceship',
-    'spaceship_view': 'spaceship',
-    'spaceship_quantum': 'spaceship',
-    'spaceship_radar': 'spaceship',
-    'spaceship_hud': 'spaceship',
+    'seat_general': 'spaceship',
     'seat_pilot': 'spaceship',
     'seat_operator': 'spaceship',
+    'spaceship_general': 'spaceship',
+    'spaceship_view': 'spaceship',
+    'spaceship_movement': 'spaceship',
+    'spaceship_quantum': 'spaceship',
+    'spaceship_docking': 'spaceship',
+    'spaceship_targeting': 'spaceship',
+    'spaceship_targeting_advanced': 'spaceship',
+    'spaceship_target_hailing': 'spaceship',
+    'spaceship_radar': 'spaceship',
+    'spaceship_scanning': 'spaceship',
+    'spaceship_mining': 'spaceship',
+    'spaceship_salvage': 'spaceship',
+    'spaceship_weapons': 'spaceship',
+    'spaceship_missiles': 'spaceship',
+    'spaceship_defensive': 'spaceship',
+    'spaceship_auto_weapons': 'spaceship',
+    'spaceship_power': 'spaceship',
+    'spaceship_hud': 'spaceship',
+    'ifcs_controls': 'spaceship',
+    'lights_controller': 'spaceship',
+    'vehicle_mfd': 'spaceship',
 
     // On-Foot infantry domains
+    'player': 'onfoot',
     'player_input_onfoot': 'onfoot',
     'player_choice': 'onfoot',
+    'player_emotes': 'onfoot',
+    'player_input_optical_tracking': 'onfoot',
     'prone': 'onfoot',
+    'tractor_beam': 'onfoot',
+    'mining': 'onfoot',
+    'incapacitated': 'onfoot',
+    'stopwatch': 'onfoot',
+
+    // Zero-G / EVA domains
     'zero_gravity_eva': 'eva',
+    'zero_gravity_traversal': 'eva',
     'eva': 'eva',
 
     // Ground vehicle domains
+    'vehicle_general': 'ground_vehicle',
     'vehicle_driver': 'ground_vehicle',
     'vehicle_gunner': 'ground_vehicle',
 
     // Turret gunner domain
     'turret': 'turret',
+    'turret_movement': 'turret',
+    'turret_advanced': 'turret',
 
-    // Spectator domain
-    'spectator': 'spectator'
+    // Screen / UI / Menu domains (independent UI layers)
+    'vehicle_mobiglas': 'screen_ui',
+    'mapui': 'screen_ui',
+    'hacking': 'screen_ui',
+    'ui_textfield': 'screen_ui',
+    'ui_notification': 'screen_ui',
+    'character_customizer': 'menu',
+
+    // Spectator & Camera director domains
+    'spectator': 'spectator',
+    'flycam': 'camera_mode',
+    'view_director_mode': 'camera_mode',
+
+    // Internal / Debugging domains
+    'default': 'internal_debug',
+    'debug': 'internal_debug',
+    'server_renderer': 'internal_debug',
+    'remoterigidentitycontroller': 'internal_debug'
   };
 
   /**
@@ -45,8 +87,18 @@ export class ExclusionMatrix {
    * Actions in two different mutually exclusive domains cannot execute concurrently.
    */
   private static readonly INCOMPATIBLE_DOMAINS: ReadonlyArray<ReadonlySet<string>> = [
-    // Spaceship vs On-Foot vs EVA vs Ground Vehicle vs Turret vs Spectator
-    new Set(['spaceship', 'onfoot', 'eva', 'ground_vehicle', 'turret', 'spectator'])
+    new Set([
+      'spaceship',
+      'onfoot',
+      'eva',
+      'ground_vehicle',
+      'turret',
+      'screen_ui',
+      'menu',
+      'spectator',
+      'camera_mode',
+      'internal_debug'
+    ])
   ];
 
 
@@ -100,13 +152,16 @@ export class ExclusionMatrix {
   }
 
   private static resolveDomain(mapName: string): string | undefined {
-    if (this.DOMAIN_MAPPINGS[mapName]) {
-      return this.DOMAIN_MAPPINGS[mapName];
+    const lower = mapName.toLowerCase();
+    if (this.DOMAIN_MAPPINGS[lower]) {
+      return this.DOMAIN_MAPPINGS[lower];
     }
     // Prefix fallback heuristics:
-    if (mapName.startsWith('spaceship_')) return 'spaceship';
-    if (mapName.startsWith('player_')) return 'onfoot';
-    if (mapName.startsWith('vehicle_')) return 'ground_vehicle';
+    if (lower === 'player' || lower.startsWith('player_')) return 'onfoot';
+    if (lower.startsWith('spaceship_') || lower.startsWith('seat_')) return 'spaceship';
+    if (lower.startsWith('vehicle_')) return 'ground_vehicle';
+    if (lower.startsWith('turret')) return 'turret';
+    if (lower.startsWith('zero_gravity_')) return 'eva';
     return undefined;
   }
 

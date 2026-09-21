@@ -1,20 +1,22 @@
 :root {
-  --bg-dark: #07090e;
-  --bg-surface: #0d121c;
-  --bg-card: rgba(18, 26, 40, 0.7);
-  --border-subtle: rgba(45, 65, 95, 0.4);
-  --border-glow: rgba(0, 212, 255, 0.4);
-  --accent-cyan: #00e5ff;
-  --accent-cyan-dim: rgba(0, 229, 255, 0.15);
-  --accent-amber: #ffaa00;
-  --accent-amber-dim: rgba(255, 170, 0, 0.15);
-  --accent-red: #ff3344;
-  --accent-red-dim: rgba(255, 51, 68, 0.15);
-  --text-main: #e2e8f0;
-  --text-muted: #8492a6;
+  --bg-dark: #06090f;
+  --bg-surface: #0b101a;
+  --bg-card: rgba(14, 20, 32, 0.85);
+  --border-subtle: rgba(56, 82, 120, 0.4);
+  --border-glow: rgba(0, 240, 255, 0.5);
+  --accent-cyan: #00f0ff;
+  --accent-cyan-dim: rgba(0, 240, 255, 0.15);
+  --accent-amber: #ffb700;
+  --accent-amber-dim: rgba(255, 183, 0, 0.15);
+  --accent-red: #ff2a4b;
+  --accent-red-dim: rgba(255, 42, 75, 0.15);
+  --accent-green: #00ff88;
+  --accent-green-dim: rgba(0, 255, 136, 0.15);
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
   --font-display: 'Orbitron', monospace, sans-serif;
   --font-sub: 'Rajdhani', sans-serif;
-  --font-body: 'Inter', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 * {
@@ -27,13 +29,15 @@ body {
   background-color: var(--bg-dark);
   color: var(--text-main);
   font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   background-image: 
-    radial-gradient(circle at 15% 15%, rgba(0, 229, 255, 0.04) 0%, transparent 40%),
-    radial-gradient(circle at 85% 85%, rgba(255, 170, 0, 0.03) 0%, transparent 40%),
-    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+    radial-gradient(circle at 10% 10%, rgba(0, 240, 255, 0.05) 0%, transparent 45%),
+    radial-gradient(circle at 90% 90%, rgba(255, 183, 0, 0.04) 0%, transparent 45%),
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
   min-height: 100vh;
 }
 
@@ -51,15 +55,15 @@ h1, h2, h3, h4, .brand-font {
 /* Glassmorphism containers */
 .glass-panel {
   background: var(--bg-card);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.45);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .glass-panel:hover {
-  border-color: var(--border-glow);
+  border-color: rgba(0, 240, 255, 0.35);
 }
 
 /* Custom scrollbars */
@@ -68,38 +72,81 @@ h1, h2, h3, h4, .brand-font {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(10, 15, 25, 0.6);
+  background: rgba(10, 15, 25, 0.8);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 229, 255, 0.25);
+  background: rgba(0, 240, 255, 0.3);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-cyan);
 }
 
-/* Buttons */
+/* Sci-fi Buttons */
 .btn-sci-fi {
   font-family: var(--font-display);
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.82rem;
+  font-weight: 700;
   padding: 8px 16px;
   border-radius: 4px;
   border: 1px solid var(--accent-cyan);
-  background: rgba(0, 229, 255, 0.08);
+  background: rgba(0, 240, 255, 0.09);
   color: var(--accent-cyan);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .btn-sci-fi:hover {
   background: var(--accent-cyan);
   color: #000;
-  box-shadow: 0 0 16px rgba(0, 229, 255, 0.5);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+  transform: translateY(-1px);
+}
+
+.btn-sci-fi:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* HUD Navigation Tabs */
+.hud-tab {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 10px 20px;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.hud-tab-active {
+  background: rgba(0, 240, 255, 0.12);
+  color: #ffffff;
+  border-bottom: 2px solid var(--accent-cyan);
+  box-shadow: inset 0 -10px 20px -10px rgba(0, 240, 255, 0.3);
+}
+
+.hud-tab-inactive {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.hud-tab-inactive:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .badge-pulse {

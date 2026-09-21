@@ -18,6 +18,7 @@ import { DeviceRack } from './components/DeviceRack';
 import { ConflictViewer } from './components/ConflictViewer';
 import { BindingTable } from './components/BindingTable';
 import { BindingEditorModal } from './components/BindingEditorModal';
+import { HardwareInspector } from './components/HardwareInspector';
 import { useGamepadListener } from './hooks/useGamepadListener';
 import { 
   Upload, 
@@ -25,11 +26,15 @@ import {
   Cpu, 
   Database,
   RefreshCw,
-  Sliders,
-  Layers,
   Sparkles,
   Gamepad2,
-  FileCode
+  Table,
+  ShieldAlert,
+  Crosshair,
+  Layers,
+  CheckCircle2,
+  AlertTriangle,
+  AlertOctagon
 } from 'lucide-react';
 
 const SAMPLE_XML = `<?xml version="1.0" encoding="utf-8"?>
@@ -69,7 +74,7 @@ const SAMPLE_XML = `<?xml version="1.0" encoding="utf-8"?>
       <rebind input="js1_button1" activationMode="press"/>
     </action>
   </actionmap>
-  <actionmap name="player_input_onfoot">
+  <actionmap name="player">
     <action name="fire">
       <rebind input="js1_button1" activationMode="press"/>
     </action>
@@ -98,13 +103,15 @@ export const App: React.FC = () => {
     }
   });
 
+  const [activeTab, setActiveTab] = useState<'matrix' | 'inspector' | 'conflicts'>('matrix');
   const [hardwareMapping, setHardwareMapping] = useState<Map<number, number>>(new Map());
   const [searchQuery, setSearchQuery] = useState('');
   const [isListeningMode, setIsListeningMode] = useState(false);
   const [lastDetectedInput, setLastDetectedInput] = useState<string | null>(null);
   const [isLoadingLive, setIsLoadingLive] = useState(false);
   const [daemonStatus, setDaemonStatus] = useState<string | null>(null);
-  const [activePreset, setActivePreset] = useState<string>('sample');
+  const [activePreset, setActivePreset] = useState<string>('Dual VKB EVO Sample');
+  const [deviceScope, setDeviceScope] = useState<string>('js'); // Default to joysticks
 
   // Modal State for Interactive Binding Editor
   const [editingTarget, setEditingTarget] = useState<{
@@ -127,11 +134,11 @@ export const App: React.FC = () => {
     return doc.devices.filter((d): d is JoystickDeviceOption => d.type === 'joystick');
   }, [doc]);
 
-  // Run Conflict Audit
+  // Run Conflict Audit with active device scope
   const conflictReport = useMemo(() => {
     if (!doc) return null;
-    return ConflictResolver.auditDocument(doc);
-  }, [doc]);
+    return ConflictResolver.auditDocument(doc, { deviceFilter: deviceScope });
+  }, [doc, deviceScope]);
 
   // Total action counts
   const totalActionsCount = useMemo(() => {
@@ -169,7 +176,7 @@ export const App: React.FC = () => {
       const res = await fetch('/game-data.json');
       if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to load /game-data.json`);
       const data = await res.json();
-      loadGameDataConfig(data, 'live');
+      loadGameDataConfig(data, 'Star Citizen LIVE');
     } catch (err: any) {
       alert(`Error loading LIVE game data: ${err.message}`);
     } finally {
@@ -206,8 +213,8 @@ export const App: React.FC = () => {
       const res = await fetch('http://127.0.0.1:8765/api/v1/game-data');
       if (!res.ok) throw new Error(`HTTP ${res.status}: Daemon returned error`);
       const data = await res.json();
-      loadGameDataConfig(data, 'daemon');
-      setDaemonStatus('Connected');
+      loadGameDataConfig(data, 'Daemon LIVE');
+      setDaemonStatus('Connected v1.0.0');
     } catch (err: any) {
       setDaemonStatus('Offline');
       alert(`Could not connect to sc-daemon at http://127.0.0.1:8765: ${err.message}\nMake sure to run: ./daemon/bin/sc-daemon --daemon`);
@@ -268,25 +275,29 @@ export const App: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Header & HUD Telemetry */}
-      <header className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-6 border-b border-[#2d415f] mb-8">
+      {/* Cockpit HUD Header */}
+      <header className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 pb-6 border-b border-[#2d415f] mb-6">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <Cpu className="w-7 h-7 text-[#00e5ff] animate-pulse" />
-            <h1 className="text-2xl font-bold tracking-wider text-white">
-              Star Citizen Keybinding Architect
-            </h1>
+            <div className="p-2 rounded bg-[rgba(0,240,255,0.1)] border border-[#00f0ff]/40 text-[#00f0ff]">
+              <Cpu className="w-7 h-7 animate-pulse" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black tracking-wider text-white">
+                STAR CITIZEN KEYBINDING ARCHITECT
+              </h1>
+              <p className="text-xs text-[#94a3b8] font-mono">
+                Lossless CryEngine AST Parser • Master Modes Conflict Engine • Hardware Remapper
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-[#8492a6]">
-            Lossless CryEngine XML Parser • Intelligent Conflict Resolver • Hardware Remapper
-          </p>
         </div>
 
         {/* Global Action Toolbar */}
         <div className="flex items-center flex-wrap gap-2.5">
           <button 
             onClick={handleLoadLiveData} 
-            className="btn-sci-fi text-[#00e5ff] border-[#00e5ff] hover:bg-[rgba(0,229,255,0.1)]"
+            className="btn-sci-fi text-[#00f0ff] border-[#00f0ff] hover:bg-[rgba(0,240,255,0.12)]"
             disabled={isLoadingLive}
             title="Load live base game profile extracted from Data.p4k"
           >
@@ -296,7 +307,7 @@ export const App: React.FC = () => {
 
           <button 
             onClick={handleSyncDaemon} 
-            className="btn-sci-fi text-[#00ff88] border-[#00ff88] hover:bg-[rgba(0,255,136,0.1)]"
+            className="btn-sci-fi text-[#00ff88] border-[#00ff88] hover:bg-[rgba(0,255,136,0.12)]"
             title="Sync from sc-daemon HTTP API at 127.0.0.1:8765"
           >
             <RefreshCw className="w-4 h-4" />
@@ -316,28 +327,29 @@ export const App: React.FC = () => {
         </div>
       </header>
 
-      {/* Preset Profiles Bar */}
-      <div className="glass-panel p-3 mb-6 flex flex-wrap items-center justify-between gap-3 text-xs">
+      {/* Profile Telemetry Bar */}
+      <div className="glass-panel p-3.5 mb-6 flex flex-wrap items-center justify-between gap-4 text-xs">
+        {/* Presets */}
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-[#ffaa00]" />
-          <span className="text-[#8492a6] font-semibold">Sample Presets:</span>
+          <Sparkles className="w-4 h-4 text-[#ffb700]" />
+          <span className="text-[#94a3b8] font-semibold uppercase tracking-wider text-[11px]">Presets:</span>
           <div className="flex items-center gap-1.5 flex-wrap">
             <button
               onClick={() => handleLoadSamplePreset('dual_vkb_evo_hosas.xml', 'Dual VKB HOSAS')}
-              className={`px-2.5 py-1 rounded font-mono transition-all ${
+              className={`px-3 py-1 rounded font-mono font-semibold transition-all ${
                 activePreset === 'Dual VKB HOSAS'
-                  ? 'bg-[#00e5ff] text-black font-bold'
-                  : 'bg-[#090d15] text-[#8492a6] border border-[#2d415f] hover:border-[#00e5ff]'
+                  ? 'bg-[#00f0ff] text-black font-bold shadow-[0_0_12px_rgba(0,240,255,0.4)]'
+                  : 'bg-[#090d15] text-[#94a3b8] border border-[#2d415f] hover:border-[#00f0ff]'
               }`}
             >
               Dual VKB EVO (HOSAS)
             </button>
             <button
               onClick={() => handleLoadSamplePreset('hotas_t16000m.xml', 'T.16000M HOTAS')}
-              className={`px-2.5 py-1 rounded font-mono transition-all ${
+              className={`px-3 py-1 rounded font-mono font-semibold transition-all ${
                 activePreset === 'T.16000M HOTAS'
-                  ? 'bg-[#00e5ff] text-black font-bold'
-                  : 'bg-[#090d15] text-[#8492a6] border border-[#2d415f] hover:border-[#00e5ff]'
+                  ? 'bg-[#00f0ff] text-black font-bold shadow-[0_0_12px_rgba(0,240,255,0.4)]'
+                  : 'bg-[#090d15] text-[#94a3b8] border border-[#2d415f] hover:border-[#00f0ff]'
               }`}
             >
               Thrustmaster T.16000M (HOTAS)
@@ -345,51 +357,131 @@ export const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Telemetry Status Pills */}
-        <div className="flex items-center gap-3 font-mono text-[11px] text-[#8492a6]">
+        {/* HUD Metrics */}
+        <div className="flex items-center gap-4 font-mono text-xs text-[#94a3b8]">
           <span>
-            Profile: <strong className="text-white">{doc?.profileName || 'None'}</strong>
+            Active Profile: <strong className="text-white font-bold">{activePreset}</strong>
           </span>
           <span>•</span>
           <span>
-            Maps: <strong className="text-[#00e5ff]">{Object.keys(doc?.actionMaps || {}).length}</strong>
+            Action Maps: <strong className="text-[#00f0ff]">{Object.keys(doc?.actionMaps || {}).length}</strong>
           </span>
           <span>•</span>
           <span>
-            Actions: <strong className="text-[#00ff88]">{totalActionsCount}</strong>
+            Total Actions: <strong className="text-[#00ff88]">{totalActionsCount}</strong>
+          </span>
+          <span>•</span>
+          <span>
+            Conflicts: <strong className={conflictReport?.hasFatalConflicts ? 'text-[#ff2a4b]' : 'text-[#00ff88]'}>
+              {conflictReport?.conflicts.length || 0}
+            </strong>
           </span>
         </div>
       </div>
 
-      {/* Hardware Device Rack */}
-      {doc && (
-        <DeviceRack
-          devices={joystickDevices}
-          mapping={hardwareMapping}
-          onMappingChange={setHardwareMapping}
-          activeGamepadIds={activeDevices}
-        />
+      {/* Primary HUD Navigation Tabs */}
+      <div className="flex items-center gap-2 border-b border-[#2d415f] mb-6">
+        <button
+          onClick={() => setActiveTab('matrix')}
+          className={`hud-tab ${activeTab === 'matrix' ? 'hud-tab-active' : 'hud-tab-inactive'}`}
+        >
+          <Table className="w-4 h-4" />
+          Keybinding Matrix
+        </button>
+
+        <button
+          onClick={() => setActiveTab('inspector')}
+          className={`hud-tab ${activeTab === 'inspector' ? 'hud-tab-active' : 'hud-tab-inactive'}`}
+        >
+          <Crosshair className="w-4 h-4" />
+          Device Inspector & Live HUD
+        </button>
+
+        <button
+          onClick={() => setActiveTab('conflicts')}
+          className={`hud-tab ${activeTab === 'conflicts' ? 'hud-tab-active' : 'hud-tab-inactive'}`}
+        >
+          <ShieldAlert className="w-4 h-4" />
+          Conflict Diagnostics
+          {conflictReport && conflictReport.conflicts.length > 0 && (
+            <span className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+              conflictReport.hasFatalConflicts ? 'bg-[#ff2a4b] text-white' : 'bg-[#ffb700] text-black font-bold'
+            }`}>
+              {conflictReport.conflicts.length}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* TAB 1: Keybinding Matrix & Device Rack */}
+      {activeTab === 'matrix' && (
+        <div className="space-y-6">
+          {/* Hardware Device Rack */}
+          {doc && (
+            <DeviceRack
+              devices={joystickDevices}
+              mapping={hardwareMapping}
+              onMappingChange={setHardwareMapping}
+              activeGamepadIds={activeDevices}
+            />
+          )}
+
+          {/* Filterable Binding Table */}
+          <BindingTable
+            doc={doc}
+            conflictReport={conflictReport}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            isListeningMode={isListeningMode}
+            onToggleListening={() => setIsListeningMode(!isListeningMode)}
+            lastDetectedInput={lastDetectedInput}
+            onEditAction={(mapName, action) => {
+              setEditingTarget({ mapName, action });
+            }}
+          />
+        </div>
       )}
 
-      {/* Intelligent Conflict Audit Viewer */}
-      <ConflictViewer
-        report={conflictReport}
-        onSelectAction={(actionName) => setSearchQuery(actionName)}
-      />
+      {/* TAB 2: Hardware Device Inspector ("Show what it sees") */}
+      {activeTab === 'inspector' && (
+        <div className="space-y-6">
+          <HardwareInspector
+            doc={doc}
+            onSelectAction={(actionName) => {
+              setSearchQuery(actionName);
+              setActiveTab('matrix');
+            }}
+            onEditAction={(mapName, action) => {
+              setEditingTarget({ mapName, action });
+            }}
+          />
 
-      {/* Searchable Virtualized Binding Table */}
-      <BindingTable
-        doc={doc}
-        conflictReport={conflictReport}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        isListeningMode={isListeningMode}
-        onToggleListening={() => setIsListeningMode(!isListeningMode)}
-        lastDetectedInput={lastDetectedInput}
-        onEditAction={(mapName, action) => {
-          setEditingTarget({ mapName, action });
-        }}
-      />
+          {/* Quick rack remapper below */}
+          {doc && (
+            <DeviceRack
+              devices={joystickDevices}
+              mapping={hardwareMapping}
+              onMappingChange={setHardwareMapping}
+              activeGamepadIds={activeDevices}
+            />
+          )}
+        </div>
+      )}
+
+      {/* TAB 3: Conflict Diagnostics */}
+      {activeTab === 'conflicts' && (
+        <div>
+          <ConflictViewer
+            report={conflictReport}
+            deviceScope={deviceScope}
+            onDeviceScopeChange={setDeviceScope}
+            onSelectAction={(actionName) => {
+              setSearchQuery(actionName);
+              setActiveTab('matrix');
+            }}
+          />
+        </div>
+      )}
 
       {/* Interactive Binding Editor Modal */}
       {editingTarget && (

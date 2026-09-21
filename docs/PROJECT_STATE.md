@@ -31,15 +31,15 @@ When integrating against real Star Citizen game files (`.../StarCitizen/LIVE/Dat
 
 1. **`CryXmlB` Binary XML Format**:
    - `Data/Libs/Config/defaultProfile.xml` inside `Data.p4k` is stored in Crytek's compiled binary format (`CryXmlB\0`).
-   - Implemented [daemon/pkg/cryxml/decoder.go](file:///home/simon.thorley/workspace/sc-controller-mapper/daemon/pkg/cryxml/decoder.go) to reconstruct standard XML text from binary node, attribute, and string tables without external C++ or Python dependencies.
+   - Implemented `daemon/pkg/cryxml/decoder.go` to reconstruct standard XML text from binary node, attribute, and string tables without external C++ or Python dependencies.
 2. **Zip64 32-Byte Header Sizing**:
-   - Standard Go `archive/zip` fails on CIG's custom 32-byte Zip64 extra field records. Implemented `findZip64HeaderOffset` in [daemon/pkg/p4k/extractor.go](file:///home/simon.thorley/workspace/sc-controller-mapper/daemon/pkg/p4k/extractor.go) to accurately stream raw compressed streams.
+   - Standard Go `archive/zip` fails on CIG's custom 32-byte Zip64 extra field records. Implemented `findZip64HeaderOffset` in `daemon/pkg/p4k/extractor.go` to accurately stream raw compressed streams.
 3. **Zstandard Compression (Method 100 / `0x64`)**:
    - Modern `Data.p4k` archives compress entries with Zstandard. Added `github.com/klauspost/compress/zstd` decompressor to `sc-daemon`.
 4. **CIG Local Header Signature**:
    - Handled both standard `PK\x03\x04` (`0x04034b50`) and CIG-specific `0x14034b50` zip signatures.
 5. **Base Game `<profile>` vs User `<ActionMaps>`**:
-   - Base game XML uses root `<profile>` with inline device attributes (`keyboard="1" mouse="1" gamepad="1" joystick="1"`), while exported profiles use `<ActionMaps>`. [ActionMapsParser.ts](file:///home/simon.thorley/workspace/sc-controller-mapper/packages/parser/src/ActionMapsParser.ts) supports both transparently.
+   - Base game XML uses root `<profile>` with inline device attributes (`keyboard="1" mouse="1" gamepad="1" joystick="1"`), while exported profiles use `<ActionMaps>`. `packages/parser/src/ActionMapsParser.ts` supports both transparently.
 6. **Data.p4k Sparse File Layout**:
    - Under Linux/Wine, `Data.p4k` may be allocated as an ext4 sparse file during patching. `defaultProfile.xml` resides at offset ~70.3 GB (allocated), while `global.ini` resides at offset ~133.6 GB. Localization parser was updated with non-fatal fallbacks to ensure unhindered operation if `global.ini` has not finished downloading.
 
@@ -65,8 +65,11 @@ When integrating against real Star Citizen game files (`.../StarCitizen/LIVE/Dat
 - [x] Extract live Star Citizen bindings using `sc-daemon`.
 - [x] Support binary `CryXmlB` decoding and Zstandard decompression.
 - [x] Update parser for `<profile>` schema and metadata tokens.
-- [x] **Modular UI Refactoring**: Decouple `ConflictViewer` and `BindingTable` from `App.tsx` into modular components.
+- [x] **Modular UI Refactoring**: Decouple `ConflictViewer`, `BindingTable`, and `HardwareInspector` from `App.tsx` into modular components.
 - [x] **Sample Preset Quick-Loader**: Add 1-click loading for Dual VKB HOSAS and T.16000M HOTAS sample profiles in the UI.
 - [x] **Interactive Binding Editor**: Enable direct editing/adding of `<rebind>` and `<addbind>` inputs with activation modes directly in the Web UI.
+- [x] **Conflict Engine False-Positive Elimination**: Expanded `ExclusionMatrix` across all 50 real Star Citizen action maps into 10 mutually exclusive operational domains (`spaceship`, `onfoot`, `eva`, `ground_vehicle`, `turret`, `screen_ui`, `menu`, `spectator`, `camera_mode`, `internal_debug`). Added device-scoped auditing (`Joysticks`, `All`, `Keyboard`).
+- [x] **Hardware Device Inspector & Live HUD**: Live interactive button matrix (Buttons 1-32+) and analog axis deflection meters. Solves the physical button identification problem by lighting up pressed buttons and displaying exact Star Citizen input IDs and mapped actions.
+- [x] **Daemon Versioning & Privacy Sanitization**: Added `--version` CLI flag, `/api/v1/version` endpoint, and sanitized file paths to prevent exposure of personal home directories.
 - [ ] **Device Visualizer**: Interactive SVG mapping visualizer for HOTAS/HOSAS hardware.
 
