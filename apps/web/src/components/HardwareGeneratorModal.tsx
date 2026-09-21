@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { JoystickDeviceOption, HardwareDeviceDefinition } from '@sc-mapping/shared-types';
 import { 
   X, 
@@ -155,6 +155,10 @@ export const HardwareGeneratorModal: React.FC<HardwareGeneratorModalProps> = ({
 
   // Live Detected Gamepads from Web API
   const [detectedGamepads, setDetectedGamepads] = useState<Gamepad[]>([]);
+  // Track which gamepad last had activity for physical identification
+  const [lastActiveGamepadIdx, setLastActiveGamepadIdx] = useState<number | null>(null);
+  const [lastActiveBtn, setLastActiveBtn] = useState<string | null>(null);
+  const prevBtnStates = useRef<Map<string, boolean>>(new Map());
 
   useEffect(() => {
     if (!isOpen) return;
@@ -167,7 +171,27 @@ export const HardwareGeneratorModal: React.FC<HardwareGeneratorModalProps> = ({
     };
 
     pollGamepads();
-    const interval = setInterval(pollGamepads, 1000);
+    const interval = setInterval(() => {
+      if (typeof navigator !== 'undefined' && navigator.getGamepads) {
+        const pads = Array.from(navigator.getGamepads()).filter((p): p is Gamepad => !!p);
+        setDetectedGamepads(pads);
+
+        // Detect button presses for physical identification
+        for (let gIdx = 0; gIdx < pads.length; gIdx++) {
+          const pad = pads[gIdx];
+          for (let bIdx = 0; bIdx < pad.buttons.length; bIdx++) {
+            const key = `${gIdx}_${bIdx}`;
+            const pressed = pad.buttons[bIdx].pressed || pad.buttons[bIdx].value > 0.5;
+            const was = prevBtnStates.current.get(key) || false;
+            if (pressed && !was) {
+              setLastActiveGamepadIdx(gIdx);
+              setLastActiveBtn(`Button ${bIdx + 1}`);
+            }
+            prevBtnStates.current.set(key, pressed);
+          }
+        }
+      }
+    }, 100);
     return () => clearInterval(interval);
   }, [isOpen]);
 
@@ -337,7 +361,7 @@ ${JSON.stringify(generatedHardwareJSON, null, 2)}
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="glass-panel w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl border border-[#00f0ff]/30 rounded-lg overflow-hidden">
+      <div className="glass-panel hw-studio-modal flex flex-col shadow-2xl border border-[#00f0ff]/30 rounded-lg overflow-hidden">
         {/* Modal Header */}
         <div className="p-4 bg-[rgba(10,17,28,0.95)] border-b border-[#2d415f] flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -365,9 +389,9 @@ ${JSON.stringify(generatedHardwareJSON, null, 2)}
         </div>
 
         {/* Modal Body */}
-        <div className="flex-1 overflow-y-auto p-5 grid grid-cols-1 lg:grid-cols-12 gap-6 text-xs">
+        <div className="flex-1 overflow-y-auto p-5 grid grid-cols-12 gap-6 text-xs">
           {/* Left Column: Device Configuration Form (5 cols) */}
-          <div className="lg:col-span-5 space-y-4">
+          <div className="col-span-12 md:col-span-5 space-y-4">
             {/* Live Controller Sniffer */}
             <div className="glass-panel p-3.5 border border-[#2d415f]">
               <div className="flex items-center justify-between mb-2">
@@ -385,26 +409,46 @@ ${JSON.stringify(generatedHardwareJSON, null, 2)}
                   No controllers detected yet. Plug in your joystick or throttle and press any button to wake up the browser Gamepad API.
                 </p>
               ) : (
-                <div className="space-y-1.5 max-h-28 overflow-y-auto">
-                  {detectedGamepads.map((pad, idx) => (
-                    <div 
-                      key={idx}
-                      className="p-2 rounded bg-[#090d15] border border-[#2d415f] hover:border-[#00f0ff] flex items-center justify-between"
-                    >
-                      <div className="truncate mr-2">
-                        <span className="font-bold text-white font-mono">{pad.id.split('(')[0].trim()}</span>
-                        <div className="text-[10px] text-[#94a3b8] font-mono">
-                          {pad.axes.length} Axes • {pad.buttons.length} Buttons
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleAdoptConnectedGamepad(pad)}
-                        className="px-2 py-1 bg-[#00f0ff]/20 hover:bg-[#00f0ff] text-[#00f0ff] hover:text-black font-mono font-bold rounded text-[10px] transition-all"
+                <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                  <p className="text-[10px] text-[#94a3b8] mb-1.5">
+                    Press any button on a controller to identify it below:
+                  </p>
+                  {detectedGamepads.map((pad, idx) => {
+                    const isActive = lastActiveGamepadIdx === idx;
+                    return (
+                      <div
+                        key={idx}
+                        className={`p-2 rounded border flex items-center justify-between transition-all duration-150 ${
+                          isActive
+                            ? 'bg-[rgba(0,240,255,0.15)] border-[#00f0ff] shadow-[0_0_8px_rgba(0,240,255,0.4)]'
+                            : 'bg-[#090d15] border-[#2d415f] hover:border-[#00f0ff]/50'
+                        }`}
                       >
-                        Adopt
-                      </button>
-                    </div>
-                  ))}
+                        <div className="truncate mr-2 flex-1">
+                          <div className="flex items-center gap-2">
+                            {isActive && (
+                              <span className="inline-block w-2 h-2 rounded-full bg-[#00f0ff] animate-pulse shrink-0" />
+                            )}
+                            <span className="font-bold text-white font-mono text-[11px]">
+                              js{idx + 1} — {pad.id.split('(')[0].trim()}
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-[#94a3b8] font-mono mt-0.5">
+                            {pad.axes.length} Axes · {pad.buttons.length} Buttons
+                            {isActive && lastActiveBtn && (
+                              <span className="ml-2 text-[#00f0ff] font-bold">▶ {lastActiveBtn} pressed</span>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleAdoptConnectedGamepad(pad)}
+                          className="px-2 py-1 bg-[#00f0ff]/20 hover:bg-[#00f0ff] text-[#00f0ff] hover:text-black font-mono font-bold rounded text-[10px] transition-all shrink-0"
+                        >
+                          Adopt
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -544,7 +588,7 @@ ${JSON.stringify(generatedHardwareJSON, null, 2)}
           </div>
 
           {/* Right Column: Generated Artifacts & Actions (7 cols) */}
-          <div className="lg:col-span-7 flex flex-col space-y-4">
+          <div className="col-span-12 md:col-span-7 flex flex-col space-y-4">
             {/* Artifact Navigation Tabs */}
             <div className="flex items-center gap-2 border-b border-[#2d415f] pb-2">
               <button

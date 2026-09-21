@@ -106,13 +106,19 @@ export const BindingTable: React.FC<BindingTableProps> = ({
           if (!hasDevice) continue;
         }
 
-        // Query filtering
+        // Query filtering — also matches full hardware input strings (e.g. 'js2_button8')
         if (q) {
+          // Normalise: strip any leading modifier (e.g. 'lalt+js2_button8' → 'js2_button8')
+          const stripMod = (s: string) => s.includes('+') ? s.split('+').pop()! : s;
           const matches =
             actName.toLowerCase().includes(q) ||
             (action.label && action.label.toLowerCase().includes(q)) ||
             mapName.toLowerCase().includes(q) ||
-            action.inputs.some(i => i.input.toLowerCase().includes(q));
+            action.inputs.some(i => {
+              const raw = i.input.toLowerCase();
+              const stripped = stripMod(raw);
+              return raw.includes(q) || stripped.includes(q) || stripped === q;
+            });
 
           if (!matches) continue;
         }
