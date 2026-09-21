@@ -22,8 +22,13 @@ The repository is organized as an npm workspace monorepo:
 sc-mapping/
 ├── AGENTS.md                     # Agent context & architectural guidelines (this file)
 ├── README.md                     # High-level overview & quickstart
+├── CONTRIBUTING.md               # Open source contributor setup & PR guidelines
+├── TODO.md                       # Project backlog & deferred enhancements
+├── Dockerfile                    # Multi-stage unprivileged Nginx container build
+├── docker-compose.yml            # Stage 1 private server container definition
 ├── docs/
 │   ├── ARCHITECTURE_BLUEPRINT.md # Full 40KB system specification, rules, and cipher specs
+│   ├── STAGED_ROLLOUT_PLAN.md    # Multi-stage deployment, GCP OpenTofu, & monetization plan
 │   └── BOOTSTRAP_WALKTHROUGH.md  # Implementation log of initial bootstrap
 ├── sample-data/                  # Offline sample XML profiles and localization fixtures
 │   ├── dual_vkb_evo_hosas.xml    # Dual VKB Gladiator EVO profile (HOSAS)
@@ -39,7 +44,7 @@ sc-mapping/
 ├── apps/
 │   └── web/                      # React 18 / Vite Web Application
 │       └── src/
-│           ├── components/       # DeviceRack.tsx (drag-and-drop device re-indexer)
+│           ├── components/       # DeviceRack.tsx, MonetizationSlot.tsx, etc.
 │           ├── hooks/            # useGamepadListener.ts (HTML5 Gamepad API hook)
 │           └── App.tsx           # Main workspace UI
 └── daemon/                       # Go extraction daemon (sc-daemon)
@@ -80,6 +85,10 @@ Conflicts are rated across a 4-tier severity spectrum:
 ### D. Device Re-Indexing
 - Swapping device numbers in `DeviceRack` must update `<options>` instance attributes AND rewrite all matching `jsX_` prefixes across all actions during export.
 
+### E. OpenTofu Compliance & Secret Safety
+- When working with `.tf` files, **always** use the `tofu` CLI binary (OpenTofu).
+- Maintain local state (`backend "local"`), and never commit `.tfstate`, `*.tfvars`, or cloud credentials to git.
+
 ---
 
 ## 4. Development & Verification Commands
@@ -88,15 +97,20 @@ Conflicts are rated across a 4-tier severity spectrum:
 # Install dependencies
 npm install
 
-# Start the Web Application locally
+# Run automated Vitest test suite across all workspace packages
+npm test
+
+# Run pre-commit checks and secret scans across all files
+pre-commit run --all-files
+
+# Start the Web Application locally in dev mode
 npm run dev
 
-# Run full project build
+# Run full project build (packages + web)
 npm run build
 
-# Run resolver & parser verification suite
-npm run --workspace=@sc-mapping/resolver build
-node packages/resolver/dist/test-verify.js
+# Build and run Stage 1 container locally or on private server
+docker-compose up -d --build
 
 # Build the Go extraction daemon
 npm run daemon:build
@@ -111,3 +125,13 @@ npm run daemon:build
 If developing on a machine without Star Citizen installed:
 - Use files in `sample-data/` to load test profiles into the web UI or parser.
 - The web app operates 100% client-side in the browser via file upload/download without requiring the Go daemon.
+
+---
+
+## 6. AI Agent / LLM Contribution Policy
+
+If a Pull Request is developed, generated, or co-authored with the assistance of an AI Agent or Large Language Model (LLM):
+1. **PR Title Flag**: The PR title **must** be flagged with a robot emoji (`🤖`), e.g.:
+   - `🤖 feat(resolver): add Master Mode weapon toggle exclusion`
+   - `🤖 fix(parser): handle chorded joystick modifiers during export`
+2. **PR Description Disclosure**: The PR description **must** state clearly and explicitly that the code was developed with or by an AI agent/LLM, detailing the prompt/context, tools used, and manual/automated verification steps taken.

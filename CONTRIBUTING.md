@@ -114,5 +114,6 @@ pre-commit run --all-files
    ```
 2. Commit your changes using Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `infra:`, `refactor:`).
 3. Ensure all tests pass (`npm test && npm run build`).
-4. Push to your fork and submit a Pull Request to `main`.
-5. GitHub Actions CI will automatically run linting, tests, OpenTofu validation, and container smoke tests.
+4. **AI / LLM Disclosure**: If the changes were developed, generated, or co-authored by an AI agent or LLM, the PR title **must** be prefixed with `🤖` (e.g. `🤖 feat(parser): ...`) and explicitly declared in the PR description.
+5. Push to your fork and submit a Pull Request to `main`.
+6. GitHub Actions CI will automatically run linting, tests, OpenTofu validation, and container smoke tests.

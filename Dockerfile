@@ -1,7 +1,7 @@
 # ==============================================================================
 # Stage 1: Build Workspace & Static Web Assets
 # ==============================================================================
-FROM node:22-alpine AS builder
+FROM docker.io/library/node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -27,7 +27,7 @@ RUN npm run build
 # ==============================================================================
 # Stage 2: Minimal, Hardened Runtime
 # ==============================================================================
-FROM nginxinc/nginx-unprivileged:alpine AS runtime
+FROM docker.io/nginxinc/nginx-unprivileged:alpine AS runtime
 
 # Copy custom Nginx configuration
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf

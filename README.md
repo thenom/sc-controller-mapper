@@ -72,27 +72,45 @@ sc-mapping/
 - **Contributor Hub**: Dedicated developer modal separating `sc-daemon` extraction and PR submission tools from everyday player workflows.
 - **Pure Vanilla CSS Architecture**: Clean, high-performance styling without heavy framework overhead, complete with constrained SVG icons, badges, and integrated `? What's this?` guidance modals across all major views.
 
+### Phase 6: Containerization, CI/CD Pipeline & Monetization
+- **Hardened Unprivileged Containerization**: Multi-stage Node builder + unprivileged Nginx runtime on port `8080` with SPA routing and `/healthz` healthchecks.
+- **GitHub Actions CI Workflow**: Automated pipeline running on free, unlimited public runners on every push and pull request (typechecking, Vitest tests, and Docker smoke build).
+- **Multi-Tier Test Suite**: Fast Vitest suite (<1s execution) verifying XML round-trip fidelity, hardware prefix swapping, 4-tier conflict detection, and UI component rendering.
+- **Git Hygiene & Secret Protection**: `.pre-commit-config.yaml` using Gitleaks to block credentials, private keys, and `.tfstate` files before commit.
+- **Aesthetic Flight-HUD Monetization**: Integrated dark-mode supporter button (amber glowing "Fuel Server" Ko-fi link), cockpit telemetry hardware affiliate cards, and sandbox AdSense display units with graceful adblocker collapse.
+
 ---
 
 ## Verification & Testing
 
-To run the full monorepo build:
+To run the automated Vitest test suite across all workspace packages:
+```bash
+npm test
+```
+
+To run pre-commit checks and secret scans across all files:
+```bash
+pre-commit run --all-files
+```
+
+To run the full TypeScript monorepo build:
 ```bash
 npm run build
 ```
 
-To run the resolver automated verification suite:
+To run the web app locally in development mode:
 ```bash
-node packages/resolver/dist/test-verify.js
+npm run dev
+```
+
+To build and run the Stage 1 container locally or on a private server:
+```bash
+docker-compose up -d --build
+curl -I http://localhost:8080/healthz
 ```
 
 To build and run the Go extraction daemon (contributors updating game assets):
 ```bash
 npm run daemon:build
 ./daemon/bin/sc-daemon --help
-```
-
-To run the web app locally:
-```bash
-npm run --workspace=@sc-mapping/web dev
 ```
