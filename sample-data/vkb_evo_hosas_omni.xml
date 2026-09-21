@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ActionMaps version="1" optionsVersion="2" rebindVersion="2" profileName="vkb_evo_right_left_omni_6dof">
+  <!-- VKB Gladiator EVO Right Stick (Primary Flight Dynamics & Weapons) -->
+  <options type="joystick" instance="1" Product="VKBsim Gladiator EVO R {0200231D-0000-0000-0000-504944564944}">
+    <invert axis="pitch" val="1"/>
+    <invert axis="yaw" val="0"/>
+    <invert axis="roll" val="0"/>
+  </options>
+
+  <!-- VKB Gladiator EVO Left Omni-Throttle (OTA 6DOF Strafe & Systems) -->
+  <options type="joystick" instance="2" Product="VKBsim Gladiator EVO L OTA {0201231D-0000-0000-0000-504944564944}">
+    <invert axis="throttle" val="0"/>
+    <invert axis="strafe_up" val="1"/>
+    <invert axis="strafe_forward" val="0"/>
+    <invert axis="strafe_lateral" val="0"/>
+  </options>
+
+  <options type="keyboard" instance="1"/>
+  <options type="mouse" instance="1"/>
+
+  <actionmap name="spaceship_movement">
+    <!-- Right Stick: Pitch / Yaw / Roll Flight Dynamics -->
+    <action name="v_pitch">
+      <rebind input="js1_pitch"/>
+    </action>
+    <action name="v_yaw">
+      <rebind input="js1_yaw"/>
+    </action>
+    <action name="v_roll">
+      <rebind input="js1_roll"/>
+    </action>
+
+    <!-- Left Stick (Omni-Throttle OTA): 6DOF Translational Strafe -->
+    <!-- Push/Pull = Forward/Backward Strafe -->
+    <action name="v_strafe_forward">
+      <rebind input="js2_y"/>
+    </action>
+    <!-- Left/Right Tilt = Lateral Strafe -->
+    <action name="v_strafe_lateral">
+      <rebind input="js2_x"/>
+    </action>
+    <!-- Z Twist = Vertical Strafe (Up/Down) -->
+    <action name="v_strafe_vertical">
+      <rebind input="js2_z"/>
+    </action>
+
+    <!-- Speed & Acceleration Limiters -->
+    <action name="v_speed_range_rel">
+      <rebind input="js2_rotx"/>
+    </action>
+
+    <!-- Dynamics & Space Brake -->
+    <action name="v_boost">
+      <rebind input="js1_button4" activationMode="press"/>
+    </action>
+    <action name="v_spacebreak">
+      <rebind input="js1_button4" activationMode="double_tap"/>
+      <addbind input="js2_button2" activationMode="press"/>
+    </action>
+    <action name="v_decoupled">
+      <rebind input="js2_button1" activationMode="press"/>
+    </action>
+
+    <!-- Landing & Utilities -->
+    <action name="v_toggle_landing_system">
+      <rebind input="js2_button6" activationMode="press"/>
+    </action>
+    <action name="v_lights_toggle">
+      <rebind input="js1_button5" activationMode="press"/>
+    </action>
+
+    <!-- Emergency & Destructive Actions -->
+    <action name="v_eject">
+      <rebind input="js1_button5" activationMode="hold"/>
+    </action>
+    <action name="v_self_destruct">
+      <rebind input="lalt+js1_button5" activationMode="hold"/>
+    </action>
+  </actionmap>
+
+  <actionmap name="spaceship_weapons">
+    <!-- Combat Controls (SCM Master Mode) -->
+    <action name="v_attack1_group1">
+      <rebind input="js1_button1" activationMode="press"/>
+    </action>
+    <action name="v_attack1_group2">
+      <rebind input="js1_button2" activationMode="press"/>
+    </action>
+    <action name="v_target_lock_selected">
+      <rebind input="js1_button3" activationMode="press"/>
+    </action>
+    <action name="v_target_unlock_selected">
+      <rebind input="js1_button3" activationMode="hold"/>
+    </action>
+  </actionmap>
+
+  <actionmap name="spaceship_quantum">
+    <!-- Travel & Spool Controls (NAV Master Mode) -->
+    <action name="v_quantum_spool">
+      <rebind input="js2_button3" activationMode="press"/>
+    </action>
+    <action name="v_quantum_engage">
+      <rebind input="js2_button3" activationMode="hold"/>
+    </action>
+  </actionmap>
+
+  <actionmap name="ground_vehicle_movement">
+    <!-- Ground Vehicle Controls (Isolated Ground Domain) -->
+    <action name="v_yaw">
+      <rebind input="js1_yaw"/>
+    </action>
+    <action name="v_move">
+      <rebind input="js2_y"/>
+    </action>
+    <action name="v_brake">
+      <rebind input="js2_button2" activationMode="press"/>
+    </action>
+  </actionmap>
+</ActionMaps>

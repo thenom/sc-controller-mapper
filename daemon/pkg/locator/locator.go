@@ -2,6 +2,7 @@ package locator
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -96,4 +97,44 @@ func discoverFromLauncherLogs() (string, error) {
 	}
 
 	return "", fmt.Errorf("no valid game path found in RSI launcher logs")
+}
+
+// BuildManifest represents the metadata stored in build_manifest.id
+type BuildManifest struct {
+	Data struct {
+		Branch               string `json:"Branch"`
+		BuildDateStamp       string `json:"BuildDateStamp"`
+		BuildId              string `json:"BuildId"`
+		BuildTimeStamp       string `json:"BuildTimeStamp"`
+		Config               string `json:"Config"`
+		Platform             string `json:"Platform"`
+		RequestedP4ChangeNum string `json:"RequestedP4ChangeNum"`
+		Tag                  string `json:"Tag"`
+		Version              string `json:"Version"`
+	} `json:"Data"`
+}
+
+// ReadBuildManifest attempts to find and parse build_manifest.id in gameRoot or channel subdirectories
+func ReadBuildManifest(gameRoot string) (*BuildManifest, error) {
+	candidates := []string{
+		filepath.Join(gameRoot, "build_manifest.id"),
+		filepath.Join(gameRoot, "LIVE", "build_manifest.id"),
+		filepath.Join(gameRoot, "PTU", "build_manifest.id"),
+		filepath.Join(gameRoot, "EPTU", "build_manifest.id"),
+	}
+
+	for _, c := range candidates {
+		if _, err := os.Stat(c); err == nil {
+			content, err := os.ReadFile(c)
+			if err != nil {
+				continue
+			}
+			var manifest BuildManifest
+			if err := json.Unmarshal(content, &manifest); err == nil && manifest.Data.Version != "" {
+				return &manifest, nil
+			}
+		}
+	}
+
+	return nil, fmt.Errorf("build_manifest.id not found or invalid in %s", gameRoot)
 }

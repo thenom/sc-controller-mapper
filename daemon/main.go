@@ -88,6 +88,11 @@ func processGameData(gameRoot string, outputPath string, sanitize bool) (*config
 		return nil, fmt.Errorf("failed to compute p4k signature: %w", err)
 	}
 
+	manifest, mErr := locator.ReadBuildManifest(gameRoot)
+	if mErr == nil && manifest != nil {
+		fmt.Printf("[daemon] Star Citizen Build: %s (%s, %s)\n", manifest.Data.Version, manifest.Data.Branch, manifest.Data.BuildDateStamp)
+	}
+
 	cacheDir := filepath.Join(os.TempDir(), "sc-mapping")
 	cacheFile := filepath.Join(cacheDir, "cache.scj")
 
@@ -96,6 +101,11 @@ func processGameData(gameRoot string, outputPath string, sanitize bool) (*config
 	if err == nil && cachedData != nil {
 		fmt.Println("[daemon] ✓ Cache hit: Using existing .scj cache payload.")
 		cachedData.Version = Version
+		if manifest != nil {
+			cachedData.GameVersion = manifest.Data.Version
+			cachedData.GameBranch = manifest.Data.Branch
+			cachedData.GameBuildDate = manifest.Data.BuildDateStamp
+		}
 		if sanitize {
 			cachedData.GamePath = "StarCitizen/LIVE"
 		} else {
@@ -115,6 +125,11 @@ func processGameData(gameRoot string, outputPath string, sanitize bool) (*config
 		return nil, fmt.Errorf("extraction failed: %w", err)
 	}
 	data.Version = Version
+	if manifest != nil {
+		data.GameVersion = manifest.Data.Version
+		data.GameBranch = manifest.Data.Branch
+		data.GameBuildDate = manifest.Data.BuildDateStamp
+	}
 	if sanitize {
 		data.GamePath = "StarCitizen/LIVE"
 	} else {

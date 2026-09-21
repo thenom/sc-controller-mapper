@@ -7,13 +7,15 @@ interface DeviceRackProps {
   mapping: Map<number, number>;
   onMappingChange: (newMapping: Map<number, number>) => void;
   activeGamepadIds: string[];
+  onOpenHardwareStudio?: () => void;
 }
 
 export const DeviceRack: React.FC<DeviceRackProps> = ({
   devices,
   mapping,
   onMappingChange,
-  activeGamepadIds
+  activeGamepadIds,
+  onOpenHardwareStudio
 }) => {
   const [draggedInstance, setDraggedInstance] = useState<number | null>(null);
 
@@ -57,14 +59,25 @@ export const DeviceRack: React.FC<DeviceRackProps> = ({
             Hardware Device Rack & Logical Instance Remapper
           </h2>
         </div>
-        <button
-          onClick={handleReset}
-          className="text-xs text-[#8492a6] hover:text-[#00e5ff] flex items-center gap-1 transition-colors"
-          title="Reset device indices to default"
-        >
-          <RotateCw className="w-3.5 h-3.5" />
-          Reset Mapping
-        </button>
+        <div className="flex items-center gap-2.5">
+          {onOpenHardwareStudio && (
+            <button
+              onClick={onOpenHardwareStudio}
+              className="text-xs text-[#00f0ff] hover:text-white bg-[rgba(0,240,255,0.1)] hover:bg-[rgba(0,240,255,0.2)] border border-[#00f0ff]/40 px-2.5 py-1 rounded flex items-center gap-1.5 transition-all shadow-[0_0_8px_rgba(0,240,255,0.2)]"
+            >
+              <Gamepad2 className="w-3.5 h-3.5" />
+              Hardware Studio & Presets
+            </button>
+          )}
+          <button
+            onClick={handleReset}
+            className="text-xs text-[#8492a6] hover:text-[#00e5ff] flex items-center gap-1 transition-colors"
+            title="Reset device indices to default"
+          >
+            <RotateCw className="w-3.5 h-3.5" />
+            Reset Mapping
+          </button>
+        </div>
       </div>
 
       <p className="text-xs text-[#8492a6] mb-4 leading-relaxed">

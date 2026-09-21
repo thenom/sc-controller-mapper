@@ -19,6 +19,7 @@ import { ConflictViewer } from './components/ConflictViewer';
 import { BindingTable } from './components/BindingTable';
 import { BindingEditorModal } from './components/BindingEditorModal';
 import { HardwareInspector } from './components/HardwareInspector';
+import { HardwareGeneratorModal } from './components/HardwareGeneratorModal';
 import { useGamepadListener } from './hooks/useGamepadListener';
 import { 
   Upload, 
@@ -34,7 +35,10 @@ import {
   Layers,
   CheckCircle2,
   AlertTriangle,
-  AlertOctagon
+  AlertOctagon,
+  Info,
+  ShieldCheck,
+  X
 } from 'lucide-react';
 
 const SAMPLE_XML = `<?xml version="1.0" encoding="utf-8"?>
@@ -113,6 +117,16 @@ export const App: React.FC = () => {
   const [activePreset, setActivePreset] = useState<string>('Dual VKB EVO Sample');
   const [deviceScope, setDeviceScope] = useState<string>('js'); // Default to joysticks
 
+  // Game Version & Suite Versioning State
+  const [gameVersion, setGameVersion] = useState<string>('4.10.193.11644');
+  const [gameBranch, setGameBranch] = useState<string>('sc-alpha-4.10.0');
+  const [gameBuildDate, setGameBuildDate] = useState<string>('Tue Sep 15 2026');
+  const suiteVersion = '1.0.0';
+  const [isVersionInfoOpen, setIsVersionInfoOpen] = useState(false);
+
+  // Hardware Generator / Submission Studio Modal State
+  const [isHardwareStudioOpen, setIsHardwareStudioOpen] = useState(false);
+
   // Modal State for Interactive Binding Editor
   const [editingTarget, setEditingTarget] = useState<{
     mapName: string;
@@ -160,6 +174,9 @@ export const App: React.FC = () => {
       merger.loadDictionary(data.localization);
       merger.enrichDocument(parsed);
     }
+    if (data.game_version) setGameVersion(data.game_version);
+    if (data.game_branch) setGameBranch(data.game_branch);
+    if (data.game_build_date) setGameBuildDate(data.game_build_date);
     setDoc(parsed);
     const initialMap = new Map<number, number>();
     parsed.devices.forEach(d => {
@@ -167,6 +184,23 @@ export const App: React.FC = () => {
     });
     setHardwareMapping(initialMap);
     setActivePreset(presetName);
+  };
+
+  const handleApplyDeviceOptions = (newDevice: JoystickDeviceOption) => {
+    if (!doc) return;
+    const nextDoc: ActionMapsDocument = JSON.parse(JSON.stringify(doc));
+    const existingIndex = nextDoc.devices.findIndex(
+      d => d.type === 'joystick' && d.instance === newDevice.instance
+    );
+    if (existingIndex >= 0) {
+      nextDoc.devices[existingIndex] = newDevice;
+    } else {
+      nextDoc.devices.push(newDevice);
+    }
+    setDoc(nextDoc);
+    const nextMap = new Map(hardwareMapping);
+    nextMap.set(newDevice.instance, newDevice.instance);
+    setHardwareMapping(nextMap);
   };
 
   // Load from local static /game-data.json
@@ -278,23 +312,46 @@ export const App: React.FC = () => {
       {/* Cockpit HUD Header */}
       <header className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 pb-6 border-b border-[#2d415f] mb-6">
         <div>
-          <div className="flex items-center gap-3 mb-1">
-            <div className="p-2 rounded bg-[rgba(0,240,255,0.1)] border border-[#00f0ff]/40 text-[#00f0ff]">
+          <div className="flex items-center gap-3 mb-1.5">
+            <div className="p-2.5 rounded bg-[rgba(0,240,255,0.1)] border border-[#00f0ff]/40 text-[#00f0ff]">
               <Cpu className="w-7 h-7 animate-pulse" />
             </div>
             <div>
-              <h1 className="text-2xl font-black tracking-wider text-white">
-                STAR CITIZEN KEYBINDING ARCHITECT
-              </h1>
-              <p className="text-xs text-[#94a3b8] font-mono">
-                Lossless CryEngine AST Parser • Master Modes Conflict Engine • Hardware Remapper
-              </p>
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h1 className="text-2xl font-black tracking-wider text-white">
+                  STAR CITIZEN KEYBINDING ARCHITECT
+                </h1>
+                <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-[#1e293b] text-[#94a3b8] border border-[#334155]">
+                  Suite v{suiteVersion}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <button
+                  onClick={() => setIsVersionInfoOpen(true)}
+                  className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[rgba(0,240,255,0.08)] border border-[#00f0ff]/30 text-[#00f0ff] hover:bg-[rgba(0,240,255,0.18)] transition-colors text-[11px] font-mono cursor-pointer"
+                  title="Click to view Star Citizen Game Version Compatibility details"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#00ff88]" />
+                  <span>Target Game: <strong>Star Citizen Alpha {gameBranch.replace('sc-alpha-', '')}</strong> (Build {gameVersion})</span>
+                  <Info className="w-3 h-3 text-[#94a3b8]" />
+                </button>
+                <span className="text-[11px] text-[#64748b] font-mono">• Build: {gameBuildDate}</span>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Global Action Toolbar */}
         <div className="flex items-center flex-wrap gap-2.5">
+          <button 
+            onClick={() => setIsHardwareStudioOpen(true)}
+            className="btn-sci-fi text-[#ffb700] border-[#ffb700] hover:bg-[rgba(255,183,0,0.12)] shadow-[0_0_12px_rgba(255,183,0,0.25)]"
+            title="Open Hardware Studio: generate options, presets, or community hardware definitions"
+          >
+            <Gamepad2 className="w-4 h-4" />
+            Hardware Studio
+          </button>
+
           <button 
             onClick={handleLoadLiveData} 
             className="btn-sci-fi text-[#00f0ff] border-[#00f0ff] hover:bg-[rgba(0,240,255,0.12)]"
@@ -334,6 +391,16 @@ export const App: React.FC = () => {
           <Sparkles className="w-4 h-4 text-[#ffb700]" />
           <span className="text-[#94a3b8] font-semibold uppercase tracking-wider text-[11px]">Presets:</span>
           <div className="flex items-center gap-1.5 flex-wrap">
+            <button
+              onClick={() => handleLoadSamplePreset('vkb_evo_hosas_omni.xml', 'Dual VKB (Right + Omni Left)')}
+              className={`px-3 py-1 rounded font-mono font-semibold transition-all ${
+                activePreset === 'Dual VKB (Right + Omni Left)'
+                  ? 'bg-[#00f0ff] text-black font-bold shadow-[0_0_12px_rgba(0,240,255,0.4)]'
+                  : 'bg-[#090d15] text-[#94a3b8] border border-[#2d415f] hover:border-[#00f0ff]'
+              }`}
+            >
+              Dual VKB (Right + Omni Left OTA)
+            </button>
             <button
               onClick={() => handleLoadSamplePreset('dual_vkb_evo_hosas.xml', 'Dual VKB HOSAS')}
               className={`px-3 py-1 rounded font-mono font-semibold transition-all ${
@@ -423,6 +490,7 @@ export const App: React.FC = () => {
               mapping={hardwareMapping}
               onMappingChange={setHardwareMapping}
               activeGamepadIds={activeDevices}
+              onOpenHardwareStudio={() => setIsHardwareStudioOpen(true)}
             />
           )}
 
@@ -463,6 +531,7 @@ export const App: React.FC = () => {
               mapping={hardwareMapping}
               onMappingChange={setHardwareMapping}
               activeGamepadIds={activeDevices}
+              onOpenHardwareStudio={() => setIsHardwareStudioOpen(true)}
             />
           )}
         </div>
@@ -492,6 +561,82 @@ export const App: React.FC = () => {
           onClose={() => setEditingTarget(null)}
           onSave={handleSaveActionInputs}
         />
+      )}
+
+      {/* Hardware Studio & Submission Generator Modal */}
+      <HardwareGeneratorModal
+        isOpen={isHardwareStudioOpen}
+        onClose={() => setIsHardwareStudioOpen(false)}
+        onApplyOptions={handleApplyDeviceOptions}
+      />
+
+      {/* Game Version Compatibility Modal */}
+      {isVersionInfoOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="glass-panel w-full max-w-xl p-6 shadow-2xl border border-[#00f0ff]/40 rounded-lg space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#2d415f]">
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck className="w-6 h-6 text-[#00ff88]" />
+                <h2 className="text-lg font-bold text-white tracking-wide">
+                  Game Version Compatibility & Architecture
+                </h2>
+              </div>
+              <button 
+                onClick={() => setIsVersionInfoOpen(false)} 
+                className="text-[#94a3b8] hover:text-white p-1 rounded hover:bg-white/10 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3.5 text-xs text-[#cbd5e1] leading-relaxed">
+              <div className="p-3.5 rounded bg-[#090d15] border border-[#2d415f] space-y-2 font-mono">
+                <div className="flex justify-between items-center">
+                  <span className="text-[#94a3b8]">Target Game Branch:</span>
+                  <strong className="text-[#00f0ff]">{gameBranch}</strong>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[#94a3b8]">Star Citizen Build:</span>
+                  <strong className="text-white">{gameVersion}</strong>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[#94a3b8]">Game Build Date:</span>
+                  <span className="text-[#94a3b8]">{gameBuildDate}</span>
+                </div>
+                <div className="flex justify-between items-center pt-1 border-t border-[#2d415f]/50">
+                  <span className="text-[#94a3b8]">Suite Application:</span>
+                  <strong className="text-[#00ff88]">sc-controller-mapper v{suiteVersion}</strong>
+                </div>
+              </div>
+
+              <p>
+                <strong>How Compatibility Works:</strong> The action map definitions, default input codes, and localized descriptions are extracted directly from Star Citizen's official CryEngine <code className="text-[#00f0ff]">Data.p4k</code> archive (<code className="text-[#00f0ff]">defaultProfile.xml</code> and <code className="text-[#00f0ff]">global.ini</code>).
+              </p>
+
+              <div className="p-3 rounded bg-[rgba(255,183,0,0.08)] border border-[#ffb700]/30 space-y-1.5">
+                <div className="text-[#ffb700] font-semibold flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4" />
+                  What happens when Star Citizen updates? (e.g. 4.10.2)
+                </div>
+                <p className="text-[11px] text-[#e2e8f0]">
+                  If a new patch introduces new flight actions, targeting modes, or changes action names, your existing profiles will continue to function safely. However, newly added game features won't appear in the binding catalog until the game data is refreshed.
+                </p>
+                <p className="text-[11px] text-[#00f0ff]">
+                  To update compatibility, run <code className="text-white bg-[#090d15] px-1 py-0.5 rounded border border-[#2d415f]">./daemon/bin/sc-daemon --game-path="..."</code> or click <strong>Sync Daemon</strong> when playing on the latest patch.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setIsVersionInfoOpen(false)}
+                className="px-4 py-1.5 rounded bg-[#1e293b] hover:bg-[#334155] text-white text-xs font-semibold transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -56,6 +56,8 @@ export class ExclusionMatrix {
     'vehicle_general': 'ground_vehicle',
     'vehicle_driver': 'ground_vehicle',
     'vehicle_gunner': 'ground_vehicle',
+    'ground_vehicle': 'ground_vehicle',
+    'ground_vehicle_movement': 'ground_vehicle',
 
     // Turret gunner domain
     'turret': 'turret',

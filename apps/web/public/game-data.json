@@ -1,5 +1,8 @@
 {
   "version": "1.0.0",
+  "game_version": "4.10.193.11644",
+  "game_branch": "sc-alpha-4.10.0",
+  "game_build_date": "Tue Sep 15 2026",
   "game_path": "StarCitizen/LIVE",
   "p4k_signature": "0ce798b8ddbd0ec0771ee552c13e7c02",
   "extracted_at": "2026-09-21T09:30:41.076601047+01:00",

@@ -21,3 +21,16 @@ export interface GamepadDetectedInput {
   inputType: 'button' | 'axis';
   rawValue: number;
 }
+
+export interface HardwareDeviceDefinition {
+  id: string;
+  manufacturer: string;
+  productName: string;
+  guid?: string;
+  role: 'flight_stick_right' | 'omni_throttle_left' | 'throttle_quadrant' | 'pedals' | 'button_box' | 'custom';
+  axisCount: number;
+  buttonCount: number;
+  recommendedInversions: Record<string, number>;
+  recommendedDeadzones?: Record<string, number>;
+  hardwareFeatures?: string[];
+}
