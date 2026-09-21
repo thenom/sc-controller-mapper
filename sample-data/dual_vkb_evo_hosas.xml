@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ActionMaps version="1" optionsVersion="2" rebindVersion="2" profileName="dual_vkb_gladiator_evo_hosas">
+  <options type="joystick" instance="1" Product="VKBsim Gladiator EVO R {0200231D-0000-0000-0000-504944564944}">
+    <invert axis="pitch" val="1"/>
+    <invert axis="yaw" val="0"/>
+    <invert axis="roll" val="0"/>
+  </options>
+  <options type="joystick" instance="2" Product="VKBsim Gladiator EVO L {0201231D-0000-0000-0000-504944564944}">
+    <invert axis="throttle" val="0"/>
+    <invert axis="strafe_up" val="1"/>
+  </options>
+  <options type="keyboard" instance="1"/>
+  <options type="mouse" instance="1"/>
+
+  <actionmap name="spaceship_movement">
+    <!-- Primary Flight Controls on Right Stick (js1) -->
+    <action name="v_pitch">
+      <rebind input="js1_pitch"/>
+    </action>
+    <action name="v_yaw">
+      <rebind input="js1_yaw"/>
+    </action>
+    <action name="v_roll">
+      <rebind input="js1_roll"/>
+    </action>
+
+    <!-- Strafe Translation on Left Stick (js2) -->
+    <action name="v_strafe_forward">
+      <rebind input="js2_y"/>
+    </action>
+    <action name="v_strafe_lateral">
+      <rebind input="js2_x"/>
+    </action>
+    <action name="v_strafe_vertical">
+      <rebind input="js2_z"/>
+    </action>
+
+    <!-- Boost & Space Brake with Rule A temporal dynamics -->
+    <action name="v_boost">
+      <rebind input="js1_button4" activationMode="press"/>
+    </action>
+    <action name="v_spacebreak">
+      <rebind input="js1_button4" activationMode="double_tap"/>
+      <addbind input="js2_button2" activationMode="press"/>
+    </action>
+
+    <!-- Emergency Actions (Rule C: Hold on destructive action) -->
+    <action name="v_eject">
+      <rebind input="js1_button5" activationMode="hold"/>
+    </action>
+    <action name="v_lights_toggle">
+      <rebind input="js1_button5" activationMode="press"/>
+    </action>
+    <action name="v_self_destruct">
+      <rebind input="lalt+js1_button5" activationMode="hold"/>
+    </action>
+  </actionmap>
+
+  <actionmap name="spaceship_weapons">
+    <!-- Combat Actions (SCM Mode) -->
+    <action name="v_attack1_group1">
+      <rebind input="js1_button1" activationMode="press"/>
+    </action>
+    <action name="v_attack1_group2">
+      <rebind input="js1_button2" activationMode="press"/>
+    </action>
+  </actionmap>
+
+  <actionmap name="spaceship_quantum">
+    <!-- Travel Actions (NAV Mode) -->
+    <action name="v_quantum_spool">
+      <rebind input="js2_button3" activationMode="press"/>
+    </action>
+    <action name="v_quantum_engage">
+      <rebind input="js2_button3" activationMode="hold"/>
+    </action>
+  </actionmap>
+
+  <actionmap name="player_input_onfoot">
+    <!-- Disjoint Operational Context (Contextual exclusion) -->
+    <action name="fire">
+      <rebind input="js1_button1" activationMode="press"/>
+    </action>
+    <action name="sprint">
+      <rebind input="js1_button4" activationMode="press"/>
+    </action>
+  </actionmap>
+</ActionMaps>

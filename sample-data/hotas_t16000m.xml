@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ActionMaps version="1" optionsVersion="2" rebindVersion="2" profileName="t16000m_hotas_standard">
+  <options type="joystick" instance="1" Product="T.16000M {B10A044F-0000-0000-0000-504944564944}">
+    <invert axis="pitch" val="1"/>
+    <invert axis="yaw" val="0"/>
+    <invert axis="roll" val="0"/>
+  </options>
+  <options type="joystick" instance="2" Product="TWCS Throttle {B687044F-0000-0000-0000-504944564944}">
+    <invert axis="throttle" val="0"/>
+  </options>
+
+  <actionmap name="spaceship_movement">
+    <action name="v_pitch">
+      <rebind input="js1_pitch"/>
+    </action>
+    <action name="v_yaw">
+      <rebind input="js1_yaw"/>
+    </action>
+    <action name="v_roll">
+      <rebind input="js1_roll"/>
+    </action>
+    <action name="v_throttle">
+      <rebind input="js2_throttle"/>
+    </action>
+    <action name="v_boost">
+      <rebind input="js2_button1" activationMode="press"/>
+    </action>
+    <action name="v_spacebreak">
+      <rebind input="js2_button2" activationMode="press"/>
+    </action>
+  </actionmap>
+
+  <actionmap name="spaceship_weapons">
+    <action name="v_attack1_group1">
+      <rebind input="js1_button1" activationMode="press"/>
+    </action>
+    <action name="v_attack1_group2">
+      <rebind input="js1_button2" activationMode="press"/>
+    </action>
+  </actionmap>
+</ActionMaps>

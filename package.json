@@ -8,6 +8,7 @@
     "apps/*"
   ],
   "scripts": {
+    "dev": "npm run --workspace=@sc-mapping/web dev",
     "build": "npm run --workspaces --if-present build",
     "test": "npm run --workspaces --if-present test",
     "daemon:build": "cd daemon && go build -o bin/sc-daemon main.go"
