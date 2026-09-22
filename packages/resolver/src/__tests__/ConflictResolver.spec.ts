@@ -167,4 +167,35 @@ describe('ConflictResolver', () => {
     expect(report.fatalCount).toBe(0);
     expect(report.conflicts).toHaveLength(0);
   });
+
+  it('should return Severity 0 (None) for scanning operator mode vs combat sub-targeting (v_target_cycle_in_view_reset vs v_inc_scan_focus_level)', () => {
+    const targetAction: ActionBinding = {
+      name: 'v_target_cycle_in_view_reset',
+      inputs: [mockInput('js2_hat1_up', 'rebind', 'press')]
+    };
+    const scanAction: ActionBinding = {
+      name: 'v_inc_scan_focus_level',
+      inputs: [mockInput('js2_hat1_up', 'rebind', 'press')]
+    };
+
+    // Test with spaceship_scanning
+    const result1 = ConflictResolver.evaluateActions(
+      'spaceship_targeting_advanced',
+      targetAction,
+      'spaceship_scanning',
+      scanAction
+    );
+    expect(result1.severity).toBe(ConflictSeverity.None);
+    expect(result1.reason).toContain('Mutually exclusive');
+
+    // Test with legacy/variant alias ship_scanning
+    const result2 = ConflictResolver.evaluateActions(
+      'spaceship_targeting_advanced',
+      targetAction,
+      'ship_scanning',
+      scanAction
+    );
+    expect(result2.severity).toBe(ConflictSeverity.None);
+    expect(result2.reason).toContain('Mutually exclusive');
+  });
 });

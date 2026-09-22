@@ -23,6 +23,7 @@ export class ExclusionMatrix {
     'spaceship_target_hailing': 'spaceship',
     'spaceship_radar': 'spaceship',
     'spaceship_scanning': 'spaceship',
+    'ship_scanning': 'spaceship',
     'spaceship_mining': 'spaceship',
     'spaceship_salvage': 'spaceship',
     'spaceship_weapons': 'spaceship',
@@ -114,7 +115,8 @@ export class ExclusionMatrix {
     'spaceship_missiles',
     'spaceship_mining',
     'spaceship_salvage',
-    'spaceship_scanning'
+    'spaceship_scanning',
+    'ship_scanning'
   ]);
 
   /**
@@ -170,20 +172,32 @@ export class ExclusionMatrix {
       return true;
     }
 
-    // Check Operator Mode exclusivity:
-    // spaceship_weapons, spaceship_missiles, spaceship_mining, spaceship_salvage, spaceship_scanning
+    // 1. Check Operator Mode mutual exclusivity:
+    // spaceship_weapons, spaceship_missiles, spaceship_mining, spaceship_salvage, spaceship_scanning, ship_scanning
     // are mutually exclusive cockpit operator stances.
     if (this.OPERATOR_MODES.has(lowerA) && this.OPERATOR_MODES.has(lowerB)) {
       return false; // Mutually exclusive Operator Modes!
     }
 
-    // Check Industrial / Dedicated Operator Modes vs Combat Sub-targeting:
-    // When in Mining, Salvage, or Missile operator modes, specialized industrial/missile
-    // sub-controls (consumables, beam modifiers, missile cycling) supersede combat targeting
-    if (
-      (lowerA === 'spaceship_targeting_advanced' && (lowerB === 'spaceship_mining' || lowerB === 'spaceship_salvage' || lowerB === 'spaceship_missiles')) ||
-      (lowerB === 'spaceship_targeting_advanced' && (lowerA === 'spaceship_mining' || lowerA === 'spaceship_salvage' || lowerA === 'spaceship_missiles'))
-    ) {
+    // 2. Check Dedicated Operator Modes (Mining, Salvage, Missiles, Scanning) vs Combat Sub-targeting:
+    // When in Mining, Salvage, Missile, or Scanning operator modes, specialized operator
+    // sub-controls (scan focus/angle, consumables, beam modifiers, missile cycling) supersede combat targeting
+    const isTargetingA = lowerA === 'spaceship_targeting_advanced' || lowerA === 'spaceship_targeting';
+    const isTargetingB = lowerB === 'spaceship_targeting_advanced' || lowerB === 'spaceship_targeting';
+    const isOperatorA =
+      lowerA === 'spaceship_mining' ||
+      lowerA === 'spaceship_salvage' ||
+      lowerA === 'spaceship_missiles' ||
+      lowerA === 'spaceship_scanning' ||
+      lowerA === 'ship_scanning';
+    const isOperatorB =
+      lowerB === 'spaceship_mining' ||
+      lowerB === 'spaceship_salvage' ||
+      lowerB === 'spaceship_missiles' ||
+      lowerB === 'spaceship_scanning' ||
+      lowerB === 'ship_scanning';
+
+    if ((isTargetingA && isOperatorB) || (isTargetingB && isOperatorA)) {
       return false;
     }
 
