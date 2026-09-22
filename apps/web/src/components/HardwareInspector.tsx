@@ -11,8 +11,10 @@ import {
   HelpCircle,
   Zap,
   Info,
-  X
+  X,
+  Compass
 } from 'lucide-react';
+import { decodeHatAxis, isHatRestSentinel, HatDirection } from '../utils/gamepadHatDecoder';
 
 interface HardwareInspectorProps {
   doc: ActionMapsDocument | null;
@@ -26,6 +28,7 @@ interface DetectedInputState {
   scDevicePrefix: string;
   activeButtons: number[]; // 1-based indices (Button 1, Button 2...)
   activeAxes: Array<{ index: number; name: string; value: number; scName: string }>;
+  activeHats: Array<{ hatNumber: number; direction: HatDirection; scName: string; angleDeg: number }>;
   lastInputString: string | null;
 }
 
@@ -43,6 +46,8 @@ export const HardwareInspector: React.FC<HardwareInspectorProps> = ({
   const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
 
   const reqRef = useRef<number | null>(null);
+  // Track detected hat axes: key = `gp_${deviceIndex}_axis_${axisIndex}` -> hatNumber (1, 2, ...)
+  const knownHatAxesRef = useRef<Map<string, number>>(new Map());
 
   // Poll Gamepad API
   useEffect(() => {
@@ -73,6 +78,7 @@ export const HardwareInspector: React.FC<HardwareInspectorProps> = ({
         const scPrefix = `js${jsNumber}`;
         const activeButtons: number[] = [];
         const activeAxes: Array<{ index: number; name: string; value: number; scName: string }> = [];
+        const activeHats: Array<{ hatNumber: number; direction: HatDirection; scName: string; angleDeg: number }> = [];
         let latestInput: string | null = null;
 
         // Sample buttons
@@ -85,9 +91,44 @@ export const HardwareInspector: React.FC<HardwareInspectorProps> = ({
           }
         }
 
-        // Sample axes
+        // Sample axes & DirectInput POV hats
         for (let a = 0; a < targetGp.axes.length; a++) {
           const val = targetGp.axes[a];
+          const axisKey = `gp_${targetGp.index}_axis_${a}`;
+
+          // DirectInput Hat Sentinel (~1.2857 / > 1.05) denotes Center / At Rest
+          if (isHatRestSentinel(val) || val > 1.05) {
+            if (!knownHatAxesRef.current.has(axisKey)) {
+              let count = 0;
+              for (const [k] of knownHatAxesRef.current) {
+                if (k.startsWith(`gp_${targetGp.index}_`)) count++;
+              }
+              knownHatAxesRef.current.set(axisKey, count + 1);
+            }
+            // Centered at rest: do not record as active analog axis or latest input
+            continue;
+          }
+
+          // If axis is recognized as a POV hat
+          if (knownHatAxesRef.current.has(axisKey)) {
+            const hatNum = knownHatAxesRef.current.get(axisKey) || 1;
+            const decoded = decodeHatAxis(val, hatNum);
+            if (!decoded.isCentered && decoded.direction && decoded.scInputSuffix) {
+              const scName = `${scPrefix}_${decoded.scInputSuffix}`;
+              activeHats.push({
+                hatNumber: hatNum,
+                direction: decoded.direction,
+                scName,
+                angleDeg: decoded.angleDeg ?? 0
+              });
+              if (!latestInput) {
+                latestInput = scName;
+              }
+            }
+            continue;
+          }
+
+          // Standard Analog Axis with Deadzone Thresholding
           const axisName = AXIS_NAMES[a] || `axis_${a}`;
           const scName = `${scPrefix}_${axisName}`;
           if (Math.abs(val) > 0.15) {
@@ -108,6 +149,7 @@ export const HardwareInspector: React.FC<HardwareInspectorProps> = ({
           scDevicePrefix: scPrefix,
           activeButtons,
           activeAxes,
+          activeHats,
           lastInputString: latestInput
         });
       } else {
@@ -172,7 +214,9 @@ export const HardwareInspector: React.FC<HardwareInspectorProps> = ({
     for (const [mapName, group] of Object.entries(doc.actionMaps)) {
       for (const action of Object.values(group.actions)) {
         for (const inp of action.inputs) {
-          if (inp.input.toLowerCase() === target || inp.input.toLowerCase().startsWith(target)) {
+          const inpLower = inp.input.toLowerCase();
+          const tokens = inpLower.split('+');
+          if (inpLower === target || tokens.includes(target)) {
             hits.push({ mapName, action, input: inp.input });
           }
         }
@@ -300,6 +344,98 @@ export const HardwareInspector: React.FC<HardwareInspectorProps> = ({
             </div>
           </div>
 
+          {/* POV Hat Switch Widget (Hat 1 • 8-Way Compass) */}
+          <div className="p-4 rounded-lg bg-[#090d15] border border-[#2d415f]">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <Compass className="w-3.5 h-3.5 text-[#00f0ff]" />
+                POV Hat Switch (Hat 1 • 8-Way Compass)
+              </h4>
+              <span className="text-[11px] font-mono">
+                {inputState?.activeHats && inputState.activeHats.length > 0 ? (
+                  <span className="text-[#00f0ff] font-bold flex items-center gap-1.5 animate-pulse">
+                    <span className="w-2 h-2 rounded-full bg-[#00f0ff]" />
+                    ACTIVE: {inputState.activeHats[0].direction.toUpperCase()} ({inputState.activeHats[0].scName})
+                  </span>
+                ) : (
+                  <span className="text-[#64748b] flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#334155]" />
+                    Centered / At Rest
+                  </span>
+                )}
+              </span>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-6 justify-center py-2">
+              {/* 3x3 Compass D-Pad Grid */}
+              <div className="grid grid-cols-3 gap-1.5 w-full max-w-[280px]">
+                {/* Row 1: NW, N, NE */}
+                {(() => {
+                  const renderHatBtn = (dir: HatDirection, label: string, suffix: string, desc: string) => {
+                    const isPhysicallyPressed = inputState?.activeHats?.some(h => h.direction === dir) || false;
+                    const buttonCode = `${activePrefix}_${suffix}`;
+                    const isSelected = persistentPressed === buttonCode;
+
+                    return (
+                      <button
+                        key={dir}
+                        onClick={() => setPersistentPressed(buttonCode)}
+                        className={`h-10 text-xs font-mono font-bold rounded flex flex-col items-center justify-center transition-all ${
+                          isPhysicallyPressed
+                            ? 'bg-[#00f0ff] text-black shadow-[0_0_16px_rgba(0,240,255,0.8)] scale-105 border border-white'
+                            : isSelected
+                            ? 'bg-[rgba(0,240,255,0.25)] text-[#00f0ff] border-2 border-[#00f0ff] shadow-[0_0_10px_rgba(0,240,255,0.3)]'
+                            : 'bg-[#06080d] text-[#94a3b8] border border-[#1e293b] hover:border-[#00f0ff]/60 hover:text-white'
+                        }`}
+                        title={`${desc} (XML: ${buttonCode})`}
+                      >
+                        <span>{label}</span>
+                      </button>
+                    );
+                  };
+
+                  return (
+                    <>
+                      {renderHatBtn('up_left', '↖ NW', 'hat1_up_left', 'Up-Left (315°)')}
+                      {renderHatBtn('up', '▲ N', 'hat1_up', 'Up (0°)')}
+                      {renderHatBtn('up_right', '↗ NE', 'hat1_up_right', 'Up-Right (45°)')}
+
+                      {renderHatBtn('left', '◀ W', 'hat1_left', 'Left (270°)')}
+                      <div className="h-10 rounded bg-[#030712] border border-[#1e293b] flex flex-col items-center justify-center text-[10px] font-mono text-[#64748b]">
+                        <span className="text-[#00f0ff] font-bold">HAT 1</span>
+                        <span>POV</span>
+                      </div>
+                      {renderHatBtn('right', '▶ E', 'hat1_right', 'Right (90°)')}
+
+                      {renderHatBtn('down_left', '↙ SW', 'hat1_down_left', 'Down-Left (225°)')}
+                      {renderHatBtn('down', '▼ S', 'hat1_down', 'Down (180°)')}
+                      {renderHatBtn('down_right', '↘ SE', 'hat1_down_right', 'Down-Right (135°)')}
+                    </>
+                  );
+                })()}
+              </div>
+
+              {/* Direction Guide & Active Quick Info */}
+              <div className="text-xs text-[#94a3b8] space-y-2 max-w-[240px]">
+                <div className="text-white font-semibold flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5 text-[#00f0ff]" />
+                  <span>Digital 8-Way Hat Mode</span>
+                </div>
+                <p className="text-[11px] leading-relaxed text-[#64748b]">
+                  Click any direction or tilt your physical stick hat to inspect mapped ship actions.
+                </p>
+                <div className="pt-1 flex flex-wrap gap-1">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#1e293b] text-[#cbd5e1]">
+                    {activePrefix}_hat1_up
+                  </span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#1e293b] text-[#cbd5e1]">
+                    {activePrefix}_hat1_right
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Analog Axis Deflection Meters */}
           <div className="p-4 rounded-lg bg-[#090d15] border border-[#2d415f]">
             <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
@@ -307,37 +443,39 @@ export const HardwareInspector: React.FC<HardwareInspectorProps> = ({
               Analog Axis Meters & Deflection
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {Array.from({ length: activeDevice?.axes || 8 }, (_, aIdx) => {
-                const axisName = AXIS_NAMES[aIdx] || `axis_${aIdx}`;
-                const scName = `${activePrefix}_${axisName}`;
-                const currentAxis = inputState?.activeAxes.find(a => a.index === aIdx);
-                const val = currentAxis ? currentAxis.value : 0;
-                const percent = Math.round(((val + 1) / 2) * 100);
+              {Array.from({ length: activeDevice?.axes || 8 }, (_, aIdx) => aIdx)
+                .filter(aIdx => !knownHatAxesRef.current.has(`gp_${activeDevice?.index}_axis_${aIdx}`))
+                .map(aIdx => {
+                  const axisName = AXIS_NAMES[aIdx] || `axis_${aIdx}`;
+                  const scName = `${activePrefix}_${axisName}`;
+                  const currentAxis = inputState?.activeAxes.find(a => a.index === aIdx);
+                  const val = currentAxis ? currentAxis.value : 0;
+                  const percent = Math.round(((val + 1) / 2) * 100);
 
-                return (
-                  <div
-                    key={aIdx}
-                    onClick={() => setPersistentPressed(scName)}
-                    className="p-2.5 rounded bg-[#06080d] border border-[#1e293b] hover:border-[#00f0ff] cursor-pointer transition-all"
-                  >
-                    <div className="flex items-center justify-between text-xs font-mono mb-1">
-                      <span className="text-white font-bold">{axisName.toUpperCase()}</span>
-                      <span className="text-[#94a3b8]">{scName}</span>
-                      <span className={Math.abs(val) > 0.1 ? 'text-[#00f0ff] font-bold' : 'text-[#64748b]'}>
-                        {val.toFixed(2)}
-                      </span>
+                  return (
+                    <div
+                      key={aIdx}
+                      onClick={() => setPersistentPressed(scName)}
+                      className="p-2.5 rounded bg-[#06080d] border border-[#1e293b] hover:border-[#00f0ff] cursor-pointer transition-all"
+                    >
+                      <div className="flex items-center justify-between text-xs font-mono mb-1">
+                        <span className="text-white font-bold">{axisName.toUpperCase()}</span>
+                        <span className="text-[#94a3b8]">{scName}</span>
+                        <span className={Math.abs(val) > 0.1 ? 'text-[#00f0ff] font-bold' : 'text-[#64748b]'}>
+                          {val.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="w-full bg-[#1e293b] h-2 rounded overflow-hidden relative">
+                        <div
+                          className={`h-full transition-all duration-75 ${
+                            Math.abs(val) > 0.15 ? 'bg-[#00f0ff]' : 'bg-[#64748b]'
+                          }`}
+                          style={{ width: `${percent}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="w-full bg-[#1e293b] h-2 rounded overflow-hidden relative">
-                      <div
-                        className={`h-full transition-all duration-75 ${
-                          Math.abs(val) > 0.15 ? 'bg-[#00f0ff]' : 'bg-[#64748b]'
-                        }`}
-                        style={{ width: `${percent}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           </div>
         </div>
@@ -449,6 +587,9 @@ export const HardwareInspector: React.FC<HardwareInspectorProps> = ({
                 </li>
                 <li>
                   <strong className="text-white">1-Based Button Mapping:</strong> DirectInput internal indices start at 0, while Star Citizen uses 1-based indices (<code className="text-[#00f0ff]">js1_button1</code> is DirectInput button 0). The inspector handles this translation automatically so you always see the exact game code.
+                </li>
+                <li>
+                  <strong className="text-white">POV Hat Auto-Decoding:</strong> Star Citizen binds hat switches using discrete directional codes (<code className="text-[#00f0ff]">js1_hat1_up</code>, etc.). On Windows, DirectInput flight sticks (VKB, Virpil, Thrustmaster) report hat switches as analog axes with resting sentinel values (~1.29). The inspector automatically isolates and decodes these into an 8-way directional compass HUD.
                 </li>
                 <li>
                   <strong className="text-white">Profile Simulation Mode:</strong> If your physical controllers are not currently plugged in, you can click any button or axis in the matrix to simulate pressing it and view all bound ship commands.
