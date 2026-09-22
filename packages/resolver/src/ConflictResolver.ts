@@ -4,7 +4,8 @@ import {
   ConflictSeverity,
   ConflictDetails,
   ConflictReport,
-  ActionMapsDocument
+  ActionMapsDocument,
+  ConflictType
 } from '@sc-mapping/shared-types';
 import { ExclusionMatrix } from './ExclusionMatrix.js';
 import { TemporalEvaluator } from './TemporalEvaluator.js';
@@ -120,16 +121,47 @@ export class ConflictResolver {
           const temporal = TemporalEvaluator.evaluate(actionA, inputA, actionB, inputB);
 
           if (temporal.severity > highestConflict.severity) {
+            let conflictType: ConflictType = temporal.severity === ConflictSeverity.Fatal ? 'collision' : 'latency';
+            let reason = temporal.reason;
+            let recommendation = temporal.recommendation;
+            let deprecatedAction: string | undefined;
+            let rootCauseAction: string | undefined;
+
+            // Check if either colliding action is deprecated in modern Star Citizen (Rule R2)
+            const depA = RedundancyEvaluator.isActionDeprecated(actionA.name);
+            const depB = RedundancyEvaluator.isActionDeprecated(actionB.name);
+
+            if (depA && !depB) {
+              conflictType = 'obsolete_collision';
+              deprecatedAction = actionA.name;
+              rootCauseAction = actionA.name;
+              reason = `Collision with Obsolete Action: '${actionA.name}' (${depA.deprecatedSince}) shares a physical trigger with modern action '${actionB.name}'.`;
+              recommendation = `Remove '${actionA.name}' from your profile (${depA.reason}). It is obsolete in modern Star Citizen and clearing it eliminates this collision without changing '${actionB.name}'.`;
+            } else if (!depA && depB) {
+              conflictType = 'obsolete_collision';
+              deprecatedAction = actionB.name;
+              rootCauseAction = actionB.name;
+              reason = `Collision with Obsolete Action: '${actionB.name}' (${depB.deprecatedSince}) shares a physical trigger with modern action '${actionA.name}'.`;
+              recommendation = `Remove '${actionB.name}' from your profile (${depB.reason}). It is obsolete in modern Star Citizen and clearing it eliminates this collision without changing '${actionA.name}'.`;
+            } else if (depA && depB) {
+              conflictType = 'obsolete_collision';
+              deprecatedAction = `${actionA.name}, ${actionB.name}`;
+              reason = `Dual Obsolete Action Collision: Both '${actionA.name}' (${depA.deprecatedSince}) and '${actionB.name}' (${depB.deprecatedSince}) are legacy actions sharing an input.`;
+              recommendation = `Remove both '${actionA.name}' and '${actionB.name}' from your profile. Both commands were removed or superseded in modern Star Citizen builds.`;
+            }
+
             highestConflict = {
               severity: temporal.severity,
-              conflictType: temporal.severity === ConflictSeverity.Fatal ? 'collision' : 'latency',
+              conflictType,
               sourceContext: mapA,
               sourceAction: actionA.name,
               targetContext: mapB,
               targetAction: actionB.name,
               sharedInput: inputA.input,
-              reason: temporal.reason,
-              recommendation: temporal.recommendation
+              reason,
+              recommendation,
+              deprecatedAction,
+              rootCauseAction
             };
 
             // If we found a Fatal conflict, no need to check further on this pair
@@ -231,17 +263,33 @@ export class ConflictResolver {
     }
 
     // 2. Rule R2: Check for Deprecated / Obsolete Actions in current Star Citizen version (3.23+ Master Modes)
-    const auditedDeprecated = new Set<string>();
+    // Collect (actionName + ':' + input) already covered in obsolete_collision to avoid duplicate diagnostic noise
+    const coveredDeprecatedInputs = new Set<string>();
+    for (const c of report.conflicts) {
+      if (c.conflictType === 'obsolete_collision' && c.deprecatedAction) {
+        const acts = c.deprecatedAction.split(',').map(s => s.trim().toLowerCase());
+        for (const act of acts) {
+          coveredDeprecatedInputs.add(`${act}:${c.sharedInput.toLowerCase()}`);
+        }
+      }
+    }
+
+    const auditedDeprecatedInputs = new Set<string>();
     for (const item of allActions) {
       const dep = RedundancyEvaluator.isActionDeprecated(item.action.name);
-      if (dep && !auditedDeprecated.has(item.action.name)) {
-        auditedDeprecated.add(item.action.name);
+      if (dep) {
         for (const input of item.action.inputs) {
           if (filter && filter !== 'all') {
             if (!input.devicePrefix.toLowerCase().startsWith(filter)) {
               continue;
             }
           }
+          const inputKey = `${item.action.name.toLowerCase()}:${input.input.toLowerCase()}`;
+          if (coveredDeprecatedInputs.has(inputKey) || auditedDeprecatedInputs.has(inputKey)) {
+            continue;
+          }
+          auditedDeprecatedInputs.add(inputKey);
+
           report.conflicts.push({
             severity: ConflictSeverity.Redundant,
             conflictType: 'deprecated',
@@ -251,12 +299,33 @@ export class ConflictResolver {
             targetAction: 'Obsolete / Superseded',
             sharedInput: input.input,
             reason: `Obsolete Action (${dep.deprecatedSince}): ${dep.reason}`,
-            recommendation: dep.replacement
+            recommendation: dep.replacement,
+            deprecatedAction: item.action.name,
+            rootCauseAction: item.action.name
           });
           report.redundantCount++;
         }
       }
     }
+
+    // Sort hierarchy:
+    // 1. Obsolete action collisions first (clear root-cause fixes)
+    // 2. Fatal collisions
+    // 3. Warnings
+    // 4. Redundancies / Deprecated
+    report.conflicts.sort((a, b) => {
+      const aIsObsCol = a.conflictType === 'obsolete_collision';
+      const bIsObsCol = b.conflictType === 'obsolete_collision';
+      if (aIsObsCol && !bIsObsCol) return -1;
+      if (!aIsObsCol && bIsObsCol) return 1;
+
+      const rank = (s: ConflictSeverity) => {
+        if (s === ConflictSeverity.Fatal) return 0;
+        if (s === ConflictSeverity.Warning) return 1;
+        return 2;
+      };
+      return rank(a.severity) - rank(b.severity);
+    });
 
     return report;
   }

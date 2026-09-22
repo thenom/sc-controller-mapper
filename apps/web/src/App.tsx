@@ -12,7 +12,8 @@ import type {
   ActionMapsDocument,
   JoystickDeviceOption,
   ActionBinding,
-  BindingInput
+  BindingInput,
+  ConflictDetails
 } from '@sc-mapping/shared-types';
 import { DeviceRack } from './components/DeviceRack';
 import { ConflictViewer } from './components/ConflictViewer';
@@ -44,6 +45,8 @@ import {
   Info,
   ShieldCheck,
   Terminal,
+  Bug,
+  ExternalLink,
   X
 } from 'lucide-react';
 
@@ -77,6 +80,12 @@ const SAMPLE_XML = `<?xml version="1.0" encoding="utf-8"?>
     </action>
     <action name="v_lights_toggle">
       <rebind input="js1_button5" activationMode="press"/>
+    </action>
+    <action name="v_toggle_quantum_mode">
+      <rebind input="js1_button3" activationMode="press"/>
+    </action>
+    <action name="v_master_mode_cycle">
+      <rebind input="js1_button3" activationMode="press"/>
     </action>
   </actionmap>
   <actionmap name="spaceship_weapons">
@@ -328,6 +337,32 @@ export const App: React.FC = () => {
     setDoc(nextDoc);
   };
 
+  const handleAutoFix = (conflict: ConflictDetails) => {
+    if (!doc || !conflict.deprecatedAction) return;
+
+    const nextDoc: ActionMapsDocument = JSON.parse(JSON.stringify(doc));
+    const targetActionNames = conflict.deprecatedAction.split(',').map(s => s.trim().toLowerCase());
+    let modified = false;
+
+    for (const actionMap of Object.values(nextDoc.actionMaps)) {
+      for (const [actName, actionObj] of Object.entries(actionMap.actions)) {
+        if (targetActionNames.includes(actName.toLowerCase())) {
+          const initialLen = actionObj.inputs.length;
+          actionObj.inputs = actionObj.inputs.filter(
+            inp => inp.input.toLowerCase() !== conflict.sharedInput.toLowerCase()
+          );
+          if (actionObj.inputs.length !== initialLen) {
+            modified = true;
+          }
+        }
+      }
+    }
+
+    if (modified) {
+      setDoc(nextDoc);
+    }
+  };
+
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-8">
       {/* Cockpit HUD Header */}
@@ -394,6 +429,17 @@ export const App: React.FC = () => {
             <Terminal className="w-4 h-4" />
             Contributor Tools
           </button>
+
+          <a
+            href="https://github.com/thenom/sc-controller-mapper/issues"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-sci-fi text-[#8492a6] border-[#2d415f] hover:text-[#ff4455] hover:border-[#ff4455] flex items-center gap-1.5"
+            title="Report an issue or bug on GitHub"
+          >
+            <Bug className="w-4 h-4 text-[#ff4455]" />
+            Report Issue
+          </a>
         </div>
       </header>
 
@@ -567,6 +613,7 @@ export const App: React.FC = () => {
               setSearchQuery(actionName);
               setActiveTab('matrix');
             }}
+            onAutoFix={handleAutoFix}
           />
         </div>
       )}
@@ -576,6 +623,40 @@ export const App: React.FC = () => {
         <AdSenseSlot />
         <HardwareAffiliateCard />
       </section>
+
+      {/* Cockpit HUD Footer */}
+      <footer className="mt-12 pt-6 border-t border-[#2d415f]/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#64748b]">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-semibold text-[#8492a6]">Star Citizen Keybinding Architect</span>
+          <span>•</span>
+          <span className="font-mono">Suite v{suiteVersion}</span>
+          <span>•</span>
+          <span>Target SC {gameBranch.replace('sc-alpha-', '')}</span>
+          <span>•</span>
+          <span>Open Source (AGPL-3.0)</span>
+        </div>
+        <div className="flex items-center gap-4 flex-wrap">
+          <a
+            href="https://github.com/thenom/sc-controller-mapper"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#94a3b8] hover:text-[#00e5ff] transition-colors flex items-center gap-1.5"
+          >
+            <span>GitHub Repository</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+          <a
+            href="https://github.com/thenom/sc-controller-mapper/issues"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#ff5566] hover:text-[#ff7788] transition-colors flex items-center gap-1.5 font-medium"
+          >
+            <Bug className="w-3.5 h-3.5" />
+            <span>Report an Issue</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        </div>
+      </footer>
 
       {/* Interactive Binding Editor Modal */}
       {editingTarget && (
@@ -741,7 +822,17 @@ npm run daemon:build
               </div>
             </div>
 
-            <div className="pt-2 flex justify-end">
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[#2d415f]/60">
+              <a
+                href="https://github.com/thenom/sc-controller-mapper/issues"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-[#ff5566] hover:text-[#ff7788] transition-colors flex items-center gap-1.5 font-medium"
+              >
+                <Bug className="w-3.5 h-3.5" />
+                <span>Submit Issue or Suggestion on GitHub</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
               <button
                 onClick={() => setIsContributorToolsOpen(false)}
                 className="px-4 py-1.5 rounded bg-[#1e293b] hover:bg-[#334155] text-white text-xs font-semibold transition-colors"

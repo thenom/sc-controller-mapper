@@ -11,6 +11,8 @@ import {
   Lightbulb,
   HelpCircle,
   Sparkles,
+  Trash2,
+  Zap,
   X
 } from 'lucide-react';
 
@@ -36,6 +38,7 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
   if (!report) return null;
 
   const totalConflicts = report.conflicts.length;
+  const obsoleteCollisionsCount = report.conflicts.filter(c => c.conflictType === 'obsolete_collision').length;
   const filteredConflicts = report.conflicts.filter(c => {
     if (filterSeverity === 'fatal' && c.severity !== ConflictSeverity.Fatal) return false;
     if (filterSeverity === 'warning' && c.severity !== ConflictSeverity.Warning) return false;
@@ -157,6 +160,23 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
         </div>
       </div>
 
+      {/* Root Cause Alert Banner for Obsolete Actions */}
+      {obsoleteCollisionsCount > 0 && (
+        <div className="mt-4 p-3.5 rounded-lg bg-[rgba(192,132,252,0.12)] border border-[rgba(192,132,252,0.4)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-[0_0_20px_rgba(192,132,252,0.1)]">
+          <div className="flex items-start gap-2.5">
+            <Sparkles className="w-5 h-5 text-[#c084fc] shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-semibold text-white">
+                Root-Cause Diagnostic: {obsoleteCollisionsCount} collision{obsoleteCollisionsCount > 1 ? 's are' : ' is'} caused by legacy / obsolete Star Citizen bindings
+              </p>
+              <p className="text-[11px] text-[#cbd5e1] mt-0.5 leading-relaxed">
+                Commands from older game versions (pre-3.23) create false collisions against modern flight controls. Use the quick-action button on each card to remove the obsolete binding and immediately clear the conflict.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Filter and Search Bar if conflicts exist */}
       {totalConflicts > 0 && (
         <div className="mt-4 mb-4">
@@ -187,33 +207,49 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
       ) : (
         <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
           {filteredConflicts.map((c, idx) => {
-            const isFatal = c.severity === ConflictSeverity.Fatal;
+            const isObsoleteCollision = c.conflictType === 'obsolete_collision';
+            const isFatal = c.severity === ConflictSeverity.Fatal && !isObsoleteCollision;
             const isWarning = c.severity === ConflictSeverity.Warning;
             const isRedundant = c.severity === ConflictSeverity.Redundant;
 
-            const borderCol = isFatal
-              ? 'border-[#ff3344]'
-              : isWarning
-                ? 'border-[#ffaa00]'
-                : 'border-[#c084fc]';
-            const bgCol = isFatal
-              ? 'bg-[rgba(255,51,68,0.06)]'
-              : isWarning
-                ? 'bg-[rgba(255,170,0,0.05)]'
-                : 'bg-[rgba(192,132,252,0.06)]';
-            const badgeCol = isFatal
-              ? 'conflict-badge-fatal'
-              : isWarning
-                ? 'conflict-badge-warning'
-                : 'bg-[rgba(192,132,252,0.2)] text-[#c084fc] border border-[rgba(192,132,252,0.4)]';
+            const borderCol = isObsoleteCollision
+              ? 'border-[#c084fc] shadow-[0_0_15px_rgba(192,132,252,0.12)]'
+              : isFatal
+                ? 'border-[#ff3344]'
+                : isWarning
+                  ? 'border-[#ffaa00]'
+                  : 'border-[#c084fc]';
+            const bgCol = isObsoleteCollision
+              ? 'bg-[rgba(192,132,252,0.08)]'
+              : isFatal
+                ? 'bg-[rgba(255,51,68,0.06)]'
+                : isWarning
+                  ? 'bg-[rgba(255,170,0,0.05)]'
+                  : 'bg-[rgba(192,132,252,0.06)]';
+            const badgeCol = isObsoleteCollision
+              ? 'bg-[rgba(192,132,252,0.25)] text-[#d8b4fe] border border-[rgba(192,132,252,0.6)] font-bold'
+              : isFatal
+                ? 'conflict-badge-fatal'
+                : isWarning
+                  ? 'conflict-badge-warning'
+                  : 'bg-[rgba(192,132,252,0.2)] text-[#c084fc] border border-[rgba(192,132,252,0.4)]';
 
-            const badgeText = isFatal
-              ? 'Severity 2 (Fatal)'
-              : isWarning
-                ? 'Severity 1 (Warning)'
-                : c.conflictType === 'deprecated'
-                  ? 'Obsolete (SC 3.23+)'
-                  : 'Redundant (Subsumed)';
+            const badgeText = isObsoleteCollision
+              ? 'Severity 2 (Obsolete Action Collision)'
+              : isFatal
+                ? 'Severity 2 (Fatal)'
+                : isWarning
+                  ? 'Severity 1 (Warning)'
+                  : c.conflictType === 'deprecated'
+                    ? 'Obsolete (SC 3.23+)'
+                    : 'Redundant (Subsumed)';
+
+            const sourceIsObsolete = Boolean(
+              c.deprecatedAction && c.deprecatedAction.toLowerCase().includes(c.sourceAction.toLowerCase())
+            );
+            const targetIsObsolete = Boolean(
+              c.deprecatedAction && c.deprecatedAction.toLowerCase().includes(c.targetAction.toLowerCase())
+            );
 
             return (
               <div
@@ -240,22 +276,54 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
                   <div className="conflict-actions-nav">
                     <button
                       onClick={() => onSelectAction(c.sourceAction)}
-                      className="conflict-action-btn"
+                      className={`conflict-action-btn flex items-center gap-1.5 ${
+                        sourceIsObsolete
+                          ? 'border-[rgba(192,132,252,0.6)] bg-[rgba(192,132,252,0.15)] text-[#d8b4fe]'
+                          : isObsoleteCollision
+                            ? 'border-[rgba(0,255,136,0.4)] bg-[rgba(0,255,136,0.1)] text-[#00ff88]'
+                            : ''
+                      }`}
                       title="Jump to source action in binding table"
                     >
                       <span>{c.sourceAction}</span>
-                      <ExternalLink className="w-3 h-3" />
+                      {sourceIsObsolete && (
+                        <span className="px-1 py-0.2 rounded text-[9px] font-bold bg-[#c084fc]/30 text-[#d8b4fe] border border-[#c084fc]/50 uppercase tracking-wider">
+                          Obsolete
+                        </span>
+                      )}
+                      {!sourceIsObsolete && isObsoleteCollision && (
+                        <span className="px-1 py-0.2 rounded text-[9px] font-bold bg-[#00ff88]/20 text-[#00ff88] border border-[#00ff88]/40 uppercase tracking-wider">
+                          Active
+                        </span>
+                      )}
+                      <ExternalLink className="w-3 h-3 opacity-70" />
                     </button>
                     {c.conflictType !== 'deprecated' && (
                       <>
                         <span className="text-xs text-[#8492a6] px-1">vs</span>
                         <button
                           onClick={() => onSelectAction(c.targetAction)}
-                          className="conflict-action-btn"
+                          className={`conflict-action-btn flex items-center gap-1.5 ${
+                            targetIsObsolete
+                              ? 'border-[rgba(192,132,252,0.6)] bg-[rgba(192,132,252,0.15)] text-[#d8b4fe]'
+                              : isObsoleteCollision
+                                ? 'border-[rgba(0,255,136,0.4)] bg-[rgba(0,255,136,0.1)] text-[#00ff88]'
+                                : ''
+                          }`}
                           title="Jump to conflicting action in binding table"
                         >
                           <span>{c.targetAction}</span>
-                          <ExternalLink className="w-3 h-3" />
+                          {targetIsObsolete && (
+                            <span className="px-1 py-0.2 rounded text-[9px] font-bold bg-[#c084fc]/30 text-[#d8b4fe] border border-[#c084fc]/50 uppercase tracking-wider">
+                              Obsolete
+                            </span>
+                          )}
+                          {!targetIsObsolete && isObsoleteCollision && (
+                            <span className="px-1 py-0.2 rounded text-[9px] font-bold bg-[#00ff88]/20 text-[#00ff88] border border-[#00ff88]/40 uppercase tracking-wider">
+                              Active
+                            </span>
+                          )}
+                          <ExternalLink className="w-3 h-3 opacity-70" />
                         </button>
                       </>
                     )}
@@ -264,11 +332,13 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
 
                 <p className="text-xs text-[#cbd5e1] mb-1.5 leading-relaxed">
                   <strong className="text-white">
-                    {c.conflictType === 'deprecated'
-                      ? 'Version Status: '
-                      : c.conflictType === 'redundancy'
-                        ? 'Rule Redundancy: '
-                        : 'Rule Collision: '}
+                    {c.conflictType === 'obsolete_collision'
+                      ? 'Root Cause: '
+                      : c.conflictType === 'deprecated'
+                        ? 'Version Status: '
+                        : c.conflictType === 'redundancy'
+                          ? 'Rule Redundancy: '
+                          : 'Rule Collision: '}
                   </strong>
                   {c.reason}
                 </p>
@@ -280,6 +350,24 @@ export const ConflictViewer: React.FC<ConflictViewerProps> = ({
                       <strong className="text-[#e2e8f0]">Recommendation: </strong>
                       {c.recommendation}
                     </span>
+                  </div>
+                )}
+
+                {/* Quick Fix Button for Obsolete Action */}
+                {c.deprecatedAction && onAutoFix && (
+                  <div className="mt-2.5 pt-2.5 border-t border-[#2d415f]/60 flex flex-wrap items-center justify-between gap-3">
+                    <span className="text-[11px] text-[#d8b4fe] flex items-center gap-1.5 font-medium">
+                      <Zap className="w-3.5 h-3.5 text-[#c084fc]" />
+                      Root-cause resolution ready:
+                    </span>
+                    <button
+                      onClick={() => onAutoFix(c)}
+                      className="px-3 py-1 rounded text-xs font-semibold bg-[#9333ea] hover:bg-[#a855f7] text-white flex items-center gap-1.5 shadow-[0_0_12px_rgba(168,85,247,0.35)] transition-all cursor-pointer"
+                      title={`Remove obsolete binding '${c.deprecatedAction}' on '${c.sharedInput}' to clear conflict`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Remove Obsolete Action ({c.deprecatedAction})</span>
+                    </button>
                   </div>
                 )}
               </div>

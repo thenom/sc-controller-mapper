@@ -11,7 +11,7 @@ export enum ConflictSeverity {
 
 export type MasterFlightMode = 'SCM' | 'NAV' | 'ANY';
 
-export type ConflictType = 'collision' | 'latency' | 'redundancy' | 'deprecated';
+export type ConflictType = 'collision' | 'latency' | 'redundancy' | 'deprecated' | 'obsolete_collision';
 
 export interface ConflictDetails {
   severity: ConflictSeverity;
@@ -23,6 +23,10 @@ export interface ConflictDetails {
   reason: string;
   recommendation?: string;
   conflictType?: ConflictType;
+  /** Name of the deprecated/obsolete action if this collision was caused by legacy bindings */
+  deprecatedAction?: string;
+  /** Action that is the primary root-cause of the conflict */
+  rootCauseAction?: string;
 }
 
 export interface ConflictReport {
