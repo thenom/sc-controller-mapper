@@ -16,10 +16,14 @@ import {
 } from 'lucide-react';
 import { decodeHatAxis, isHatRestSentinel, HatDirection } from '../utils/gamepadHatDecoder';
 
-interface HardwareInspectorProps {
+export interface HardwareInspectorProps {
   doc: ActionMapsDocument | null;
   onSelectAction: (actionName: string) => void;
   onEditAction?: (mapName: string, action: ActionBinding) => void;
+  selectedDeviceIndex?: number;
+  onSelectDeviceIndex?: (index: number) => void;
+  selectedInput?: string | null;
+  onSelectInput?: (input: string | null) => void;
 }
 
 interface DetectedInputState {
@@ -37,17 +41,91 @@ const AXIS_NAMES = ['x', 'y', 'z', 'rotx', 'roty', 'rotz', 'slider1', 'slider2']
 export const HardwareInspector: React.FC<HardwareInspectorProps> = ({
   doc,
   onSelectAction,
-  onEditAction
+  onEditAction,
+  selectedDeviceIndex: controlledDeviceIndex,
+  onSelectDeviceIndex,
+  selectedInput: controlledSelectedInput,
+  onSelectInput
 }) => {
-  const [selectedDeviceIndex, setSelectedDeviceIndex] = useState<number>(0);
+  const [internalDeviceIndex, setInternalDeviceIndex] = useState<number>(0);
+  const [internalPersistentPressed, setInternalPersistentPressed] = useState<string | null>(null);
+
+  const selectedDeviceIndex = controlledDeviceIndex !== undefined ? controlledDeviceIndex : internalDeviceIndex;
+  const setSelectedDeviceIndex = (idx: number) => {
+    if (onSelectDeviceIndex) {
+      onSelectDeviceIndex(idx);
+    } else {
+      setInternalDeviceIndex(idx);
+    }
+  };
+
+  const persistentPressed = controlledSelectedInput !== undefined ? controlledSelectedInput : internalPersistentPressed;
+  const setPersistentPressed = (input: string | null) => {
+    if (onSelectInput) {
+      onSelectInput(input);
+    } else {
+      setInternalPersistentPressed(input);
+    }
+  };
+
+  const persistentPressedRef = useRef<string | null>(persistentPressed);
+  useEffect(() => {
+    persistentPressedRef.current = persistentPressed;
+  }, [persistentPressed]);
+
   const [connectedDevices, setConnectedDevices] = useState<Array<{ index: number; id: string; buttons: number; axes: number }>>([]);
   const [inputState, setInputState] = useState<DetectedInputState | null>(null);
-  const [persistentPressed, setPersistentPressed] = useState<string | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
 
   const reqRef = useRef<number | null>(null);
   // Track detected hat axes: key = `gp_${deviceIndex}_axis_${axisIndex}` -> hatNumber (1, 2, ...)
   const knownHatAxesRef = useRef<Map<string, number>>(new Map());
+
+  // Extract XML devices from loaded profile
+  const xmlJoysticks = React.useMemo(() => {
+    if (!doc) return [];
+    return doc.devices.filter((d): d is JoystickDeviceOption => d.type === 'joystick');
+  }, [doc]);
+
+  // Comprehensive device list: live connected gamepads OR XML profile devices
+  const availableDevices = React.useMemo(() => {
+    if (connectedDevices.length > 0) {
+      return connectedDevices.map(d => ({
+        index: d.index,
+        jsNumber: d.index + 1,
+        name: d.id,
+        buttons: Math.max(d.buttons, 32),
+        axes: Math.max(d.axes, 8),
+        isLive: true
+      }));
+    }
+
+    if (xmlJoysticks.length > 0) {
+      return xmlJoysticks.map(d => ({
+        index: d.instance - 1,
+        jsNumber: d.instance,
+        name: d.productName,
+        buttons: 32,
+        axes: 8,
+        isLive: false
+      }));
+    }
+
+    return [
+      { index: 0, jsNumber: 1, name: 'Joystick 1 (Primary Flight Stick)', buttons: 32, axes: 8, isLive: false },
+      { index: 1, jsNumber: 2, name: 'Joystick 2 (Secondary Throttle/Stick)', buttons: 32, axes: 8, isLive: false }
+    ];
+  }, [connectedDevices, xmlJoysticks]);
+
+  const safeDeviceIndex = availableDevices.length > 0
+    ? Math.min(Math.max(0, selectedDeviceIndex), availableDevices.length - 1)
+    : 0;
+
+  useEffect(() => {
+    if (availableDevices.length > 0 && selectedDeviceIndex >= availableDevices.length) {
+      setSelectedDeviceIndex(0);
+    }
+  }, [availableDevices.length, selectedDeviceIndex]);
 
   // Poll Gamepad API
   useEffect(() => {
@@ -68,9 +146,10 @@ export const HardwareInspector: React.FC<HardwareInspectorProps> = ({
       }
       setConnectedDevices(validGps);
 
-      let targetGp = gamepads[selectedDeviceIndex];
-      if ((!targetGp || !targetGp.connected) && validGps.length > 0) {
-        targetGp = gamepads[validGps[0].index];
+      let targetGp: Gamepad | null = null;
+      if (validGps.length > 0) {
+        const targetValidGp = validGps[safeDeviceIndex] || validGps[0];
+        targetGp = targetValidGp ? gamepads[targetValidGp.index] : null;
       }
 
       if (targetGp && targetGp.connected) {
@@ -139,7 +218,8 @@ export const HardwareInspector: React.FC<HardwareInspectorProps> = ({
           }
         }
 
-        if (latestInput) {
+        if (latestInput && latestInput !== persistentPressedRef.current) {
+          persistentPressedRef.current = latestInput;
           setPersistentPressed(latestInput);
         }
 
@@ -163,45 +243,9 @@ export const HardwareInspector: React.FC<HardwareInspectorProps> = ({
     return () => {
       if (reqRef.current) cancelAnimationFrame(reqRef.current);
     };
-  }, [selectedDeviceIndex]);
+  }, [safeDeviceIndex]);
 
-  // Extract XML devices from loaded profile
-  const xmlJoysticks = React.useMemo(() => {
-    if (!doc) return [];
-    return doc.devices.filter((d): d is JoystickDeviceOption => d.type === 'joystick');
-  }, [doc]);
-
-  // Comprehensive device list: live connected gamepads OR XML profile devices
-  const availableDevices = React.useMemo(() => {
-    if (connectedDevices.length > 0) {
-      return connectedDevices.map(d => ({
-        index: d.index,
-        jsNumber: d.index + 1,
-        name: d.id,
-        buttons: Math.max(d.buttons, 32),
-        axes: Math.max(d.axes, 8),
-        isLive: true
-      }));
-    }
-
-    if (xmlJoysticks.length > 0) {
-      return xmlJoysticks.map(d => ({
-        index: d.instance - 1,
-        jsNumber: d.instance,
-        name: d.productName,
-        buttons: 32,
-        axes: 8,
-        isLive: false
-      }));
-    }
-
-    return [
-      { index: 0, jsNumber: 1, name: 'Joystick 1 (Primary Flight Stick)', buttons: 32, axes: 8, isLive: false },
-      { index: 1, jsNumber: 2, name: 'Joystick 2 (Secondary Throttle/Stick)', buttons: 32, axes: 8, isLive: false }
-    ];
-  }, [connectedDevices, xmlJoysticks]);
-
-  const activeDevice = availableDevices[selectedDeviceIndex] || availableDevices[0];
+  const activeDevice = availableDevices[safeDeviceIndex] || availableDevices[0];
   const activeJsNumber = activeDevice ? activeDevice.jsNumber : 1;
   const activePrefix = `js${activeJsNumber}`;
 
@@ -266,8 +310,14 @@ export const HardwareInspector: React.FC<HardwareInspectorProps> = ({
         <div className="flex items-center gap-2">
           <Gamepad2 className="w-4 h-4 text-[#00f0ff]" />
           <select
-            value={selectedDeviceIndex}
-            onChange={(e) => setSelectedDeviceIndex(parseInt(e.target.value, 10))}
+            value={safeDeviceIndex}
+            onChange={(e) => {
+              const newIdx = parseInt(e.target.value, 10);
+              setSelectedDeviceIndex(newIdx);
+              if (newIdx !== safeDeviceIndex) {
+                setPersistentPressed(null);
+              }
+            }}
             className="text-xs font-mono bg-[#090d15] border border-[#2d415f] rounded px-3 py-2 text-white focus:border-[#00f0ff] focus:outline-none"
           >
             {availableDevices.map((dev, idx) => (

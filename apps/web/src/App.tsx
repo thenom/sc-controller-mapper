@@ -131,6 +131,8 @@ export const App: React.FC = () => {
   const [daemonStatus, setDaemonStatus] = useState<string | null>(null);
   const [activePreset, setActivePreset] = useState<string>('Dual VKB EVO Sample');
   const [deviceScope, setDeviceScope] = useState<string>('js'); // Default to joysticks
+  const [inspectorDeviceIndex, setInspectorDeviceIndex] = useState<number>(0);
+  const [inspectorSelectedInput, setInspectorSelectedInput] = useState<string | null>(null);
 
   // Game Version & Suite Versioning State
   const [gameVersion, setGameVersion] = useState<string>('4.10.193.11644');
@@ -580,6 +582,10 @@ export const App: React.FC = () => {
         <div className="space-y-6">
           <HardwareInspector
             doc={doc}
+            selectedDeviceIndex={inspectorDeviceIndex}
+            onSelectDeviceIndex={setInspectorDeviceIndex}
+            selectedInput={inspectorSelectedInput}
+            onSelectInput={setInspectorSelectedInput}
             onSelectAction={(actionName) => {
               setSearchQuery(actionName);
               setActiveTab('matrix');
