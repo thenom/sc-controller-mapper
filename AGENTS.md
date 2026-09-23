@@ -135,3 +135,4 @@ If a Pull Request is developed, generated, or co-authored with the assistance of
    - `🤖 feat(resolver): add Master Mode weapon toggle exclusion`
    - `🤖 fix(parser): handle chorded joystick modifiers during export`
 2. **PR Description Disclosure**: The PR description **must** state clearly and explicitly that the code was developed with or by an AI agent/LLM, detailing the prompt/context, tools used, and manual/automated verification steps taken.
+3. **Strict Ban on Co-Authored-By Git Trailers for AI**: **NEVER** add `Co-authored-by:` Git trailers for AI agents or emails (e.g. `antigravity@google.com` or any agent placeholder email). GitHub parses Git trailers and maps emails to real user accounts (such as `@shimonenator`). Disclose AI assistance solely in PR descriptions or commit message prose, never via Git trailers.

@@ -43,3 +43,9 @@ repos:
         language: system
         files: \.(ts|tsx)$
         pass_filenames: false
+
+      - id: block-ai-coauthor-trailer
+        name: Block AI Co-Author Trailer
+        entry: bash -c '! grep -iE "co-authored-by:.*(antigravity|google\.com|shimonenator)" "$1"' --
+        language: system
+        stages: [commit-msg]
