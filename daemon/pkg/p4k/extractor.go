@@ -175,8 +175,13 @@ func openEntry(rAt io.ReaderAt, file *zip.File) (io.ReadCloser, error) {
 	}
 }
 
-// FindDataP4K searches for Data.p4k under LIVE, PTU, or EPTU folders
+// FindDataP4K searches for Data.p4k under LIVE, PTU, or EPTU folders, or validates direct file path
 func FindDataP4K(gameRoot string) (string, error) {
+	// If gameRoot points directly to an existing file (e.g. Data.p4k), use it directly
+	if fi, err := os.Stat(gameRoot); err == nil && !fi.IsDir() {
+		return gameRoot, nil
+	}
+
 	channels := []string{"LIVE", "PTU", "EPTU", "TECH-PREVIEW"}
 	for _, ch := range channels {
 		candidate := filepath.Join(gameRoot, ch, "Data.p4k")
@@ -191,5 +196,5 @@ func FindDataP4K(gameRoot string) (string, error) {
 		return candidate, nil
 	}
 
-	return "", fmt.Errorf("Data.p4k not found in %s (checked LIVE, PTU, EPTU)", gameRoot)
+	return "", fmt.Errorf("Data.p4k not found in %s (checked direct file, LIVE, PTU, EPTU, TECH-PREVIEW)", gameRoot)
 }

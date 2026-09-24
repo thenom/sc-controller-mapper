@@ -114,7 +114,11 @@ docker-compose up -d --build
 
 # Build the Go extraction daemon
 npm run daemon:build
-# Run daemon help
+# Run daemon patch extraction & monorepo catalog update
+npm run daemon:extract
+# Run daemon HTTP server for live web UI sync
+npm run daemon:serve
+# Run daemon CLI help
 ./daemon/bin/sc-daemon --help
 ```
 

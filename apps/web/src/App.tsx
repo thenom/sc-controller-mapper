@@ -144,6 +144,7 @@ export const App: React.FC = () => {
   // Hardware Generator / Submission Studio Modal State
   const [isHardwareStudioOpen, setIsHardwareStudioOpen] = useState(false);
   const [isContributorToolsOpen, setIsContributorToolsOpen] = useState(false);
+  const [isDisclaimerDismissed, setIsDisclaimerDismissed] = useState(false);
 
   // Modal State for Interactive Binding Editor
   const [editingTarget, setEditingTarget] = useState<{
@@ -269,7 +270,7 @@ export const App: React.FC = () => {
       setDaemonStatus('Connected v1.0.0');
     } catch (err: any) {
       setDaemonStatus('Offline');
-      alert(`Could not connect to sc-daemon at http://127.0.0.1:8765: ${err.message}\nMake sure to run: ./daemon/bin/sc-daemon --daemon`);
+      alert(`Could not connect to sc-daemon at http://127.0.0.1:8765: ${err.message}\nMake sure to run: npm run daemon:serve (or ./daemon/bin/sc-daemon --daemon)`);
     }
   };
 
@@ -367,6 +368,26 @@ export const App: React.FC = () => {
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-8">
+      {/* Pilot Safety & XML Backup Advisory Banner */}
+      {!isDisclaimerDismissed && (
+        <div className="mb-5 px-3.5 py-2.5 rounded bg-[rgba(255,183,0,0.07)] border border-[#ffb700]/30 flex items-center justify-between gap-3 text-xs text-[#e2e8f0] shadow-sm">
+          <div className="flex items-center gap-2.5">
+            <AlertTriangle className="w-4 h-4 text-[#ffb700] shrink-0" />
+            <p className="text-[11px] leading-snug">
+              <strong className="text-[#ffb700] font-semibold">Important Pilot Advisory:</strong> Always keep backup copies of your original and working keybinding XML files (<code className="text-[#00f0ff] font-mono text-[10px]">LIVE/USER/Client/0/Controls/Mappings/</code>). This suite is provided as-is without warranty; maintainers assume no liability or responsibility for any lost, corrupted, or overwritten mapping files.
+            </p>
+          </div>
+          <button
+            onClick={() => setIsDisclaimerDismissed(true)}
+            className="text-[#94a3b8] hover:text-white p-1 rounded hover:bg-white/10 transition-colors shrink-0"
+            title="Dismiss advisory"
+            aria-label="Dismiss advisory"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       {/* Cockpit HUD Header */}
       <header className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 pb-6 border-b border-[#2d415f] mb-6">
         <div>
@@ -734,7 +755,7 @@ export const App: React.FC = () => {
                   If a new patch introduces new flight actions, targeting modes, or changes action names, your existing profiles will continue to function safely. However, newly added game features won't appear in the binding catalog until the game data is refreshed.
                 </p>
                 <p className="text-[11px] text-[#00f0ff]">
-                  To update compatibility, run <code className="text-white bg-[#090d15] px-1 py-0.5 rounded border border-[#2d415f]">./daemon/bin/sc-daemon --game-path="..."</code> or click <strong>Sync Daemon</strong> when playing on the latest patch.
+                  To update compatibility, run <code className="text-white bg-[#090d15] px-1 py-0.5 rounded border border-[#2d415f]">npm run daemon:extract</code> (or <code className="text-white bg-[#090d15] px-1 py-0.5 rounded border border-[#2d415f]">./daemon/bin/sc-daemon -u</code>) or click <strong>Sync Daemon</strong> when playing on the latest patch.
                 </p>
               </div>
             </div>
@@ -774,57 +795,67 @@ export const App: React.FC = () => {
               <div className="p-3 rounded bg-[rgba(0,240,255,0.06)] border border-[#00f0ff]/30 space-y-1.5">
                 <div className="text-[#00f0ff] font-semibold flex items-center gap-1.5">
                   <Info className="w-4 h-4" />
-                  Who is this for?
+                  Architecture & Contributor Role
                 </div>
                 <p className="text-[11px] text-[#e2e8f0]">
-                  This section is <strong>only for developers and project contributors</strong> updating this repository with new Star Citizen game patches. Regular players do not need to run or sync the daemon to remap, re-index, or export their keybinding profiles.
+                  Keybinding Architect is a <strong>stateless, client-side application</strong> deployed via immutable Nginx containers. Game definitions and catalogs are <strong>not updated at runtime</strong> — any runtime updates to a container would be permanently lost upon restart.
+                </p>
+                <p className="text-[11px] text-[#e2e8f0]">
+                  Instead, game patches are extracted by contributors on their local machine, committed to git, and submitted via a <strong>Pull Request</strong> so the updated catalogs are baked into the container image for everyone.
                 </p>
               </div>
 
-              <p>
-                When RSI releases a patch (e.g. 4.10.x), contributors run <code className="text-[#00f0ff]">sc-daemon</code> locally against their installed Star Citizen game files to decrypt CryEngine assets, extract updated actions/tokens, and submit a Pull Request.
-              </p>
+              <div className="space-y-1.5">
+                <span className="text-[11px] font-semibold text-[#94a3b8]">Contributor Patch Extraction & PR Workflow:</span>
+                <pre className="p-2.5 rounded bg-[#090d15] border border-[#2d415f] text-[11px] font-mono text-[#00f0ff] overflow-x-auto leading-relaxed">
+{`# 1. Compile the extraction daemon binary
+npm run daemon:build
 
-              <div className="p-3.5 rounded bg-[#090d15] border border-[#2d415f] space-y-2">
+# 2. Extract Data.p4k & update git-tracked catalogs
+npm run daemon:extract
+# Or specify explicit game directory / Data.p4k path:
+./daemon/bin/sc-daemon -p "C:\\Program Files\\Roberts Space Industries\\StarCitizen" -u
+
+# 3. Verify tests and TypeScript compilation
+npm test && npm run build
+
+# 4. Commit and submit Pull Request
+git commit -am "chore(catalog): update actions & tokens for Star Citizen 4.x"`}
+                </pre>
+                <p className="text-[10px] text-[#64748b]">
+                  Running with <code className="text-[#00f0ff]">-u</code> updates <code className="text-[#94a3b8]">sc_action_catalog.json</code> and <code className="text-[#94a3b8]">game-data.json</code> directly in the codebase for git tracking.
+                </p>
+              </div>
+
+              <div className="p-3 rounded bg-[#090d15] border border-[#2d415f] space-y-2">
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-[#94a3b8]">Local Daemon Status:</span>
-                  <span className={`font-mono font-bold ${daemonStatus ? 'text-[#00ff88]' : 'text-[#8492a6]'}`}>
-                    {daemonStatus ? `Active (${daemonStatus})` : 'Idle / Standby (127.0.0.1:8765)'}
+                  <span className="text-[#94a3b8] font-semibold">Web App Data Verification:</span>
+                  <span className={`font-mono text-[10px] ${daemonStatus ? 'text-[#00ff88]' : 'text-[#8492a6]'}`}>
+                    {daemonStatus ? `Dev Sync: ${daemonStatus}` : 'Daemon: Offline'}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 pt-2 border-t border-[#2d415f]/50">
-                  <button
-                    onClick={handleSyncDaemon}
-                    className="btn-sci-fi text-[#00ff88] border-[#00ff88] hover:bg-[rgba(0,255,136,0.12)] text-xs flex-1"
-                    title="Connect to sc-daemon HTTP API at 127.0.0.1:8765"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    Sync with Local Daemon
-                  </button>
+                <div className="flex items-center gap-2 pt-1 border-t border-[#2d415f]/50">
                   <button
                     onClick={handleLoadLiveData}
                     className="btn-sci-fi text-[#00f0ff] border-[#00f0ff] hover:bg-[rgba(0,240,255,0.12)] text-xs flex-1"
                     disabled={isLoadingLive}
-                    title="Load extracted Star Citizen LIVE base profile"
+                    title="Load bundled static game-data.json baked into this build"
                   >
                     <Database className="w-3.5 h-3.5" />
-                    {isLoadingLive ? 'Loading...' : 'Load Extracted LIVE Data'}
+                    {isLoadingLive ? 'Loading...' : 'Preview Bundled LIVE Data'}
+                  </button>
+                  <button
+                    onClick={handleSyncDaemon}
+                    className="btn-sci-fi text-[#8492a6] border-[#2d415f] hover:text-[#00ff88] hover:border-[#00ff88] text-xs flex-1"
+                    title="Developer diagnostic: Connect to ephemeral local daemon at 127.0.0.1:8765"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    Local Dev Sync (127.0.0.1:8765)
                   </button>
                 </div>
-              </div>
-
-              <div className="space-y-1">
-                <span className="text-[11px] font-semibold text-[#94a3b8]">Contributor CLI Workflow:</span>
-                <pre className="p-2.5 rounded bg-[#090d15] border border-[#2d415f] text-[11px] font-mono text-[#00f0ff] overflow-x-auto">
-{`# 1. Build the extraction binary
-npm run daemon:build
-
-# 2. Extract Data.p4k game assets for PR submission
-./daemon/bin/sc-daemon extract --p4k="<path>/LIVE/Data.p4k"
-
-# 3. (Optional) Run the local HTTP server
-./daemon/bin/sc-daemon serve --port=8765`}
-                </pre>
+                <p className="text-[10px] text-[#64748b]">
+                  "Preview Bundled LIVE Data" tests the static catalog committed to git. "Local Dev Sync" is strictly an optional diagnostic when testing the Go daemon before writing files.
+                </p>
               </div>
             </div>
 

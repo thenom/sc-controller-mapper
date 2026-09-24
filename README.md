@@ -9,6 +9,9 @@ A high-performance visual keybinding management suite, conflict diagnostics engi
 
 ![Star Citizen Keybinding Architect Dashboard](docs/images/main_dashboard.png)
 
+> [!WARNING]
+> **Pilot Advisory & Backup Disclaimer:** Always retain offline backup copies of your original and working keybinding XML files (`LIVE/USER/Client/0/Controls/Mappings/`) before editing, re-indexing, or importing profiles. This suite is provided as-is under the AGPL-3.0 license; the maintainers assume no responsibility or liability for any lost, altered, or overwritten mapping files.
+
 ---
 
 ## Why Pilots Need This Suite
@@ -120,7 +123,8 @@ Keybinding Architect is an open-source tool built for the Star Citizen community
 
 - **[docs/STAGED_ROLLOUT_PLAN.md](docs/STAGED_ROLLOUT_PLAN.md)**: Full staged rollout roadmap (Private Server $\rightarrow$ GCP OpenTofu with IP Whitelisting $\rightarrow$ GCP Geo-Locked Cloud Armor WAF $\rightarrow$ Scaling Monetization).
 - **[docs/ARCHITECTURE_BLUEPRINT.md](docs/ARCHITECTURE_BLUEPRINT.md)**: Full 40KB technical specification, CryEngine cipher routines, and conflict decision formulas.
-- **[CONTRIBUTING.md](CONTRIBUTING.md)**: Contributor onboarding, PR guidelines, and code standards.
+- **[CONTRIBUTING.md](CONTRIBUTING.md)**: Contributor onboarding, game patch extraction workflow (`sc-daemon`), PR guidelines, and code standards.
+- **[daemon/README.md](daemon/README.md)**: Native Go extraction daemon CLI documentation, Zip64 streaming, and HTTP service reference.
 - **[TODO.md](TODO.md)**: Backlog of upcoming features and optional integrations.
 - **[AGENTS.md](AGENTS.md)**: Agent pairing guidelines, non-negotiable invariants, and AI PR disclosure policy.
 

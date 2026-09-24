@@ -116,11 +116,17 @@ type BuildManifest struct {
 
 // ReadBuildManifest attempts to find and parse build_manifest.id in gameRoot or channel subdirectories
 func ReadBuildManifest(gameRoot string) (*BuildManifest, error) {
+	baseDir := gameRoot
+	if fi, err := os.Stat(gameRoot); err == nil && !fi.IsDir() {
+		baseDir = filepath.Dir(gameRoot)
+	}
+
 	candidates := []string{
-		filepath.Join(gameRoot, "build_manifest.id"),
-		filepath.Join(gameRoot, "LIVE", "build_manifest.id"),
-		filepath.Join(gameRoot, "PTU", "build_manifest.id"),
-		filepath.Join(gameRoot, "EPTU", "build_manifest.id"),
+		filepath.Join(baseDir, "build_manifest.id"),
+		filepath.Join(baseDir, "LIVE", "build_manifest.id"),
+		filepath.Join(baseDir, "PTU", "build_manifest.id"),
+		filepath.Join(baseDir, "EPTU", "build_manifest.id"),
+		filepath.Join(filepath.Dir(baseDir), "build_manifest.id"),
 	}
 
 	for _, c := range candidates {

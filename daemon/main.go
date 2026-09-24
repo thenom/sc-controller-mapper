@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/sc-mapping/daemon/pkg/cache"
@@ -31,19 +32,60 @@ func main() {
 		projectRootFlag   string
 	)
 
-	flag.StringVar(&gamePathFlag, "game-path", "", "Path to Star Citizen install directory (e.g. D:\\Games\\Roberts Space Industries\\StarCitizen)")
-	flag.StringVar(&gamePathFlag, "p", "", "Shorthand for --game-path")
-	flag.StringVar(&outputFlag, "output", "game-data.json", "Output path for the generated web application config file")
-	flag.StringVar(&outputFlag, "o", "game-data.json", "Shorthand for --output")
-	flag.BoolVar(&runDaemonFlag, "daemon", false, "Run as background HTTP daemon serving local API endpoints")
-	flag.IntVar(&daemonPortFlag, "port", 8765, "Port to listen on when running in daemon mode")
-	flag.BoolVar(&versionFlag, "version", false, "Print daemon version and exit")
-	flag.BoolVar(&versionFlag, "v", false, "Shorthand for --version")
-	flag.BoolVar(&sanitizeFlag, "sanitize", true, "Sanitize personal home directories in exported config")
-	flag.BoolVar(&updateProjectFlag, "update-project", false, "Update project action catalog files (packages/parser and apps/web/public)")
-	flag.BoolVar(&updateProjectFlag, "u", false, "Shorthand for --update-project")
-	flag.StringVar(&projectRootFlag, "project-root", ".", "Path to project root monorepo directory (default: current directory)")
-	flag.Parse()
+	fs := flag.NewFlagSet("sc-daemon", flag.ExitOnError)
+
+	fs.StringVar(&gamePathFlag, "game-path", "", "Path to Star Citizen install directory (e.g. D:\\Games\\Roberts Space Industries\\StarCitizen) or Data.p4k file")
+	fs.StringVar(&gamePathFlag, "p", "", "Shorthand for --game-path")
+	fs.StringVar(&gamePathFlag, "p4k", "", "Direct path to Data.p4k archive (alias for --game-path)")
+	fs.StringVar(&outputFlag, "output", "game-data.json", "Output path for the generated web application config file")
+	fs.StringVar(&outputFlag, "o", "game-data.json", "Shorthand for --output")
+	fs.BoolVar(&runDaemonFlag, "daemon", false, "Run as background HTTP daemon serving local API endpoints")
+	fs.IntVar(&daemonPortFlag, "port", 8765, "Port to listen on when running in daemon mode")
+	fs.BoolVar(&versionFlag, "version", false, "Print daemon version and exit")
+	fs.BoolVar(&versionFlag, "v", false, "Shorthand for --version")
+	fs.BoolVar(&sanitizeFlag, "sanitize", true, "Sanitize personal home directories in exported config")
+	fs.BoolVar(&updateProjectFlag, "update-project", false, "Update project action catalog and web data files (packages/parser and apps/web/public)")
+	fs.BoolVar(&updateProjectFlag, "u", false, "Shorthand for --update-project")
+	fs.StringVar(&projectRootFlag, "project-root", ".", "Path to project root monorepo directory (default: current directory)")
+
+	fs.Usage = func() {
+		fmt.Printf("sc-daemon v%s — Star Citizen Keybinding Suite Extraction Daemon\n\n", Version)
+		fmt.Println("Usage:")
+		fmt.Println("  sc-daemon [command] [flags]")
+		fmt.Println("\nCommands:")
+		fmt.Println("  extract             Extract game data (default if no command given)")
+		fmt.Println("  serve               Run as background HTTP daemon (alias for --daemon)")
+		fmt.Println("\nFlags:")
+		fs.PrintDefaults()
+		fmt.Println("\nExamples:")
+		fmt.Println("  # Extract and update project action catalog & web data files for a PR:")
+		fmt.Println("  ./daemon/bin/sc-daemon --update-project")
+		fmt.Println("  ./daemon/bin/sc-daemon -p \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\" -u")
+		fmt.Println("  ./daemon/bin/sc-daemon extract --p4k=\"/path/to/Data.p4k\" --update-project")
+		fmt.Println("\n  # Run local HTTP daemon for live web app sync:")
+		fmt.Println("  ./daemon/bin/sc-daemon --daemon --port=8765")
+		fmt.Println("  ./daemon/bin/sc-daemon serve --port=8765")
+	}
+
+	args := os.Args[1:]
+	var subCmd string
+	if len(args) > 0 && !strings.HasPrefix(args[0], "-") {
+		subCmd = strings.ToLower(args[0])
+		args = args[1:]
+	}
+
+	if subCmd == "help" {
+		fs.Usage()
+		return
+	}
+
+	if subCmd == "serve" {
+		runDaemonFlag = true
+	}
+
+	if err := fs.Parse(args); err != nil {
+		log.Fatalf("Error parsing flags: %v", err)
+	}
 
 	if versionFlag {
 		fmt.Printf("sc-daemon v%s\n", Version)
@@ -59,7 +101,7 @@ func main() {
 	if err != nil {
 		log.Printf("[daemon] Game path resolution: %v\n", err)
 		if !runDaemonFlag {
-			log.Fatalf("[daemon] Fatal: Cannot proceed without a valid game path. Use --game-path=\"...\"")
+			log.Fatalf("[daemon] Fatal: Cannot proceed without a valid game path. Use --game-path=\"...\" or --p4k=\"...\"")
 		}
 	} else {
 		fmt.Printf("[daemon] Discovered Star Citizen Path: %s\n", gameRoot)
@@ -76,7 +118,7 @@ func main() {
 		}
 	}
 
-	// 2b. If --update-project flag set, parse and update monorepo action catalog files
+	// 2b. If --update-project flag set, parse and update monorepo action catalog files & web static data
 	if gameData != nil && updateProjectFlag {
 		fmt.Printf("[daemon] Generating master action catalog for project at '%s'...\n", projectRootFlag)
 		cat, err := catalog.GenerateCatalogFromGameData(gameData.DefaultProfileXML, gameData.Localization)
@@ -95,6 +137,16 @@ func main() {
 				for _, w := range written {
 					fmt.Printf("         - %s\n", w)
 				}
+			}
+		}
+
+		// Also update apps/web/public/game-data.json so the web app has the latest base profile & localization
+		webGameDataPath := filepath.Join(projectRootFlag, "apps", "web", "public", "game-data.json")
+		if outputFlag == "game-data.json" || outputFlag != webGameDataPath {
+			if err := writeOutputFile(webGameDataPath, gameData); err != nil {
+				log.Printf("[daemon] Warning: failed updating web app game data at %s: %v\n", webGameDataPath, err)
+			} else {
+				fmt.Printf("[daemon] ✓ Successfully updated web application static data: %s\n", webGameDataPath)
 			}
 		}
 	}
