@@ -28,7 +28,62 @@ export class ActionMapsExporter {
       `profileName="${this.escapeXml(doc.profileName)}">`
     );
 
-    // 1. Serialize <CustomisationUIDs> if present
+    // 1. Serialize <CustomisationUIHeader> (crucial for in-game Control Profiles menu visibility)
+    if (doc.customisationUIHeader) {
+      const hdr = doc.customisationUIHeader;
+      lines.push(
+        `  <CustomisationUIHeader label="${this.escapeXml(hdr.label)}" description="${this.escapeXml(hdr.description || '')}" image="${this.escapeXml(hdr.image || '')}">`
+      );
+      lines.push('   <devices>');
+      for (const dev of hdr.devices) {
+        const targetInst = dev.type === 'joystick' ? (mapping.get(dev.instance) ?? dev.instance) : dev.instance;
+        lines.push(`    <${dev.type} instance="${targetInst}"/>`);
+      }
+      lines.push('   </devices>');
+      if (hdr.categories && hdr.categories.length > 0) {
+        lines.push('   <categories>');
+        for (const cat of hdr.categories) {
+          lines.push(`    <category label="${this.escapeXml(cat)}"/>`);
+        }
+        lines.push('   </categories>');
+      }
+      lines.push('  </CustomisationUIHeader>');
+    } else {
+      // Synthesize a valid header so the profile always displays in the in-game control profiles dropdown
+      lines.push(
+        `  <CustomisationUIHeader label="${this.escapeXml(doc.profileName || 'CustomProfile')}" description="" image="">`
+      );
+      lines.push('   <devices>');
+      lines.push('    <keyboard instance="1"/>');
+      lines.push('    <mouse instance="1"/>');
+      for (const dev of doc.devices) {
+        if (dev.type === 'joystick') {
+          const targetInst = mapping.get(dev.instance) ?? dev.instance;
+          lines.push(`    <joystick instance="${targetInst}"/>`);
+        }
+      }
+      lines.push('   </devices>');
+      lines.push('   <categories>');
+      const defaultCategories = [
+        '@ui_CCSeatGeneral',
+        '@ui_CCSpaceFlight',
+        '@ui_CCTurrets',
+        '@ui_CGLightControllerDesc',
+        '@ui_CCFPS',
+        '@ui_CCVehicle',
+        '@ui_CGEASpectator',
+        '@ui_CGUIGeneral',
+        '@ui_CGOpticalTracking',
+        '@ui_CGInteraction'
+      ];
+      for (const cat of defaultCategories) {
+        lines.push(`    <category label="${cat}"/>`);
+      }
+      lines.push('   </categories>');
+      lines.push('  </CustomisationUIHeader>');
+    }
+
+    // 1b. Serialize <CustomisationUIDs> if present
     if (doc.customisationUIDs) {
       lines.push('  <CustomisationUIDs>');
       for (const uid of doc.customisationUIDs.optionUIDs) {
@@ -54,7 +109,7 @@ export class ActionMapsExporter {
 
         if (joy.inversions && Object.keys(joy.inversions).length > 0) {
           for (const [axis, inverted] of Object.entries(joy.inversions)) {
-            lines.push(`    <invert axis="${this.escapeXml(axis)}" val="${inverted ? '1' : '0'}"/>`);
+            lines.push(`   <${this.escapeXml(axis)} invert="${inverted ? '1' : '0'}"/>`);
           }
         }
         lines.push('  </options>');
@@ -63,6 +118,11 @@ export class ActionMapsExporter {
       } else if (dev.type === 'mouse') {
         lines.push('  <options type="mouse" instance="1"/>');
       }
+    }
+
+    // 2b. Serialize <modifiers /> if present
+    if (doc.modifiers) {
+      lines.push('  <modifiers />');
     }
 
     // 3. Serialize <actionmap> groups and child <action> bindings

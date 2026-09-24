@@ -29,6 +29,7 @@ import {
   EyeOff
 } from 'lucide-react';
 import { CatalogManager } from '@sc-mapping/parser';
+import { ConflictResolver } from '@sc-mapping/resolver';
 import { AddCustomActionModal } from './AddCustomActionModal';
 
 interface BindingTableProps {
@@ -113,6 +114,54 @@ export const BindingTable: React.FC<BindingTableProps> = ({
     return catalogManager.getUnboundActions(doc, selectedMap === 'all' ? undefined : selectedMap).length;
   }, [doc, catalogManager, selectedMap]);
 
+  // Dynamic list of devices available in document (e.g. ALL, JS1, JS2, JS3..., KB1, MO1)
+  const availableDevices = useMemo(() => {
+    const set = new Set<string>();
+    set.add('all');
+
+    if (doc) {
+      for (const dev of doc.devices) {
+        if (dev.type === 'joystick') {
+          set.add(`js${dev.instance}`);
+        } else if (dev.type === 'keyboard') {
+          set.add('kb1');
+        } else if (dev.type === 'mouse') {
+          set.add('mo1');
+        }
+      }
+      for (const group of Object.values(doc.actionMaps)) {
+        for (const act of Object.values(group.actions)) {
+          for (const inp of act.inputs) {
+            if (inp.devicePrefix) {
+              set.add(inp.devicePrefix.toLowerCase());
+            }
+          }
+        }
+      }
+    }
+
+    // Baseline fallback devices
+    set.add('js1');
+    set.add('js2');
+    set.add('kb1');
+    set.add('mo1');
+
+    return Array.from(set).sort((a, b) => {
+      if (a === 'all') return -1;
+      if (b === 'all') return 1;
+      const isJsA = a.startsWith('js');
+      const isJsB = b.startsWith('js');
+      if (isJsA && isJsB) {
+        const numA = parseInt(a.slice(2), 10) || 0;
+        const numB = parseInt(b.slice(2), 10) || 0;
+        return numA - numB;
+      }
+      if (isJsA) return -1;
+      if (isJsB) return 1;
+      return a.localeCompare(b);
+    });
+  }, [doc]);
+
   // Filtered Actions List (combines active profile actions + unbound catalog actions)
   const filteredList = useMemo(() => {
     const result: Array<{
@@ -130,11 +179,21 @@ export const BindingTable: React.FC<BindingTableProps> = ({
         if (selectedMap !== 'all' && mapName.toLowerCase() !== selectedMap.toLowerCase()) continue;
 
         for (const [actName, action] of Object.entries(group.actions)) {
-          boundKeys.add(`${mapName.toLowerCase()}::${actName.toLowerCase()}`);
+          const physicalInputs = (action.inputs || []).filter(i => !ConflictResolver.isUnboundPlaceholder(i));
+          const hasPhysicalInputs = physicalInputs.length > 0;
 
-          // Device filtering
+          if (hasPhysicalInputs) {
+            boundKeys.add(`${mapName.toLowerCase()}::${actName.toLowerCase()}`);
+          }
+
+          // If in "Bound Only" mode and action has no real physical inputs, hide it (unless user explicitly searches)
+          if (!showUnbound && !hasPhysicalInputs && !q) {
+            continue;
+          }
+
+          // Device filtering: match only actions with real physical inputs for the selected device
           if (selectedDevice !== 'all') {
-            const hasDevice = action.inputs.some(i =>
+            const hasDevice = physicalInputs.some(i =>
               i.devicePrefix.toLowerCase() === selectedDevice.toLowerCase() ||
               i.input.toLowerCase().startsWith(selectedDevice.toLowerCase() + '_')
             );
@@ -158,7 +217,11 @@ export const BindingTable: React.FC<BindingTableProps> = ({
             if (!matches) continue;
           }
 
-          result.push({ mapName, action, isUnbound: false });
+          result.push({
+            mapName,
+            action,
+            isUnbound: !hasPhysicalInputs
+          });
         }
       }
     }
@@ -215,6 +278,8 @@ export const BindingTable: React.FC<BindingTableProps> = ({
   const getDeviceBadgeColor = (prefix: string) => {
     if (prefix.startsWith('js1')) return 'bg-[rgba(0,229,255,0.15)] text-[#00e5ff] border-[rgba(0,229,255,0.3)]';
     if (prefix.startsWith('js2')) return 'bg-[rgba(255,170,0,0.15)] text-[#ffaa00] border-[rgba(255,170,0,0.3)]';
+    if (prefix.startsWith('js3')) return 'bg-[rgba(168,85,247,0.15)] text-[#c084fc] border-[rgba(168,85,247,0.3)]';
+    if (prefix.startsWith('js4')) return 'bg-[rgba(236,72,153,0.15)] text-[#f472b6] border-[rgba(236,72,153,0.3)]';
     if (prefix.startsWith('js')) return 'bg-[rgba(59,130,246,0.15)] text-[#60a5fa] border-[rgba(59,130,246,0.3)]';
     if (prefix.startsWith('kb')) return 'bg-[rgba(0,255,136,0.15)] text-[#00ff88] border-[rgba(0,255,136,0.3)]';
     if (prefix.startsWith('mo')) return 'bg-[rgba(168,85,247,0.15)] text-[#c084fc] border-[rgba(168,85,247,0.3)]';
@@ -303,8 +368,8 @@ export const BindingTable: React.FC<BindingTableProps> = ({
           </div>
 
           {/* Device Filter Buttons */}
-          <div className="flex items-center gap-1 bg-[#090d15] p-1 rounded border border-[#2d415f]">
-            {['all', 'js1', 'js2', 'kb1', 'mo1'].map((dev) => (
+          <div className="flex items-center gap-1 bg-[#090d15] p-1 rounded border border-[#2d415f] flex-wrap">
+            {availableDevices.map((dev) => (
               <button
                 key={dev}
                 onClick={() => setSelectedDevice(dev)}

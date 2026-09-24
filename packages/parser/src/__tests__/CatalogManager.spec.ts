@@ -70,4 +70,37 @@ describe('CatalogManager', () => {
     expect(binding.label).toBe('Radar Ping');
     expect(binding.inputs).toHaveLength(1);
   });
+
+  it('should treat actions with only unbound placeholders (js2_, js3_, etc.) as unbound', () => {
+    const placeholderXml = `<?xml version="1.0" encoding="utf-8"?>
+<ActionMaps version="1" profileName="placeholder_test">
+  <actionmap name="spaceship_movement">
+    <action name="v_pitch">
+      <rebind input="js1_pitch"/>
+    </action>
+    <action name="v_yaw">
+      <rebind input="js2_ "/>
+    </action>
+    <action name="v_roll">
+      <rebind input="js3_"/>
+    </action>
+  </actionmap>
+</ActionMaps>`;
+
+    const doc = ActionMapsParser.parseXML(placeholderXml);
+    const unbound = manager.getUnboundActions(doc);
+
+    // v_pitch is physically bound, so not unbound
+    expect(unbound.some(u => u.actionName === 'v_pitch')).toBe(false);
+
+    // v_yaw only has js2_ placeholder, so MUST be identified as unbound
+    const yawUnbound = unbound.find(u => u.actionName === 'v_yaw');
+    expect(yawUnbound).toBeDefined();
+    expect(yawUnbound?.isBound).toBe(false);
+
+    // v_roll only has js3_ placeholder, so MUST be identified as unbound
+    const rollUnbound = unbound.find(u => u.actionName === 'v_roll');
+    expect(rollUnbound).toBeDefined();
+    expect(rollUnbound?.isBound).toBe(false);
+  });
 });

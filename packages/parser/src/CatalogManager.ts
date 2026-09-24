@@ -131,7 +131,10 @@ export class CatalogManager {
 
       for (const action of group.actions) {
         const boundAction = activeGroup?.actions[action.name];
-        const isBound = Boolean(boundAction && boundAction.inputs && boundAction.inputs.length > 0);
+        const physicalInputs = (boundAction?.inputs || []).filter(
+          i => i.input && !i.input.trim().endsWith('_') && i.hardwareKey && i.hardwareKey.trim() !== '' && i.input.trim().toLowerCase() !== 'none'
+        );
+        const isBound = physicalInputs.length > 0;
 
         if (!isBound) {
           unbound.push({

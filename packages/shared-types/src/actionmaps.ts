@@ -82,6 +82,19 @@ export interface MouseDeviceOption {
 
 export type DeviceOption = JoystickDeviceOption | KeyboardDeviceOption | MouseDeviceOption;
 
+export interface CustomisationUIDevice {
+  type: 'keyboard' | 'mouse' | 'joystick' | 'gamepad';
+  instance: number;
+}
+
+export interface CustomisationUIHeader {
+  label: string;
+  description?: string;
+  image?: string;
+  devices: CustomisationUIDevice[];
+  categories: string[];
+}
+
 export interface CustomisationUIDs {
   optionUIDs: string[];
   listUIDs: string[];
@@ -93,6 +106,8 @@ export interface ActionMapsDocument {
   rebindVersion?: number;
   profileName: string;
   customisationUIDs?: CustomisationUIDs;
+  customisationUIHeader?: CustomisationUIHeader;
+  modifiers?: boolean;
   /** Device options mapped by device type and instance */
   devices: DeviceOption[];
   /** Action maps mapped by context name */

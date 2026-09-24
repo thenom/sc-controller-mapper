@@ -8,7 +8,8 @@ import type {
   DeviceOption,
   HardwarePrefix,
   ActivationMode,
-  BindType
+  BindType,
+  CustomisationUIDevice
 } from '@sc-mapping/shared-types';
 
 /**
@@ -52,7 +53,47 @@ export class ActionMapsParser {
       actionMaps: {}
     };
 
-    // 1. Parse <CustomisationUIDs> if present
+    // 1. Parse <CustomisationUIHeader> if present (Star Citizen in-game profile selector header)
+    const headerNodes = root.getElementsByTagName('CustomisationUIHeader');
+    if (headerNodes.length > 0) {
+      const hNode = headerNodes[0];
+      const label = hNode.getAttribute('label') || result.profileName;
+      const description = hNode.getAttribute('description') || '';
+      const image = hNode.getAttribute('image') || '';
+
+      const devices: CustomisationUIDevice[] = [];
+      const devContainers = hNode.getElementsByTagName('devices');
+      if (devContainers.length > 0) {
+        const dNodes = devContainers[0].childNodes;
+        for (let i = 0; i < dNodes.length; i++) {
+          const dChild = dNodes[i] as Element;
+          if (dChild.nodeType !== 1) continue;
+          const dType = dChild.tagName.toLowerCase() as CustomisationUIDevice['type'];
+          const inst = parseInt(dChild.getAttribute('instance') || '1', 10);
+          devices.push({ type: dType, instance: inst });
+        }
+      }
+
+      const categories: string[] = [];
+      const catContainers = hNode.getElementsByTagName('categories');
+      if (catContainers.length > 0) {
+        const cNodes = catContainers[0].getElementsByTagName('category');
+        for (let i = 0; i < cNodes.length; i++) {
+          const catLabel = cNodes[i].getAttribute('label');
+          if (catLabel) categories.push(catLabel);
+        }
+      }
+
+      result.customisationUIHeader = {
+        label,
+        description,
+        image,
+        devices,
+        categories
+      };
+    }
+
+    // 1b. Parse <CustomisationUIDs> if present
     const customUIDNodes = root.getElementsByTagName('CustomisationUIDs');
     if (customUIDNodes.length > 0) {
       const cNode = customUIDNodes[0];
@@ -74,6 +115,12 @@ export class ActionMapsParser {
       result.customisationUIDs = { optionUIDs, listUIDs };
     }
 
+    // 1c. Parse <modifiers /> if present
+    const modNodes = root.getElementsByTagName('modifiers');
+    if (modNodes.length > 0) {
+      result.modifiers = true;
+    }
+
     // 2. Parse <options> nodes (Joysticks, Keyboards, Mice)
     const optionsNodes = root.getElementsByTagName('options');
     for (let i = 0; i < optionsNodes.length; i++) {
@@ -86,13 +133,20 @@ export class ActionMapsParser {
         const guid = opt.getAttribute('ProductGUID') || undefined;
 
         const inversions: Record<string, boolean> = {};
-        const invertNodes = opt.getElementsByTagName('invert');
-        for (let j = 0; j < invertNodes.length; j++) {
-          const inv = invertNodes[j];
-          const axis = inv.getAttribute('axis');
-          const val = inv.getAttribute('val');
-          if (axis) {
-            inversions[axis] = val === '1' || val === 'true';
+        for (let j = 0; j < opt.childNodes.length; j++) {
+          const child = opt.childNodes[j] as Element;
+          if (child.nodeType !== 1) continue;
+          const tagName = child.tagName;
+          if (tagName === 'invert') {
+            const axis = child.getAttribute('axis');
+            const val = child.getAttribute('val');
+            if (axis) {
+              inversions[axis] = val === '1' || val === 'true';
+            }
+          } else if (child.hasAttribute('invert')) {
+            // Star Citizen format: <flight_move_yaw invert="1"/>
+            const val = child.getAttribute('invert');
+            inversions[tagName] = val === '1' || val === 'true';
           }
         }
 
