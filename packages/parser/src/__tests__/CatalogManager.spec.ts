@@ -18,7 +18,7 @@ describe('CatalogManager', () => {
 
     const ejectAction = actions.find(a => a.action.name === 'v_eject');
     expect(ejectAction).toBeDefined();
-    expect(ejectAction?.action.label).toBe('Emergency Eject');
+    expect(ejectAction?.action.label).toBe('Eject');
   });
 
   it('should search actions across action name, label, category, and description', () => {
@@ -44,14 +44,14 @@ describe('CatalogManager', () => {
     const doc = ActionMapsParser.parseXML(sparseXml);
     const unbound = manager.getUnboundActions(doc);
 
-    // v_pitch is bound, so it should NOT be in unbound
-    expect(unbound.some(u => u.actionName === 'v_pitch')).toBe(false);
+    // v_pitch in spaceship_movement is bound, so it should NOT be in unbound for spaceship_movement
+    expect(unbound.some(u => u.mapName === 'spaceship_movement' && u.actionName === 'v_pitch')).toBe(false);
 
-    // v_eject is in catalog but not in sparseXml, so it MUST be in unbound
+    // v_eject is in seat_general in catalog but not in sparseXml, so it MUST be in unbound
     const ejectUnbound = unbound.find(u => u.actionName === 'v_eject');
     expect(ejectUnbound).toBeDefined();
     expect(ejectUnbound?.isBound).toBe(false);
-    expect(ejectUnbound?.mapName).toBe('spaceship_movement');
+    expect(ejectUnbound?.mapName).toBe('seat_general');
   });
 
   it('should filter unbound actions by mapName', () => {
@@ -90,16 +90,16 @@ describe('CatalogManager', () => {
     const doc = ActionMapsParser.parseXML(placeholderXml);
     const unbound = manager.getUnboundActions(doc);
 
-    // v_pitch is physically bound, so not unbound
-    expect(unbound.some(u => u.actionName === 'v_pitch')).toBe(false);
+    // v_pitch is physically bound in spaceship_movement
+    expect(unbound.some(u => u.mapName === 'spaceship_movement' && u.actionName === 'v_pitch')).toBe(false);
 
     // v_yaw only has js2_ placeholder, so MUST be identified as unbound
-    const yawUnbound = unbound.find(u => u.actionName === 'v_yaw');
+    const yawUnbound = unbound.find(u => u.mapName === 'spaceship_movement' && u.actionName === 'v_yaw');
     expect(yawUnbound).toBeDefined();
     expect(yawUnbound?.isBound).toBe(false);
 
     // v_roll only has js3_ placeholder, so MUST be identified as unbound
-    const rollUnbound = unbound.find(u => u.actionName === 'v_roll');
+    const rollUnbound = unbound.find(u => u.mapName === 'spaceship_movement' && u.actionName === 'v_roll');
     expect(rollUnbound).toBeDefined();
     expect(rollUnbound?.isBound).toBe(false);
   });

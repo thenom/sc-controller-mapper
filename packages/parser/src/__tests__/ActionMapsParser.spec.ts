@@ -99,4 +99,44 @@ describe('ActionMapsParser', () => {
     // Ensure the fake name is not present as a separate action
     expect(doc.actionMaps['spaceship_quantum'].actions['v_quantum_travel']).toBeUndefined();
   });
+
+  it('should normalize legacy capacitor action map and action names to spaceship_power and engineering', () => {
+    const xml = `<ActionMaps version="1">
+      <actionmap name="vehicle_capacitor_assignment">
+        <action name="v_capacitor_assignment_engine_increase">
+          <rebind input="js1_hat1_up"/>
+        </action>
+      </actionmap>
+    </ActionMaps>`;
+
+    const doc = ActionMapsParser.parseXML(xml);
+    expect(doc.actionMaps['vehicle_capacitor_assignment']).toBeUndefined();
+    const powerMap = doc.actionMaps['spaceship_power'];
+    expect(powerMap).toBeDefined();
+    const engAction = powerMap.actions['v_engineering_assignment_engine_increase'];
+    expect(engAction).toBeDefined();
+    expect(engAction.inputs[0].input).toBe('js1_hat1_up');
+  });
+
+  it('should merge duplicate actions and alias occurrences without duplicate inputs', () => {
+    const xml = `<ActionMaps version="1">
+      <actionmap name="spaceship_quantum">
+        <action name="v_toggle_qdrive_engagement">
+          <rebind input="js1_button1"/>
+        </action>
+        <action name="v_quantum_travel">
+          <rebind input="js1_button1"/>
+          <addbind input="js2_button1"/>
+        </action>
+      </actionmap>
+    </ActionMaps>`;
+
+    const doc = ActionMapsParser.parseXML(xml);
+    const qAction = doc.actionMaps['spaceship_quantum'].actions['v_toggle_qdrive_engagement'];
+    expect(qAction).toBeDefined();
+    // js1_button1 was in both, so it should only appear once; js2_button1 is added
+    expect(qAction.inputs).toHaveLength(2);
+    expect(qAction.inputs[0].input).toBe('js1_button1');
+    expect(qAction.inputs[1].input).toBe('js2_button1');
+  });
 });

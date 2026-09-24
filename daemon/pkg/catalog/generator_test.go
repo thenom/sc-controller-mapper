@@ -66,8 +66,8 @@ func TestGenerateCatalogFromGameData(t *testing.T) {
 		t.Fatalf("UpdateProjectCatalogFiles failed: %v", err)
 	}
 
-	if len(written) != 2 {
-		t.Errorf("expected 2 written paths, got %d", len(written))
+	if len(written) != 3 {
+		t.Errorf("expected 3 written paths, got %d: %v", len(written), written)
 	}
 
 	for _, p := range written {
@@ -80,5 +80,10 @@ func TestGenerateCatalogFromGameData(t *testing.T) {
 	content, _ := os.ReadFile(filepath.Join(tmpDir, "packages", "parser", "src", "catalog", "sc_action_catalog.json"))
 	if len(content) == 0 {
 		t.Errorf("generated catalog file was empty")
+	}
+
+	tsContent, _ := os.ReadFile(filepath.Join(tmpDir, "packages", "parser", "src", "catalog", "defaultCatalog.ts"))
+	if len(tsContent) == 0 {
+		t.Errorf("generated defaultCatalog.ts file was empty")
 	}
 }

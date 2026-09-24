@@ -31,7 +31,13 @@ type MasterActionCatalog map[string]ActionMapCatalog
 
 // Intermediate XML structs for decoding defaultProfile.xml
 type xmlGenericProfile struct {
-	ActionMaps []xmlActionMap `xml:"actionmap"`
+	ActionGroups []xmlActionGroup `xml:"actiongroup"`
+	ActionMaps   []xmlActionMap   `xml:"actionmap"`
+}
+
+type xmlActionGroup struct {
+	Action  string      `xml:"action,attr"`
+	Actions []xmlAction `xml:"action"`
 }
 
 type xmlActionMap struct {
@@ -90,6 +96,39 @@ func GenerateCatalogFromGameData(defaultProfileXML string, loc map[string]string
 		}
 	}
 
+	// Inject root actiongroups (e.g. actiongroup="v_attack" containing v_attack_all, v_attack_group1, v_attack_group2)
+	// into relevant actionmaps (spaceship_weapons and vehicle_general).
+	for _, g := range profile.ActionGroups {
+		if strings.TrimSpace(g.Action) == "v_attack" {
+			targetMaps := []string{"spaceship_weapons", "vehicle_general"}
+			for _, tm := range targetMaps {
+				if mCatalog, exists := result[tm]; exists {
+					existingNames := make(map[string]bool)
+					for _, existing := range mCatalog.Actions {
+						existingNames[existing.Name] = true
+					}
+					var newActions []ActionCatalogEntry
+					for _, a := range g.Actions {
+						actName := strings.TrimSpace(a.Name)
+						if actName != "" && !existingNames[actName] {
+							label, desc := resolveActionLocalization(actName, tm, loc)
+							category := categorizeAction(actName, tm)
+							newActions = append(newActions, ActionCatalogEntry{
+								Name:        actName,
+								Label:       label,
+								Category:    category,
+								Description: desc,
+							})
+							existingNames[actName] = true
+						}
+					}
+					mCatalog.Actions = append(newActions, mCatalog.Actions...)
+					result[tm] = mCatalog
+				}
+			}
+		}
+	}
+
 	return result, nil
 }
 
@@ -115,6 +154,14 @@ func UpdateProjectCatalogFiles(projectRoot string, catalog MasterActionCatalog) 
 			return written, fmt.Errorf("failed to write %s: %w", p, err)
 		}
 		written = append(written, p)
+	}
+
+	// Also sync packages/parser/src/catalog/defaultCatalog.ts directly so TypeScript modules are always synced
+	defaultCatalogTsPath := filepath.Join(projectRoot, "packages", "parser", "src", "catalog", "defaultCatalog.ts")
+	tsContent := "import type { MasterActionCatalog } from \"@sc-mapping/shared-types\";\n\n" +
+		"export const MASTER_ACTION_CATALOG: MasterActionCatalog = " + string(data) + ";\n"
+	if err := os.WriteFile(defaultCatalogTsPath, []byte(tsContent), 0644); err == nil {
+		written = append(written, defaultCatalogTsPath)
 	}
 
 	return written, nil

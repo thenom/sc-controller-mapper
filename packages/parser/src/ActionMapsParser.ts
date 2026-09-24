@@ -175,14 +175,23 @@ export class ActionMapsParser {
     const actionmapNodes = root.getElementsByTagName('actionmap');
     for (let i = 0; i < actionmapNodes.length; i++) {
       const amNode = actionmapNodes[i];
-      const mapName = amNode.getAttribute('name');
-      if (!mapName) continue;
+      const rawMapName = amNode.getAttribute('name');
+      if (!rawMapName) continue;
 
-      const group: ActionMapGroup = {
-        name: mapName,
-        label: amNode.getAttribute('UILabel') || undefined,
-        actions: {}
+      // Normalize legacy or renamed action map names (e.g. vehicle_capacitor_assignment -> spaceship_power)
+      const mapAliases: Record<string, string> = {
+        vehicle_capacitor_assignment: 'spaceship_power'
       };
+      const mapName = mapAliases[rawMapName] || rawMapName;
+
+      if (!result.actionMaps[mapName]) {
+        result.actionMaps[mapName] = {
+          name: mapName,
+          label: amNode.getAttribute('UILabel') || undefined,
+          actions: {}
+        };
+      }
+      const group = result.actionMaps[mapName];
 
       const actionNodes = amNode.getElementsByTagName('action');
       for (let j = 0; j < actionNodes.length; j++) {
@@ -190,10 +199,58 @@ export class ActionMapsParser {
         const rawActionName = actNode.getAttribute('name');
         if (!rawActionName) continue;
 
-        // Normalize known fictitious or deprecated aliases (e.g. v_quantum_travel -> v_toggle_qdrive_engagement)
+        // Normalize known fictitious, deprecated, or renamed aliases to canonical CryEngine action names
         const actionAliases: Record<string, string> = {
+          // Quantum Travel & Spooling (renamed in Master Modes)
           v_quantum_travel: 'v_toggle_qdrive_engagement',
-          v_quantum_spool: 'v_toggle_qdrive_engagement'
+          v_quantum_spool: 'v_toggle_qdrive_engagement',
+
+          // Flight Movement & Controls
+          v_spacebreak: 'v_space_brake',
+          v_toggle_vtol: 'v_vtol_toggle',
+          v_nav_flight_mode_toggle: 'v_master_mode_cycle_long',
+          v_decoupled: 'v_toggle_flight_mode',
+          v_lights_toggle: 'v_toggle_headlights',
+          v_gear: 'v_toggle_landing_system',
+
+          // Weapons & Targeting
+          v_attack1_group1: 'v_attack_group1',
+          v_attack1_group2: 'v_attack_group2',
+          v_weapon_pip_type_toggle: 'v_weapon_pip_toggle_lead_lag',
+          v_target_cycle_pinned: 'v_target_cycle_pinned_all',
+          v_target_unlock_selected: 'v_target_unlock',
+          v_weapon_gimbal_mode_cycle_all: 'v_weapon_gimbals_state_toggle',
+          v_weapon_manual_gimbal_mode: 'v_weapon_gimbals_state_toggle',
+          v_weapon_change_firemode: 'v_weapon_staggered_fire_toggle',
+
+          // Missiles
+          v_missile_mode_toggle: 'v_toggle_missile_mode',
+          v_missile_launch: 'v_missile_fire',
+
+          // Power & Engineering Assignments (Alpha 4.0 rename)
+          v_capacitor_assignment_engine_increase: 'v_engineering_assignment_engine_increase',
+          v_capacitor_assignment_shield_increase: 'v_engineering_assignment_shields_increase',
+          v_capacitor_assignment_weapon_increase: 'v_engineering_assignment_weapons_increase',
+          v_capacitor_assignment_reset: 'v_engineering_assignment_reset',
+
+          // Speed Limiter -> Acceleration Limiter (Master Modes rename)
+          v_speed_range_abs: 'v_accel_range_abs',
+          v_speed_range_down: 'v_accel_range_down',
+          v_speed_range_rel: 'v_accel_range_rel',
+          v_speed_range_up: 'v_accel_range_up',
+
+          // On-Foot / Personal Interaction System (PIT)
+          selectprimary: 'select_primary_pit',
+          selectsecondary: 'select_secondary_pit',
+          selectpistol: 'select_sidearm_pit',
+          selectgadget: 'select_gadget_pit',
+          player_sprint: 'sprint',
+          player_jump: 'jump',
+          player_crouch: 'crouch',
+          player_prone: 'prone',
+          weapon_fire: 'attack1',
+          weapon_reload: 'reload',
+          turret_fire: 'attack1'
         };
         const actionName = actionAliases[rawActionName] || rawActionName;
 
@@ -248,13 +305,18 @@ export class ActionMapsParser {
         }
 
         if (group.actions[actionName]) {
-          group.actions[actionName].inputs.push(...actionBinding.inputs);
+          for (const inp of actionBinding.inputs) {
+            const isDup = group.actions[actionName].inputs.some(
+              existing => existing.input === inp.input && existing.bindType === inp.bindType
+            );
+            if (!isDup) {
+              group.actions[actionName].inputs.push(inp);
+            }
+          }
         } else {
           group.actions[actionName] = actionBinding;
         }
       }
-
-      result.actionMaps[mapName] = group;
     }
 
     return result;

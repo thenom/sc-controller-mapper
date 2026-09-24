@@ -1,211 +1,5977 @@
-import type { MasterActionCatalog } from '@sc-mapping/shared-types';
+import type { MasterActionCatalog } from "@sc-mapping/shared-types";
 
 export const MASTER_ACTION_CATALOG: MasterActionCatalog = {
-  spaceship_movement: {
-    mapName: "spaceship_movement",
-    label: "Spaceship Flight & Movement",
-    domain: "spaceship",
-    actions: [
-      { name: "v_pitch", label: "Pitch", category: "Flight Controls", description: "Rotate spaceship pitch up/down axis" },
-      { name: "v_yaw", label: "Yaw", category: "Flight Controls", description: "Rotate spaceship yaw left/right axis" },
-      { name: "v_roll", label: "Roll", category: "Flight Controls", description: "Roll spaceship banking left/right axis" },
-      { name: "v_strafe_lateral", label: "Strafe Lateral", category: "Flight Controls", description: "Translate spaceship left/right axis" },
-      { name: "v_strafe_longitudinal", label: "Strafe Longitudinal (Throttle)", category: "Flight Controls", description: "Translate spaceship forward/backward axis" },
-      { name: "v_strafe_vertical", label: "Strafe Vertical", category: "Flight Controls", description: "Translate spaceship up/down axis" },
-      { name: "v_strafe_forward", label: "Strafe Forward", category: "Flight Controls", description: "Translate forward direction" },
-      { name: "v_strafe_back", label: "Strafe Back", category: "Flight Controls", description: "Translate backward direction" },
-      { name: "v_strafe_left", label: "Strafe Left", category: "Flight Controls", description: "Translate left direction" },
-      { name: "v_strafe_right", label: "Strafe Right", category: "Flight Controls", description: "Translate right direction" },
-      { name: "v_strafe_up", label: "Strafe Up", category: "Flight Controls", description: "Translate up direction" },
-      { name: "v_strafe_down", label: "Strafe Down", category: "Flight Controls", description: "Translate down direction" },
-      { name: "v_boost", label: "Afterburner / Boost", category: "Flight Movement", description: "Engage engine boost to enhance thrust output and acceleration" },
-      { name: "v_spacebreak", label: "Spacebrake", category: "Flight Movement", description: "Engage retro thrusters to bring the spaceship to an immediate halt" },
-      { name: "v_nav_flight_mode_toggle", label: "Master Modes SCM / NAV Toggle", category: "Flight Movement", description: "Toggle between Standard Control Model (SCM) and Navigation (NAV) flight modes" },
-      { name: "v_flightready", label: "Flight Ready", category: "Flight Systems", description: "Power on all vehicle systems, shields, engines, and avionics" },
-      { name: "v_gear", label: "Landing Gear", category: "Flight Systems", description: "Deploy or retract landing gear assemblies" },
-      { name: "v_autoland", label: "Autoland", category: "Flight Systems", description: "Request automated landing on designated landing pad or hangar" },
-      { name: "v_vtol_toggle", label: "VTOL Mode Toggle", category: "Flight Movement", description: "Toggle variable thruster geometry between horizontal flight and vertical takeoff" },
-      { name: "v_decoupled", label: "Decoupled Mode Toggle", category: "Flight Movement", description: "Toggle IFCS vector coupling on/off" },
-      { name: "v_lights_toggle", label: "Headlights Toggle", category: "Cockpit General", description: "Toggle exterior ship headlights" },
-      { name: "v_eject", label: "Emergency Eject", category: "Cockpit General", description: "Eject pilot seat from vehicle" },
-      { name: "v_self_destruct", label: "Self Destruct", category: "Cockpit General", description: "Initiate ship self-destruct sequence countdown" },
-      { name: "v_jettison_cargo", label: "Jettison Cargo", category: "Cargo Operations", description: "Release exterior cargo grid clamps and dump containers" }
-    ]
-  },
-  spaceship_weapons: {
-    mapName: "spaceship_weapons",
-    label: "Spaceship Weapons",
-    domain: "spaceship",
-    actions: [
-      { name: "v_attack1_group1", label: "Fire Weapon Group 1", category: "Weapons", description: "Discharge primary weapon group (Guns / Lasers)", masterFlightMode: "SCM" },
-      { name: "v_attack1_group2", label: "Fire Weapon Group 2", category: "Weapons", description: "Discharge secondary weapon group", masterFlightMode: "SCM" },
-      { name: "v_weapon_pip_type_toggle", label: "Cycle Lead / Lag PIP", category: "Combat HUD", description: "Toggle targeting predictive indicator between lead reticle and lag reticle", masterFlightMode: "SCM" },
-      { name: "v_weapon_manual_gimbal_mode", label: "Cycle Gimbal Modes", category: "Weapons", description: "Cycle between Fixed, Auto-Gimbal, and Manual Gimbal target tracking" },
-      { name: "v_weapon_cycle_convergence", label: "Cycle Weapon Convergence", category: "Weapons", description: "Adjust weapon convergence focal distance" }
-    ]
-  },
-  spaceship_missiles: {
-    mapName: "spaceship_missiles",
-    label: "Spaceship Missiles",
-    domain: "spaceship",
-    actions: [
-      { name: "v_missile_mode_toggle", label: "Missile Operator Mode (MOM)", category: "Missiles", description: "Enter or exit dedicated missile targeting and lock mode", masterFlightMode: "SCM" },
-      { name: "v_missile_launch", label: "Launch Armed Missiles", category: "Missiles", description: "Fire missile(s) currently locked on target", masterFlightMode: "SCM" },
-      { name: "v_missile_lock_focus", label: "Acquire Missile Lock", category: "Missiles", description: "Initiate radar / IR / EM seeker lock on targeted vehicle", masterFlightMode: "SCM" },
-      { name: "v_missile_cycle_type", label: "Cycle Missile Payload", category: "Missiles", description: "Cycle between equipped missile rack types" },
-      { name: "v_missile_increase_armed_count", label: "Increase Armed Missile Count", category: "Missiles", description: "Arm additional concurrent missiles for salvo fire" },
-      { name: "v_missile_decrease_armed_count", label: "Decrease Armed Missile Count", category: "Missiles", description: "Reduce concurrent armed missile count" }
-    ]
-  },
-  spaceship_defensive: {
-    mapName: "spaceship_defensive",
-    label: "Spaceship Defensive & Countermeasures",
-    domain: "spaceship",
-    actions: [
-      { name: "v_countermeasure_launch", label: "Launch Decoy (Flare)", category: "Countermeasures", description: "Deploy decoy to distract incoming radar and heat-seeking missiles" },
-      { name: "v_countermeasure_panic", label: "Launch Noise (Chaff)", category: "Countermeasures", description: "Deploy noise cloud to break enemy target tracking lock" },
-      { name: "v_shield_raise_level_forward", label: "Shield Divert Forward", category: "Shields", description: "Divert shield power to front quadrant" },
-      { name: "v_shield_raise_level_back", label: "Shield Divert Aft", category: "Shields", description: "Divert shield power to rear quadrant" },
-      { name: "v_shield_raise_level_left", label: "Shield Divert Left", category: "Shields", description: "Divert shield power to port quadrant" },
-      { name: "v_shield_raise_level_right", label: "Shield Divert Right", category: "Shields", description: "Divert shield power to starboard quadrant" },
-      { name: "v_shield_reset_levels", label: "Shield Equalize", category: "Shields", description: "Reset shield distribution to equal quadrants" }
-    ]
-  },
-  spaceship_target_targeting: {
-    mapName: "spaceship_target_targeting",
-    label: "Spaceship Targeting",
-    domain: "spaceship",
-    actions: [
-      { name: "v_target_lock_selected", label: "Lock Selected Target", category: "Targeting", description: "Set locked target state on vessel in crosshair", masterFlightMode: "SCM" },
-      { name: "v_target_lock_selected_closest_hostile", label: "Target Nearest Hostile", category: "Targeting", description: "Instantly lock closest hostile combatant", masterFlightMode: "SCM" },
-      { name: "v_target_cycle_hostile_fwd", label: "Cycle Hostiles (Next)", category: "Targeting", description: "Target next enemy vehicle in radar range" },
-      { name: "v_target_cycle_hostile_back", label: "Cycle Hostiles (Prev)", category: "Targeting", description: "Target previous enemy vehicle in radar range" },
-      { name: "v_target_cycle_all_fwd", label: "Cycle All Contacts (Next)", category: "Targeting", description: "Cycle next radar contact (allied, neutral, hostile)" },
-      { name: "v_target_cycle_pinned", label: "Cycle Pinned Targets", category: "Targeting", description: "Cycle active target selection through pinned contact slots" },
-      { name: "v_target_pin_selected", label: "Pin Selected Target", category: "Targeting", description: "Pin current target into HUD quick-tracking slot" },
-      { name: "v_target_unpin_selected", label: "Unpin Selected Target", category: "Targeting", description: "Remove current target from pinned slot" },
-      { name: "v_target_cycle_subtarget_fwd", label: "Cycle Sub-Target (Next)", category: "Targeting", description: "Target specific subsystem (engines, weapons, power plant)" }
-    ]
-  },
-  spaceship_quantum: {
-    mapName: "spaceship_quantum",
-    label: "Spaceship Quantum",
-    domain: "spaceship",
-    actions: [
+  "IFCS_controls": {
+    "mapName": "IFCS_controls",
+    "label": "IFCS Controls",
+    "domain": "spaceship",
+    "actions": [
       {
-        name: "v_toggle_qdrive_engagement",
-        label: "Engage Quantum Drive (Hold)",
-        category: "Spaceship Quantum",
-        description: "Engages the quantum drive (hold to jump)",
-        masterFlightMode: "NAV"
+        "name": "v_IFCS_A",
+        "label": "IFCS A",
+        "category": "IFCS Controls"
+      },
+      {
+        "name": "v_IFCS_B",
+        "label": "IFCS B",
+        "category": "IFCS Controls"
+      },
+      {
+        "name": "v_IFCS_X",
+        "label": "IFCS X",
+        "category": "IFCS Controls"
+      },
+      {
+        "name": "v_IFCS_Y",
+        "label": "IFCS Y",
+        "category": "IFCS Controls"
       }
     ]
   },
-  spaceship_mining: {
-    mapName: "spaceship_mining",
-    label: "Mining Operator Mode",
-    domain: "spaceship",
-    actions: [
-      { name: "v_toggle_mining_mode", label: "Mining Operator Mode Toggle", category: "Mining", description: "Toggle cockpit into dedicated mining laser stance" },
-      { name: "v_toggle_mining_laser_type", label: "Toggle Mining Laser Mode", category: "Mining", description: "Switch mining laser between Fracture beam and Extraction beam" },
-      { name: "v_mining_throttle", label: "Mining Laser Throttle", category: "Mining", description: "Adjust mining laser power intensity (0-100%)" },
-      { name: "v_mining_use_consumable_1", label: "Use Mining Module 1", category: "Mining", description: "Activate equipped laser sub-module consumable 1" },
-      { name: "v_mining_use_consumable_2", label: "Use Mining Module 2", category: "Mining", description: "Activate equipped laser sub-module consumable 2" },
-      { name: "v_mining_use_consumable_3", label: "Use Mining Module 3", category: "Mining", description: "Activate equipped laser sub-module consumable 3" }
+  "RemoteRigidEntityController": {
+    "mapName": "RemoteRigidEntityController",
+    "label": "RemoteRigidEntityController",
+    "domain": "general",
+    "actions": [
+      {
+        "name": "remote_moveForward",
+        "label": "Remote MoveForward",
+        "category": "RemoteRigidEntityController"
+      },
+      {
+        "name": "remote_moveBack",
+        "label": "Remote MoveBack",
+        "category": "RemoteRigidEntityController"
+      },
+      {
+        "name": "remote_moveLeft",
+        "label": "Remote MoveLeft",
+        "category": "RemoteRigidEntityController"
+      },
+      {
+        "name": "remote_moveRight",
+        "label": "Remote MoveRight",
+        "category": "RemoteRigidEntityController"
+      },
+      {
+        "name": "remote_moveUp",
+        "label": "Remote MoveUp",
+        "category": "RemoteRigidEntityController"
+      },
+      {
+        "name": "remote_moveDown",
+        "label": "Remote MoveDown",
+        "category": "RemoteRigidEntityController"
+      },
+      {
+        "name": "remote_scaleUp",
+        "label": "Remote ScaleUp",
+        "category": "RemoteRigidEntityController"
+      },
+      {
+        "name": "remote_scaleDown",
+        "label": "Remote ScaleDown",
+        "category": "RemoteRigidEntityController"
+      },
+      {
+        "name": "remote_rollLeft",
+        "label": "Remote RollLeft",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "remote_rollRight",
+        "label": "Remote RollRight",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "remote_rotatePitch",
+        "label": "Remote RotatePitch",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "remote_rotateYaw",
+        "label": "Remote RotateYaw",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "remote_switchControl",
+        "label": "Remote SwitchControl",
+        "category": "RemoteRigidEntityController"
+      },
+      {
+        "name": "remote_stopControl",
+        "label": "Remote StopControl",
+        "category": "RemoteRigidEntityController"
+      },
+      {
+        "name": "remote_action1",
+        "label": "Remote Action1",
+        "category": "RemoteRigidEntityController"
+      },
+      {
+        "name": "remote_action2",
+        "label": "Remote Action2",
+        "category": "RemoteRigidEntityController"
+      },
+      {
+        "name": "remote_switchTarget",
+        "label": "Remote SwitchTarget",
+        "category": "Targeting & Radar"
+      }
     ]
   },
-  spaceship_salvage: {
-    mapName: "spaceship_salvage",
-    label: "Salvage Operator Mode",
-    domain: "spaceship",
-    actions: [
-      { name: "v_toggle_salvage_mode", label: "Salvage Operator Mode Toggle", category: "Salvage", description: "Toggle cockpit into dedicated hull scraping / structural salvage mode" },
-      { name: "v_salvage_axis", label: "Salvage Gimbal Axis", category: "Salvage", description: "Aim salvage laser scraping heads" },
-      { name: "v_salvage_beam_spacing_increase", label: "Increase Beam Spacing", category: "Salvage", description: "Widen salvage scraping head separation" },
-      { name: "v_salvage_beam_spacing_decrease", label: "Decrease Beam Spacing", category: "Salvage", description: "Narrow salvage scraping head separation" },
-      { name: "v_salvage_cycle_focus", label: "Cycle Salvage Beam Focus", category: "Salvage", description: "Switch between scraping and disintegration laser mode" }
+  "character_customizer": {
+    "mapName": "character_customizer",
+    "label": "Character Customizer",
+    "domain": "general",
+    "actions": [
+      {
+        "name": "character_customizer_yaw",
+        "label": "Character Customizer Yaw",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "character_customizer_pitch",
+        "label": "Character Customizer Pitch",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "character_customizer_gp_yaw",
+        "label": "Character Customizer Gp Yaw",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "character_customizer_gp_pitch",
+        "label": "Character Customizer Gp Pitch",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "character_customizer_zoom_in",
+        "label": "Character Customizer Zoom In",
+        "category": "Character Customizer"
+      },
+      {
+        "name": "character_customizer_zoom_out",
+        "label": "Character Customizer Zoom Out",
+        "category": "Character Customizer"
+      },
+      {
+        "name": "character_customizer_select",
+        "label": "Character Customizer Select",
+        "category": "Character Customizer"
+      },
+      {
+        "name": "character_customizer_enable_dna_edit",
+        "label": "Character Customizer Enable Dna Edit",
+        "category": "Character Customizer"
+      },
+      {
+        "name": "character_customizer_enable_rotation",
+        "label": "Character Customizer Enable Rotation",
+        "category": "Character Customizer"
+      },
+      {
+        "name": "character_customizer_enable_mouse_rotation",
+        "label": "Character Customizer Enable Mouse Rotation",
+        "category": "Character Customizer"
+      },
+      {
+        "name": "character_customizer_library_scroll_up",
+        "label": "Character Customizer Library Scroll Up",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "character_customizer_library_scroll_down",
+        "label": "Character Customizer Library Scroll Down",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "character_customizer_edit_dna_pos",
+        "label": "Character Customizer Edit Dna Pos",
+        "category": "Character Customizer"
+      },
+      {
+        "name": "character_customizer_edit_dna_neg",
+        "label": "Character Customizer Edit Dna Neg",
+        "category": "Character Customizer"
+      },
+      {
+        "name": "character_customizer_yaw_left",
+        "label": "Character Customizer Yaw Left",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "character_customizer_yaw_right",
+        "label": "Character Customizer Yaw Right",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "character_customizer_pitch_up",
+        "label": "Character Customizer Pitch Up",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "character_customizer_pitch_down",
+        "label": "Character Customizer Pitch Down",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "character_customizer_step_up",
+        "label": "Character Customizer Step Up",
+        "category": "Character Customizer"
+      },
+      {
+        "name": "character_customizer_step_down",
+        "label": "Character Customizer Step Down",
+        "category": "Character Customizer"
+      },
+      {
+        "name": "character_customizer_feature_up",
+        "label": "Character Customizer Feature Up",
+        "category": "Character Customizer"
+      },
+      {
+        "name": "character_customizer_feature_down",
+        "label": "Character Customizer Feature Down",
+        "category": "Character Customizer"
+      },
+      {
+        "name": "character_customizer_dnamode_up",
+        "label": "Character Customizer Dnamode Up",
+        "category": "Character Customizer"
+      },
+      {
+        "name": "character_customizer_dnamode_down",
+        "label": "Character Customizer Dnamode Down",
+        "category": "Character Customizer"
+      },
+      {
+        "name": "character_customizer_next_material_region",
+        "label": "Character Customizer Next Material Region",
+        "category": "Character Customizer"
+      },
+      {
+        "name": "character_customizer_toggle_face_tracking",
+        "label": "Character Customizer Toggle Face Tracking",
+        "category": "Character Customizer"
+      },
+      {
+        "name": "character_customizer_dnaHandle_select",
+        "label": "Character Customizer DnaHandle Select",
+        "category": "Character Customizer"
+      },
+      {
+        "name": "character_customizer_dnaHandle_deselect",
+        "label": "Character Customizer DnaHandle Deselect",
+        "category": "Character Customizer"
+      }
     ]
   },
-  spaceship_scanning: {
-    mapName: "spaceship_scanning",
-    label: "Scanning & Radar",
-    domain: "spaceship",
-    actions: [
-      { name: "v_toggle_scan_mode", label: "Scanning Operator Mode Toggle", category: "Scanning & Radar", description: "Enter scanning mode to analyze vessels and signatures" },
-      { name: "v_ping", label: "Radar Active Ping", category: "Scanning & Radar", description: "Send active radar pulse to reveal distant signatures and mineables" },
-      { name: "v_scan_increase_angle", label: "Increase Radar Ping Angle", category: "Scanning & Radar", description: "Expand radar cone width (up to 360 deg)" },
-      { name: "v_scan_decrease_angle", label: "Decrease Radar Ping Angle", category: "Scanning & Radar", description: "Narrow radar cone for deep concentrated sensor sweep" }
+  "debug": {
+    "mapName": "debug",
+    "label": "Debug",
+    "domain": "general",
+    "actions": [
+      {
+        "name": "godmode",
+        "label": "Godmode",
+        "category": "Debug"
+      },
+      {
+        "name": "debug_pause",
+        "label": "Debug Pause",
+        "category": "Debug"
+      },
+      {
+        "name": "pause_and_fly",
+        "label": "Pause And Fly",
+        "category": "Debug"
+      },
+      {
+        "name": "debug_pause_alt",
+        "label": "Debug Pause Alt",
+        "category": "Debug"
+      },
+      {
+        "name": "debug_time_slower",
+        "label": "Debug Time Slower",
+        "category": "Debug"
+      },
+      {
+        "name": "debug_time_faster",
+        "label": "Debug Time Faster",
+        "category": "Debug"
+      },
+      {
+        "name": "teleport_to_camera",
+        "label": "Teleport To Camera",
+        "category": "Debug"
+      },
+      {
+        "name": "toggleaidebugdraw",
+        "label": "Toggleaidebugdraw",
+        "category": "Debug"
+      },
+      {
+        "name": "ai_DebugCenterViewAgent",
+        "label": "Ai DebugCenterViewAgent",
+        "category": "Debug"
+      },
+      {
+        "name": "togglepdrawhelpers",
+        "label": "Togglepdrawhelpers",
+        "category": "Debug"
+      },
+      {
+        "name": "mannequin_debugai",
+        "label": "Mannequin Debugai",
+        "category": "Debug"
+      },
+      {
+        "name": "pl_result_state_debug_target",
+        "label": "Pl Result State Debug Target",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "mov_advance_all_sequences",
+        "label": "Mov Advance All Sequences",
+        "category": "Debug"
+      },
+      {
+        "name": "mov_pause_resume_all_sequences",
+        "label": "Mov Pause Resume All Sequences",
+        "category": "Debug"
+      }
     ]
   },
-  spaceship_power: {
-    mapName: "spaceship_power",
-    label: "Spaceship Power Systems",
-    domain: "spaceship",
-    actions: [
-      { name: "v_power_toggle", label: "Power Plant Master Toggle", category: "Power Management", description: "Toggle main ship power distribution on/off" },
-      { name: "v_power_set_thrusters_on", label: "Engines Power Toggle", category: "Power Management", description: "Toggle power specifically to maneuvering and main thrusters" },
-      { name: "v_power_set_shields_on", label: "Shields Power Toggle", category: "Power Management", description: "Toggle power to shield generators" },
-      { name: "v_power_set_weapons_on", label: "Weapons Power Toggle", category: "Power Management", description: "Toggle power to weapons and capacitors" },
-      { name: "v_power_triangle_up", label: "Power Triangle: Weapons Priority", category: "Power Triangle", description: "Divert maximum generator power to weapons recharge" },
-      { name: "v_power_triangle_left", label: "Power Triangle: Engines Priority", category: "Power Triangle", description: "Divert maximum generator power to boost and thruster recharge" },
-      { name: "v_power_triangle_right", label: "Power Triangle: Shields Priority", category: "Power Triangle", description: "Divert maximum generator power to shield pool regen" },
-      { name: "v_power_triangle_reset", label: "Power Triangle: Balance", category: "Power Triangle", description: "Reset power allocation equally (33% / 33% / 33%)" }
+  "default": {
+    "mapName": "default",
+    "label": "Default",
+    "domain": "general",
+    "actions": [
+      {
+        "name": "skip_cutscene",
+        "label": "Skip Cutscene",
+        "category": "Default"
+      },
+      {
+        "name": "cam_toggle_cinematic",
+        "label": "Cam Toggle Cinematic",
+        "category": "Default"
+      },
+      {
+        "name": "objectives",
+        "label": "Objectives",
+        "category": "Default"
+      },
+      {
+        "name": "toggle_trackview",
+        "label": "Toggle Trackview",
+        "category": "Default"
+      },
+      {
+        "name": "toggle_action_profile",
+        "label": "Toggle Action Profile",
+        "category": "Default"
+      },
+      {
+        "name": "respawn",
+        "label": "Respawn",
+        "category": "Default"
+      },
+      {
+        "name": "retry",
+        "label": "Retry",
+        "category": "Default"
+      },
+      {
+        "name": "ready",
+        "label": "Ready",
+        "category": "Default"
+      },
+      {
+        "name": "pl_exit",
+        "label": "Pl Exit",
+        "category": "Seat & Access"
+      },
+      {
+        "name": "flymode",
+        "label": "Flymode",
+        "category": "Default"
+      },
+      {
+        "name": "flymode_strafe_up",
+        "label": "Flymode Strafe Up",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "flymode_strafe_down",
+        "label": "Flymode Strafe Down",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "flymode_roll_left",
+        "label": "Flymode Roll Left",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "flymode_roll_right",
+        "label": "Flymode Roll Right",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "ui_toggle_pause",
+        "label": "Ui Toggle Pause",
+        "category": "Default"
+      },
+      {
+        "name": "ui_click",
+        "label": "Ui Click",
+        "category": "Default"
+      },
+      {
+        "name": "ui_back",
+        "label": "Back",
+        "category": "Default"
+      },
+      {
+        "name": "ui_up",
+        "label": "Ui Up",
+        "category": "Default"
+      },
+      {
+        "name": "ui_down",
+        "label": "Ui Down",
+        "category": "Default"
+      },
+      {
+        "name": "ui_left",
+        "label": "Ui Left",
+        "category": "Default"
+      },
+      {
+        "name": "ui_right",
+        "label": "Ui Right",
+        "category": "Default"
+      },
+      {
+        "name": "ui_select",
+        "label": "Ui Select",
+        "category": "Default"
+      },
+      {
+        "name": "ui_secondary_select",
+        "label": "Ui Secondary Select",
+        "category": "Default"
+      },
+      {
+        "name": "ui_radialmenu_pageleft",
+        "label": "Ui Radialmenu Pageleft",
+        "category": "Default"
+      },
+      {
+        "name": "ui_radialmenu_pageright",
+        "label": "Ui Radialmenu Pageright",
+        "category": "Default"
+      },
+      {
+        "name": "ui_confirm",
+        "label": "Confirm",
+        "category": "Default"
+      },
+      {
+        "name": "ui_reset",
+        "label": "Reset",
+        "category": "Default"
+      },
+      {
+        "name": "ui_skip_video",
+        "label": "Ui Skip Video",
+        "category": "Default"
+      },
+      {
+        "name": "ui_hide_hint",
+        "label": "Ui Hide Hint",
+        "category": "Default"
+      },
+      {
+        "name": "ui_primaryTab_increment",
+        "label": "Ui PrimaryTab Increment",
+        "category": "Default"
+      },
+      {
+        "name": "ui_primaryTab_decrement",
+        "label": "Ui PrimaryTab Decrement",
+        "category": "Default"
+      },
+      {
+        "name": "ui_secondaryTab_increment",
+        "label": "Ui SecondaryTab Increment",
+        "category": "Default"
+      },
+      {
+        "name": "ui_secondaryTab_decrement",
+        "label": "Ui SecondaryTab Decrement",
+        "category": "Default"
+      },
+      {
+        "name": "ui_focus_increment",
+        "label": "Ui Focus Increment",
+        "category": "Default"
+      },
+      {
+        "name": "ui_focus_decrement",
+        "label": "Ui Focus Decrement",
+        "category": "Default"
+      },
+      {
+        "name": "flashui_mouse",
+        "label": "Flashui Mouse",
+        "category": "Default"
+      },
+      {
+        "name": "flashui_return",
+        "label": "Flashui Return",
+        "category": "Default"
+      },
+      {
+        "name": "flashui_backspace",
+        "label": "Flashui Backspace",
+        "category": "Default"
+      },
+      {
+        "name": "flashui_spacebar",
+        "label": "Flashui Spacebar",
+        "category": "Default"
+      },
+      {
+        "name": "flashui_tab",
+        "label": "Flashui Tab",
+        "category": "Default"
+      },
+      {
+        "name": "flashui_kp_2",
+        "label": "Flashui Kp 2",
+        "category": "Default"
+      },
+      {
+        "name": "flashui_kp_3",
+        "label": "Flashui Kp 3",
+        "category": "Default"
+      },
+      {
+        "name": "flashui_kp_4",
+        "label": "Flashui Kp 4",
+        "category": "Default"
+      },
+      {
+        "name": "flashui_kp_7",
+        "label": "Flashui Kp 7",
+        "category": "Default"
+      },
+      {
+        "name": "flashui_up",
+        "label": "Flashui Up",
+        "category": "Default"
+      },
+      {
+        "name": "flashui_down",
+        "label": "Flashui Down",
+        "category": "Default"
+      },
+      {
+        "name": "flashui_left",
+        "label": "Flashui Left",
+        "category": "Default"
+      },
+      {
+        "name": "flashui_right",
+        "label": "Flashui Right",
+        "category": "Default"
+      },
+      {
+        "name": "notification_accept",
+        "label": "Notification Accept",
+        "category": "Default"
+      },
+      {
+        "name": "notification_decline",
+        "label": "Notification Decline",
+        "category": "Default"
+      },
+      {
+        "name": "toggle_contact",
+        "label": "Toggle Contact",
+        "category": "Default"
+      },
+      {
+        "name": "toggle_chat",
+        "label": "Toggle Chat",
+        "category": "Default"
+      },
+      {
+        "name": "cycle_chat_lobby",
+        "label": "Cycle Chat Lobby",
+        "category": "Default"
+      },
+      {
+        "name": "focus_on_chat_textinput",
+        "label": "Focus On Chat Textinput",
+        "category": "Default"
+      },
+      {
+        "name": "ui_copy",
+        "label": "Copy",
+        "category": "Default"
+      },
+      {
+        "name": "ui_cut",
+        "label": "Cut",
+        "category": "Default"
+      },
+      {
+        "name": "ui_paste",
+        "label": "Paste",
+        "category": "Default"
+      }
     ]
   },
-  seat_general: {
-    mapName: "seat_general",
-    label: "Seat & Ship Access",
-    domain: "spaceship",
-    actions: [
-      { name: "v_emergency_exit", label: "Emergency Exit Seat", category: "Seat General", description: "Instantly vacate pilot or operator chair" },
-      { name: "v_open_all_doors", label: "Open All Exterior Doors", category: "Ship Access", description: "Open all ship ramps, airlocks, and elevators" },
-      { name: "v_close_all_doors", label: "Close All Exterior Doors", category: "Ship Access", description: "Close all exterior ship entry points" },
-      { name: "v_lock_all_doors", label: "Lock All Doors", category: "Ship Access", description: "Engage security lock on all doors and ramps" },
-      { name: "v_unlock_all_doors", label: "Unlock All Doors", category: "Ship Access", description: "Disengage security lock on all doors and ramps" }
+  "flycam": {
+    "mapName": "flycam",
+    "label": "Flycam",
+    "domain": "spectator",
+    "actions": [
+      {
+        "name": "flycam_rotateyaw",
+        "label": "Flycam Rotateyaw",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "flycam_rotatepitch",
+        "label": "Flycam Rotatepitch",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "flycam_rotateyaw_mouse",
+        "label": "Flycam Rotateyaw Mouse",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "flycam_rotatepitch_mouse",
+        "label": "Flycam Rotatepitch Mouse",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "flycam_movey",
+        "label": "Flycam Movey",
+        "category": "Flycam"
+      },
+      {
+        "name": "flycam_movefwd",
+        "label": "Flycam Movefwd",
+        "category": "Flycam"
+      },
+      {
+        "name": "flycam_moveback",
+        "label": "Flycam Moveback",
+        "category": "Flycam"
+      },
+      {
+        "name": "flycam_movex",
+        "label": "Flycam Movex",
+        "category": "Flycam"
+      },
+      {
+        "name": "flycam_moveright",
+        "label": "Flycam Moveright",
+        "category": "Flycam"
+      },
+      {
+        "name": "flycam_moveleft",
+        "label": "Flycam Moveleft",
+        "category": "Flycam"
+      },
+      {
+        "name": "flycam_movez",
+        "label": "Flycam Movez",
+        "category": "Flycam"
+      },
+      {
+        "name": "flycam_moveup",
+        "label": "Flycam Moveup",
+        "category": "Flycam"
+      },
+      {
+        "name": "flycam_movedown",
+        "label": "Flycam Movedown",
+        "category": "Flycam"
+      },
+      {
+        "name": "flycam_speedup",
+        "label": "Flycam Speedup",
+        "category": "Flycam"
+      },
+      {
+        "name": "flycam_speeddown",
+        "label": "Flycam Speeddown",
+        "category": "Flycam"
+      },
+      {
+        "name": "flycam_turbo",
+        "label": "Flycam Turbo",
+        "category": "Flycam"
+      },
+      {
+        "name": "flycam_setpoint",
+        "label": "Flycam Setpoint",
+        "category": "Flycam"
+      },
+      {
+        "name": "flycam_play",
+        "label": "Flycam Play",
+        "category": "Flycam"
+      },
+      {
+        "name": "flycam_clear",
+        "label": "Flycam Clear",
+        "category": "Flycam"
+      }
     ]
   },
-  ground_vehicle_movement: {
-    mapName: "ground_vehicle_movement",
-    label: "Ground Vehicle Movement",
-    domain: "ground_vehicle",
-    actions: [
-      { name: "v_accelerate", label: "Accelerate (Drive)", category: "Ground Driving", description: "Drive ground vehicle forward" },
-      { name: "v_decelerate", label: "Brake / Reverse", category: "Ground Driving", description: "Apply brakes or drive in reverse" },
-      { name: "v_steer_left", label: "Steer Left", category: "Ground Driving", description: "Steer wheels or tracks left" },
-      { name: "v_steer_right", label: "Steer Right", category: "Ground Driving", description: "Steer wheels or tracks right" },
-      { name: "v_handbrake", label: "Handbrake", category: "Ground Driving", description: "Engage emergency parking brake for tight turns or slides" },
-      { name: "v_boost", label: "Ground Vehicle Boost", category: "Ground Driving", description: "Engage vehicle engine overcharge" }
+  "hacking": {
+    "mapName": "hacking",
+    "label": "Hacking",
+    "domain": "general",
+    "actions": [
+      {
+        "name": "hacking_minigame_debug_toggle_command_input",
+        "label": "Hacking Minigame Debug Toggle Command Input",
+        "category": "Hacking"
+      },
+      {
+        "name": "hacking_minigame_debug_mouse_x",
+        "label": "Hacking Minigame Debug Mouse X",
+        "category": "Hacking"
+      },
+      {
+        "name": "hacking_minigame_debug_mouse_y",
+        "label": "Hacking Minigame Debug Mouse Y",
+        "category": "Hacking"
+      },
+      {
+        "name": "hacking_minigame_mouse_lmb",
+        "label": "Hacking Minigame Mouse Lmb",
+        "category": "Hacking"
+      },
+      {
+        "name": "hacking_minigame_mouse_rmb",
+        "label": "Hacking Minigame Mouse Rmb",
+        "category": "Hacking"
+      },
+      {
+        "name": "hacking_minigame_abort",
+        "label": "Hacking Minigame Abort",
+        "category": "Hacking"
+      },
+      {
+        "name": "hacking_minigame_help_window_toggle",
+        "label": "Hacking Minigame Help Window Toggle",
+        "category": "Hacking"
+      },
+      {
+        "name": "hacking_minigame_camera_control",
+        "label": "Hacking Minigame Camera Control",
+        "category": "Hacking"
+      },
+      {
+        "name": "hacking_minigame_camera_x",
+        "label": "Hacking Minigame Camera X",
+        "category": "Hacking"
+      },
+      {
+        "name": "hacking_minigame_camera_y",
+        "label": "Hacking Minigame Camera Y",
+        "category": "Hacking"
+      },
+      {
+        "name": "hacking_minigame_movement_up",
+        "label": "Hacking Minigame Movement Up",
+        "category": "Hacking"
+      },
+      {
+        "name": "hacking_minigame_movement_down",
+        "label": "Hacking Minigame Movement Down",
+        "category": "Hacking"
+      },
+      {
+        "name": "hacking_minigame_movement_left",
+        "label": "Hacking Minigame Movement Left",
+        "category": "Hacking"
+      },
+      {
+        "name": "hacking_minigame_movement_right",
+        "label": "Hacking Minigame Movement Right",
+        "category": "Hacking"
+      },
+      {
+        "name": "hacking_minigame_swap_rotate_cw",
+        "label": "Hacking Minigame Swap Rotate Cw",
+        "category": "Hacking"
+      },
+      {
+        "name": "hacking_minigame_swap_rotate_ccw",
+        "label": "Hacking Minigame Swap Rotate Ccw",
+        "category": "Hacking"
+      },
+      {
+        "name": "hacking_minigame_ability_inject",
+        "label": "Hacking Minigame Ability Inject",
+        "category": "Hacking"
+      },
+      {
+        "name": "hacking_minigame_ability_ping",
+        "label": "Hacking Minigame Ability Ping",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "hacking_minigame_ability_slowdown",
+        "label": "Hacking Minigame Ability Slowdown",
+        "category": "Hacking"
+      },
+      {
+        "name": "hacking_minigame_ability_swap",
+        "label": "Hacking Minigame Ability Swap",
+        "category": "Hacking"
+      },
+      {
+        "name": "hacking_minigame_ability_wraparound",
+        "label": "Hacking Minigame Ability Wraparound",
+        "category": "Hacking"
+      },
+      {
+        "name": "hacking_minigame_cycle_input_mode",
+        "label": "Hacking Minigame Cycle Input Mode",
+        "category": "Hacking"
+      }
     ]
   },
-  player: {
-    mapName: "player",
-    label: "Player On-Foot & EVA",
-    domain: "onfoot",
-    actions: [
-      { name: "player_move_forward", label: "Move Forward", category: "On-Foot Movement", description: "Walk / run forward" },
-      { name: "player_move_backward", label: "Move Backward", category: "On-Foot Movement", description: "Walk / run backward" },
-      { name: "player_strafe_left", label: "Strafe Left", category: "On-Foot Movement", description: "Step left" },
-      { name: "player_strafe_right", label: "Strafe Right", category: "On-Foot Movement", description: "Step right" },
-      { name: "player_sprint", label: "Sprint", category: "On-Foot Movement", description: "Run at maximum sprint speed" },
-      { name: "player_jump", label: "Jump", category: "On-Foot Movement", description: "Vault or leap obstacle" },
-      { name: "player_crouch", label: "Crouch", category: "On-Foot Movement", description: "Lower stance into crouch" },
-      { name: "player_prone", label: "Prone", category: "On-Foot Movement", description: "Lie prone on ground" },
-      { name: "player_interact", label: "Interact (Inner Thought)", category: "Interaction", description: "Open interaction wheel / press cockpit button" },
-      { name: "weapon_fire", label: "Fire Held Weapon", category: "FPS Combat", description: "Discharge equipped firearm or multi-tool" },
-      { name: "weapon_aim", label: "Aim Down Sights (ADS)", category: "FPS Combat", description: "Look through optic or iron sights" },
-      { name: "weapon_reload", label: "Reload Weapon", category: "FPS Combat", description: "Insert fresh magazine into weapon" }
+  "incapacitated": {
+    "mapName": "incapacitated",
+    "label": "Incapacitated",
+    "domain": "general",
+    "actions": [
+      {
+        "name": "incapacitatedRespawn",
+        "label": "IncapacitatedRespawn",
+        "category": "Incapacitated"
+      }
     ]
   },
-  turret: {
-    mapName: "turret",
-    label: "Manned & Remote Turrets",
-    domain: "turret",
-    actions: [
-      { name: "turret_pitch", label: "Turret Pitch", category: "Manned Turret", description: "Aim turret vertical elevation axis" },
-      { name: "turret_yaw", label: "Turret Yaw", category: "Manned Turret", description: "Aim turret horizontal azimuth axis" },
-      { name: "turret_fire", label: "Fire Turret Guns", category: "Manned Turret", description: "Fire mounted turret weapons" },
-      { name: "turret_gyromode", label: "Turret Gyro Mode Toggle", category: "Manned Turret", description: "Toggle turret gyroscope stabilization relative to ship hull" },
-      { name: "turret_recenter", label: "Recenter Turret", category: "Manned Turret", description: "Return turret orientation to default forward position" }
+  "lights_controller": {
+    "mapName": "lights_controller",
+    "label": "Lights Controller",
+    "domain": "general",
+    "actions": [
+      {
+        "name": "v_lights",
+        "label": "Lights",
+        "category": "Lights Controller"
+      },
+      {
+        "name": "v_lights_on",
+        "label": "Lights On",
+        "category": "Lights Controller"
+      },
+      {
+        "name": "v_lights_off",
+        "label": "Lights Off",
+        "category": "Lights Controller"
+      },
+      {
+        "name": "v_toggle_running_lights",
+        "label": "Toggle Running Lights",
+        "category": "Lights Controller"
+      },
+      {
+        "name": "v_toggle_cabin_lights",
+        "label": "Toggle Cabin Lights",
+        "category": "Lights Controller"
+      }
+    ]
+  },
+  "mapui": {
+    "mapName": "mapui",
+    "label": "Mapui",
+    "domain": "general",
+    "actions": [
+      {
+        "name": "mapui_pan_left",
+        "label": "Mapui Pan Left",
+        "category": "Mapui"
+      },
+      {
+        "name": "mapui_pan_right",
+        "label": "Mapui Pan Right",
+        "category": "Mapui"
+      },
+      {
+        "name": "mapui_pan_forward",
+        "label": "Mapui Pan Forward",
+        "category": "Mapui"
+      },
+      {
+        "name": "mapui_pan_back",
+        "label": "Mapui Pan Back",
+        "category": "Mapui"
+      },
+      {
+        "name": "mapui_pan_up",
+        "label": "Mapui Pan Up",
+        "category": "Mapui"
+      },
+      {
+        "name": "mapui_pan_down",
+        "label": "Mapui Pan Down",
+        "category": "Mapui"
+      },
+      {
+        "name": "mapui_cycle_section_forward",
+        "label": "Mapui Cycle Section Forward",
+        "category": "Mapui"
+      },
+      {
+        "name": "mapui_cycle_section_backward",
+        "label": "Mapui Cycle Section Backward",
+        "category": "Mapui"
+      },
+      {
+        "name": "mapui_cycle_zone_forward",
+        "label": "Mapui Cycle Zone Forward",
+        "category": "Mapui"
+      },
+      {
+        "name": "mapui_cycle_zone_backward",
+        "label": "Mapui Cycle Zone Backward",
+        "category": "Mapui"
+      },
+      {
+        "name": "mapui_action_planroute",
+        "label": "Mapui Action Planroute",
+        "category": "Mapui"
+      },
+      {
+        "name": "mapui_action_clearroute",
+        "label": "Mapui Action Clearroute",
+        "category": "Mapui"
+      },
+      {
+        "name": "mapui_action_togglepin",
+        "label": "Mapui Action Togglepin",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "mapui_action_mylocation",
+        "label": "Mapui Action Mylocation",
+        "category": "Mapui"
+      },
+      {
+        "name": "mapui_action_toggle_view_entire_zone",
+        "label": "Mapui Action Toggle View Entire Zone",
+        "category": "Mapui"
+      },
+      {
+        "name": "mapui_action_toggleQTActions",
+        "label": "Mapui Action ToggleQTActions",
+        "category": "Mapui"
+      },
+      {
+        "name": "mapui_action_goto_selection",
+        "label": "Mapui Action Goto Selection",
+        "category": "Mapui"
+      },
+      {
+        "name": "mapui_action_step_back",
+        "label": "Mapui Action Step Back",
+        "category": "Mapui"
+      },
+      {
+        "name": "mapui_action_goto_localmap",
+        "label": "Mapui Action Goto Localmap",
+        "category": "Mapui"
+      }
+    ]
+  },
+  "mining": {
+    "mapName": "mining",
+    "label": "Mining",
+    "domain": "onfoot",
+    "actions": [
+      {
+        "name": "weapon_change_mining_throttle",
+        "label": "Weapon Change Mining Throttle",
+        "category": "Weapons & Combat"
+      }
+    ]
+  },
+  "player": {
+    "mapName": "player",
+    "label": "Player",
+    "domain": "onfoot",
+    "actions": [
+      {
+        "name": "moveleft",
+        "label": "Moveleft",
+        "category": "Player"
+      },
+      {
+        "name": "moveright",
+        "label": "Moveright",
+        "category": "Player"
+      },
+      {
+        "name": "moveforward",
+        "label": "Moveforward",
+        "category": "Player"
+      },
+      {
+        "name": "moveback",
+        "label": "Moveback",
+        "category": "Player"
+      },
+      {
+        "name": "rotateyaw",
+        "label": "Rotateyaw",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "rotatepitch",
+        "label": "Rotatepitch",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "gp_movex",
+        "label": "Gp Movex",
+        "category": "Player"
+      },
+      {
+        "name": "gp_movey",
+        "label": "Gp Movey",
+        "category": "Player"
+      },
+      {
+        "name": "gp_rotateyaw",
+        "label": "Gp Rotateyaw",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "gp_rotatepitch",
+        "label": "Gp Rotatepitch",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "jump",
+        "label": "Jump",
+        "category": "Player"
+      },
+      {
+        "name": "jump_hold",
+        "label": "Jump Hold",
+        "category": "Player"
+      },
+      {
+        "name": "jump_release",
+        "label": "Jump Release",
+        "category": "Player"
+      },
+      {
+        "name": "crouch",
+        "label": "Crouch",
+        "category": "Player"
+      },
+      {
+        "name": "gp_jump",
+        "label": "Gp Jump",
+        "category": "Player"
+      },
+      {
+        "name": "gp_crouch",
+        "label": "Gp Crouch",
+        "category": "Player"
+      },
+      {
+        "name": "prone",
+        "label": "Prone",
+        "category": "Player"
+      },
+      {
+        "name": "sprint",
+        "label": "Sprint",
+        "category": "Player"
+      },
+      {
+        "name": "walk",
+        "label": "Walk",
+        "category": "Player"
+      },
+      {
+        "name": "leanleft",
+        "label": "Leanleft",
+        "category": "Player"
+      },
+      {
+        "name": "leanright",
+        "label": "Leanright",
+        "category": "Player"
+      },
+      {
+        "name": "ledgegrab",
+        "label": "Ledgegrab",
+        "category": "Player"
+      },
+      {
+        "name": "attack1",
+        "label": "Attack1",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "attackSecondary",
+        "label": "AttackSecondary",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "melee_AttackLightLeft",
+        "label": "Melee AttackLightLeft",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "melee_AttackLightRight",
+        "label": "Melee AttackLightRight",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "melee_AttackHeavyLeft",
+        "label": "Melee AttackHeavyLeft",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "melee_AttackHeavyRight",
+        "label": "Melee AttackHeavyRight",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "melee_block",
+        "label": "Melee Block",
+        "category": "Player"
+      },
+      {
+        "name": "melee_AttackSyringeStab",
+        "label": "Melee AttackSyringeStab",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "melee_dodgeLeft",
+        "label": "Melee DodgeLeft",
+        "category": "Player"
+      },
+      {
+        "name": "melee_dodgeRight",
+        "label": "Melee DodgeRight",
+        "category": "Player"
+      },
+      {
+        "name": "melee_dodgeBack",
+        "label": "Melee DodgeBack",
+        "category": "Player"
+      },
+      {
+        "name": "restrain",
+        "label": "Restrain",
+        "category": "Player"
+      },
+      {
+        "name": "weapon_melee",
+        "label": "Weapon Melee",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "takedown_nonLethal",
+        "label": "Takedown NonLethal",
+        "category": "Player"
+      },
+      {
+        "name": "takedown_lethal",
+        "label": "Takedown Lethal",
+        "category": "Player"
+      },
+      {
+        "name": "throw_overhand",
+        "label": "Throw Overhand",
+        "category": "Player"
+      },
+      {
+        "name": "throw_underhand",
+        "label": "Throw Underhand",
+        "category": "Player"
+      },
+      {
+        "name": "zoom",
+        "label": "Zoom",
+        "category": "Player"
+      },
+      {
+        "name": "interact_with_scope",
+        "label": "Interact With Scope",
+        "category": "Player"
+      },
+      {
+        "name": "toggle_lowered",
+        "label": "Toggle Lowered",
+        "category": "Player"
+      },
+      {
+        "name": "select_primary_pit",
+        "label": "Select Primary Pit",
+        "category": "Player"
+      },
+      {
+        "name": "select_secondary_pit",
+        "label": "Select Secondary Pit",
+        "category": "Player"
+      },
+      {
+        "name": "select_sidearm_pit",
+        "label": "Select Sidearm Pit",
+        "category": "Player"
+      },
+      {
+        "name": "select_meleeweapon_pit",
+        "label": "Select Meleeweapon Pit",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "select_gadget_pit",
+        "label": "Select Gadget Pit",
+        "category": "Player"
+      },
+      {
+        "name": "selectUnarmedCombat",
+        "label": "SelectUnarmedCombat",
+        "category": "Player"
+      },
+      {
+        "name": "nextitem",
+        "label": "Nextitem",
+        "category": "Player"
+      },
+      {
+        "name": "prevItem",
+        "label": "PrevItem",
+        "category": "Player"
+      },
+      {
+        "name": "nextweapon",
+        "label": "Nextweapon",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "prevweapon",
+        "label": "Prevweapon",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "reload",
+        "label": "Reload",
+        "category": "Player"
+      },
+      {
+        "name": "reloadSecondary",
+        "label": "ReloadSecondary",
+        "category": "Player"
+      },
+      {
+        "name": "ammoRepool",
+        "label": "AmmoRepool",
+        "category": "Player"
+      },
+      {
+        "name": "holster",
+        "label": "Holster",
+        "category": "Player"
+      },
+      {
+        "name": "drop",
+        "label": "Drop",
+        "category": "Player"
+      },
+      {
+        "name": "inspect",
+        "label": "Inspect",
+        "category": "Player"
+      },
+      {
+        "name": "customize",
+        "label": "Customize",
+        "category": "Player"
+      },
+      {
+        "name": "stabilize",
+        "label": "Stabilize",
+        "category": "Player"
+      },
+      {
+        "name": "weapon_auxiliary_action",
+        "label": "Weapon Auxiliary Action",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "weapon_change_firemode",
+        "label": "Weapon Change Firemode",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "weapon_zeroing_decrease",
+        "label": "Weapon Zeroing Decrease",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "weapon_zeroing_increase",
+        "label": "Weapon Zeroing Increase",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "fixed_speed_increment",
+        "label": "Fixed Speed Increment",
+        "category": "Player"
+      },
+      {
+        "name": "fixed_speed_decrement",
+        "label": "Fixed Speed Decrement",
+        "category": "Player"
+      },
+      {
+        "name": "use",
+        "label": "Use",
+        "category": "Player"
+      },
+      {
+        "name": "useAttachmentBottom",
+        "label": "UseAttachmentBottom",
+        "category": "Player"
+      },
+      {
+        "name": "useAttachmentTop",
+        "label": "UseAttachmentTop",
+        "category": "Player"
+      },
+      {
+        "name": "downedRevivalRequest",
+        "label": "DownedRevivalRequest",
+        "category": "Player"
+      },
+      {
+        "name": "toggle_flashlight",
+        "label": "Toggle Flashlight",
+        "category": "Player"
+      },
+      {
+        "name": "combathealtarget",
+        "label": "Combathealtarget",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "toggleEquipHelmet",
+        "label": "ToggleEquipHelmet",
+        "category": "Player"
+      },
+      {
+        "name": "toggleAttachHelmet",
+        "label": "ToggleAttachHelmet",
+        "category": "Player"
+      },
+      {
+        "name": "toggleHelmetState",
+        "label": "ToggleHelmetState",
+        "category": "Player"
+      },
+      {
+        "name": "visor_next_mode",
+        "label": "Visor Next Mode",
+        "category": "Player"
+      },
+      {
+        "name": "visor_prev_mode",
+        "label": "Visor Prev Mode",
+        "category": "Player"
+      },
+      {
+        "name": "visor_wipe",
+        "label": "Visor Wipe",
+        "category": "Player"
+      },
+      {
+        "name": "selectitem",
+        "label": "Selectitem",
+        "category": "Player"
+      },
+      {
+        "name": "cancelselect",
+        "label": "Cancelselect",
+        "category": "Player"
+      },
+      {
+        "name": "thirdperson",
+        "label": "Thirdperson",
+        "category": "Player"
+      },
+      {
+        "name": "toggle_cursor_input",
+        "label": "Toggle Cursor Input",
+        "category": "Player"
+      },
+      {
+        "name": "free_thirdperson_camera",
+        "label": "Free Thirdperson Camera",
+        "category": "Player"
+      },
+      {
+        "name": "pan_thirdperson_up",
+        "label": "Pan Thirdperson Up",
+        "category": "Player"
+      },
+      {
+        "name": "pan_thirdperson_down",
+        "label": "Pan Thirdperson Down",
+        "category": "Player"
+      },
+      {
+        "name": "zoom_out",
+        "label": "Zoom Out",
+        "category": "Player"
+      },
+      {
+        "name": "zoom_in",
+        "label": "Zoom In",
+        "category": "Player"
+      },
+      {
+        "name": "break_conversation_effects",
+        "label": "Break Conversation Effects",
+        "category": "Player"
+      },
+      {
+        "name": "hmd_rotateyaw",
+        "label": "Hmd Rotateyaw",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "hmd_rotatepitch",
+        "label": "Hmd Rotatepitch",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "hmd_rotateroll",
+        "label": "Hmd Rotateroll",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "mobiglas",
+        "label": "Mobiglas",
+        "category": "Player"
+      },
+      {
+        "name": "ship_recall",
+        "label": "Recall Last Vehicle",
+        "category": "Player",
+        "description": "Activate ship recall on the last flying vehicle used"
+      },
+      {
+        "name": "pl_hud_open_scoreboard",
+        "label": "Pl Hud Open Scoreboard",
+        "category": "Player"
+      },
+      {
+        "name": "pl_hud_confirm",
+        "label": "Pl Hud Confirm",
+        "category": "Player"
+      },
+      {
+        "name": "toggle_ar_mode",
+        "label": "Toggle Ar Mode",
+        "category": "Player"
+      },
+      {
+        "name": "ar_mode_scroll_action_up",
+        "label": "Ar Mode Scroll Action Up",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "ar_mode_scroll_action_down",
+        "label": "Ar Mode Scroll Action Down",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "shop_camera_zoom_in",
+        "label": "Shop Camera Zoom In",
+        "category": "Player"
+      },
+      {
+        "name": "shop_camera_zoom_out",
+        "label": "Shop Camera Zoom Out",
+        "category": "Player"
+      },
+      {
+        "name": "shop_camera_mouseyaw",
+        "label": "Shop Camera Mouseyaw",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "shop_camera_mousepitch",
+        "label": "Shop Camera Mousepitch",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "spectate_enterpuremode",
+        "label": "Spectate Enterpuremode",
+        "category": "Player"
+      },
+      {
+        "name": "dismiss_corpse_marker",
+        "label": "Dismiss Corpse Marker",
+        "category": "Player"
+      },
+      {
+        "name": "consume",
+        "label": "Consume",
+        "category": "Player"
+      },
+      {
+        "name": "ui_3d_display_select",
+        "label": "Ui 3d Display Select",
+        "category": "Player"
+      },
+      {
+        "name": "ui_3d_display_reorient",
+        "label": "Ui 3d Display Reorient",
+        "category": "Player"
+      },
+      {
+        "name": "ui_3d_display_center",
+        "label": "Ui 3d Display Center",
+        "category": "Player"
+      },
+      {
+        "name": "ui_3d_display_decenter",
+        "label": "Ui 3d Display Decenter",
+        "category": "Player"
+      },
+      {
+        "name": "ui_3d_display_zoom_out_button",
+        "label": "Ui 3d Display Zoom Out Button",
+        "category": "Player"
+      },
+      {
+        "name": "ui_3d_display_zoom_in_button",
+        "label": "Ui 3d Display Zoom In Button",
+        "category": "Player"
+      },
+      {
+        "name": "ui_3d_display_zoom_in_analog",
+        "label": "Ui 3d Display Zoom In Analog",
+        "category": "Player"
+      },
+      {
+        "name": "ui_3d_display_zoom_out_analog",
+        "label": "Ui 3d Display Zoom Out Analog",
+        "category": "Player"
+      },
+      {
+        "name": "ui_3d_display_zoom_out_wheel",
+        "label": "Ui 3d Display Zoom Out Wheel",
+        "category": "Player"
+      },
+      {
+        "name": "ui_3d_display_zoom_in_wheel",
+        "label": "Ui 3d Display Zoom In Wheel",
+        "category": "Player"
+      },
+      {
+        "name": "ui_3d_display_pan_toggle",
+        "label": "Ui 3d Display Pan Toggle",
+        "category": "Player"
+      },
+      {
+        "name": "ui_3d_display_rotate_toggle",
+        "label": "Ui 3d Display Rotate Toggle",
+        "category": "Player"
+      },
+      {
+        "name": "ui_3d_display_zoom_toggle",
+        "label": "Ui 3d Display Zoom Toggle",
+        "category": "Player"
+      },
+      {
+        "name": "ui_3d_display_toggledPanX",
+        "label": "Ui 3d Display ToggledPanX",
+        "category": "Player"
+      },
+      {
+        "name": "ui_3d_display_toggledPanY",
+        "label": "Ui 3d Display ToggledPanY",
+        "category": "Player"
+      },
+      {
+        "name": "ui_3d_display_toggledYaw",
+        "label": "Ui 3d Display ToggledYaw",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "ui_3d_display_toggledPitch",
+        "label": "Ui 3d Display ToggledPitch",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "ui_3d_display_toggledZoom",
+        "label": "Ui 3d Display ToggledZoom",
+        "category": "Player"
+      },
+      {
+        "name": "ui_3d_display_nonToggledPanUp",
+        "label": "Ui 3d Display NonToggledPanUp",
+        "category": "Player"
+      },
+      {
+        "name": "ui_3d_display_nonToggledPanDown",
+        "label": "Ui 3d Display NonToggledPanDown",
+        "category": "Player"
+      },
+      {
+        "name": "ui_3d_display_nonToggledPanLeft",
+        "label": "Ui 3d Display NonToggledPanLeft",
+        "category": "Player"
+      },
+      {
+        "name": "ui_3d_display_nonToggledPanRight",
+        "label": "Ui 3d Display NonToggledPanRight",
+        "category": "Player"
+      },
+      {
+        "name": "ui_3d_display_nonToggledYawUp",
+        "label": "Ui 3d Display NonToggledYawUp",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "ui_3d_display_nonToggledYawDown",
+        "label": "Ui 3d Display NonToggledYawDown",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "ui_3d_display_nonToggledPitchLeft",
+        "label": "Ui 3d Display NonToggledPitchLeft",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "ui_3d_display_nonToggledPitchRight",
+        "label": "Ui 3d Display NonToggledPitchRight",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "ui_3d_display_pinMode",
+        "label": "Ui 3d Display PinMode",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "ui_3d_display_pinSelect",
+        "label": "Ui 3d Display PinSelect",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "port_modification_select",
+        "label": "Port Modification Select",
+        "category": "Player"
+      },
+      {
+        "name": "v_starmap",
+        "label": "Starmap",
+        "category": "Player"
+      },
+      {
+        "name": "force_respawn",
+        "label": "Force Respawn",
+        "category": "Player"
+      },
+      {
+        "name": "pc_conversation_option1",
+        "label": "Pc Conversation Option1",
+        "category": "Player"
+      },
+      {
+        "name": "pc_conversation_option2",
+        "label": "Pc Conversation Option2",
+        "category": "Player"
+      },
+      {
+        "name": "pc_conversation_option3",
+        "label": "Pc Conversation Option3",
+        "category": "Player"
+      },
+      {
+        "name": "pc_conversation_option4",
+        "label": "Pc Conversation Option4",
+        "category": "Player"
+      },
+      {
+        "name": "pc_conversation_option5",
+        "label": "Pc Conversation Option5",
+        "category": "Player"
+      },
+      {
+        "name": "pc_conversation_option_up",
+        "label": "Pc Conversation Option Up",
+        "category": "Player"
+      },
+      {
+        "name": "pc_conversation_option_down",
+        "label": "Pc Conversation Option Down",
+        "category": "Player"
+      },
+      {
+        "name": "pc_conversation_option_select",
+        "label": "Pc Conversation Option Select",
+        "category": "Player"
+      }
+    ]
+  },
+  "player_choice": {
+    "mapName": "player_choice",
+    "label": "Player Choice",
+    "domain": "onfoot",
+    "actions": [
+      {
+        "name": "pc_item_primary",
+        "label": "Pc Item Primary",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_item_secondary",
+        "label": "Pc Item Secondary",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_interaction_mode",
+        "label": "Pc Interaction Mode",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_interaction_select",
+        "label": "Pc Interaction Select",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_select",
+        "label": "Pc Select",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_focus",
+        "label": "Pc Focus",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_zoom_in",
+        "label": "Pc Zoom In",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_zoom_out",
+        "label": "Pc Zoom Out",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_screen_focus_left",
+        "label": "Pc Screen Focus Left",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_screen_focus_right",
+        "label": "Pc Screen Focus Right",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_screen_focus_up",
+        "label": "Pc Screen Focus Up",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_screen_focus_down",
+        "label": "Pc Screen Focus Down",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_personal_thought",
+        "label": "Pc Personal Thought",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_camera_orbit",
+        "label": "Pc Camera Orbit",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_personal_back",
+        "label": "Pc Personal Back",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_ui_back",
+        "label": "Pc Ui Back",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_pit_inventory",
+        "label": "Toggle Inventory (short press)",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_pit_looting",
+        "label": "Toogle Loot Screen (hold)",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_pit_looting_toggle_view",
+        "label": "Pc Pit Looting Toggle View",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_pit_looting_toggle_weapon_attachments",
+        "label": "Pc Pit Looting Toggle Weapon Attachments",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "pc_pit_item_unstown",
+        "label": "Pc Pit Item Unstown",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_pit_item_drop",
+        "label": "Pc Pit Item Drop",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_pit_empty_backpack",
+        "label": "Pc Pit Empty Backpack",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_pit_player_actions",
+        "label": "Pc Pit Player Actions",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_pit_emotes",
+        "label": "Pc Pit Emotes",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_pit_ship_systems",
+        "label": "Pc Pit Ship Systems",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_pit_flight_systems",
+        "label": "Pc Pit Flight Systems",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_pit_vehicle_actions",
+        "label": "Pc Pit Vehicle Actions",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_pit_weapons_systems",
+        "label": "Pc Pit Weapons Systems",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "pc_pit_remote_turrets",
+        "label": "Pc Pit Remote Turrets",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_pit_item_actions",
+        "label": "Pc Pit Item Actions",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_pit_weapon_selection",
+        "label": "Pc Pit Weapon Selection",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "pc_pit_mobiglas_actions",
+        "label": "Pc Pit Mobiglas Actions",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_pit_miningmode_actions",
+        "label": "Pc Pit Miningmode Actions",
+        "category": "Mining Operations"
+      },
+      {
+        "name": "pc_qs_weapons_pit_primary",
+        "label": "Pc Qs Weapons Pit Primary",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "pc_qs_weapons_pit_secondary",
+        "label": "Pc Qs Weapons Pit Secondary",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "pc_qs_weapons_pit_sidearm",
+        "label": "Pc Qs Weapons Pit Sidearm",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "pc_qs_grenades",
+        "label": "Pc Qs Grenades",
+        "category": "Player Choice"
+      },
+      {
+        "name": "pc_qs_consumables",
+        "label": "Pc Qs Consumables",
+        "category": "Player Choice"
+      }
+    ]
+  },
+  "player_emotes": {
+    "mapName": "player_emotes",
+    "label": "Player Emotes",
+    "domain": "onfoot",
+    "actions": [
+      {
+        "name": "emote_cs_forward",
+        "label": "Emote Cs Forward",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_cs_left",
+        "label": "Emote Cs Left",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_cs_right",
+        "label": "Emote Cs Right",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_cs_stop",
+        "label": "Emote Cs Stop",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_cs_yes",
+        "label": "Emote Cs Yes",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_cs_no",
+        "label": "Emote Cs No",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_agree",
+        "label": "Emote Agree",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_angry",
+        "label": "Emote Angry",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_atease",
+        "label": "Emote Atease",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_attention",
+        "label": "Emote Attention",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_blah",
+        "label": "Emote Blah",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_bored",
+        "label": "Emote Bored",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_bow",
+        "label": "Emote Bow",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_burp",
+        "label": "Emote Burp",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_cheer",
+        "label": "Emote Cheer",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_chicken",
+        "label": "Emote Chicken",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_clap",
+        "label": "Emote Clap",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_come",
+        "label": "Emote Come",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_cry",
+        "label": "Emote Cry",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_dance",
+        "label": "Emote Dance",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_disagree",
+        "label": "Emote Disagree",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_failure",
+        "label": "Emote Failure",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_flex",
+        "label": "Emote Flex",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_flirt",
+        "label": "Emote Flirt",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_gasp",
+        "label": "Emote Gasp",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_gloat",
+        "label": "Emote Gloat",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_greet",
+        "label": "Emote Greet",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_laugh",
+        "label": "Emote Laugh",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_launch",
+        "label": "Emote Launch",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_point",
+        "label": "Emote Point",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_rude",
+        "label": "Emote Rude",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_salute",
+        "label": "Emote Salute",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_sit",
+        "label": "Emote Sit",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_sleep",
+        "label": "Emote Sleep",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_smell",
+        "label": "Emote Smell",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_taunt",
+        "label": "Emote Taunt",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_threaten",
+        "label": "Emote Threaten",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_wait",
+        "label": "Emote Wait",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_wave",
+        "label": "Emote Wave",
+        "category": "Player Emotes"
+      },
+      {
+        "name": "emote_whistle",
+        "label": "Emote Whistle",
+        "category": "Player Emotes"
+      }
+    ]
+  },
+  "player_input_optical_tracking": {
+    "mapName": "player_input_optical_tracking",
+    "label": "Player Input Optical Tracking",
+    "domain": "onfoot",
+    "actions": [
+      {
+        "name": "hmd_toggle",
+        "label": "[Experimental] VR - Toggle On / Off",
+        "category": "Player Input Optical Tracking",
+        "description": "Enables/disables VR gameplay"
+      },
+      {
+        "name": "hmd_recenter",
+        "label": "[Experimental] VR - Recenter Device",
+        "category": "Player Input Optical Tracking",
+        "description": "Recenters the VR headset"
+      },
+      {
+        "name": "hmd_theater_mode_toggle",
+        "label": "[Experimental] VR - Toggle Theater Mode",
+        "category": "Player Input Optical Tracking",
+        "description": "Enables / Disables Theater Mode"
+      },
+      {
+        "name": "hmd_lens_display_toggle",
+        "label": "Hmd Lens Display Toggle",
+        "category": "Player Input Optical Tracking"
+      },
+      {
+        "name": "headtrack_enabled",
+        "label": "Headtrack Enabled",
+        "category": "Player Input Optical Tracking"
+      },
+      {
+        "name": "headtrack_hold",
+        "label": "Headtrack Hold",
+        "category": "Player Input Optical Tracking"
+      },
+      {
+        "name": "headtrack_recenter_device",
+        "label": "Headtrack Recenter Device",
+        "category": "Player Input Optical Tracking"
+      },
+      {
+        "name": "headtrack_camera_enabled",
+        "label": "Headtrack Camera Enabled",
+        "category": "Player Input Optical Tracking"
+      },
+      {
+        "name": "foip_pushtotalk",
+        "label": "Foip Pushtotalk",
+        "category": "Player Input Optical Tracking"
+      },
+      {
+        "name": "foip_pushtotalk_proximity",
+        "label": "Foip Pushtotalk Proximity",
+        "category": "Player Input Optical Tracking"
+      },
+      {
+        "name": "foip_viewownplayer",
+        "label": "Foip Viewownplayer",
+        "category": "Player Input Optical Tracking"
+      },
+      {
+        "name": "foip_recalibrate",
+        "label": "Foip Recalibrate",
+        "category": "Player Input Optical Tracking"
+      },
+      {
+        "name": "foip_cyclechannel",
+        "label": "Foip Cyclechannel",
+        "category": "Player Input Optical Tracking"
+      }
+    ]
+  },
+  "prone": {
+    "mapName": "prone",
+    "label": "Prone",
+    "domain": "onfoot",
+    "actions": [
+      {
+        "name": "prone_rollleft",
+        "label": "Prone Rollleft",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "prone_rollright",
+        "label": "Prone Rollright",
+        "category": "Flight Movement"
+      }
+    ]
+  },
+  "seat_general": {
+    "mapName": "seat_general",
+    "label": "Seat General",
+    "domain": "spaceship",
+    "actions": [
+      {
+        "name": "v_emergency_exit",
+        "label": "Emergency Exit",
+        "category": "Seat & Access"
+      },
+      {
+        "name": "v_eject",
+        "label": "Eject",
+        "category": "Seat & Access"
+      },
+      {
+        "name": "v_view_look_behind",
+        "label": "View Look Behind",
+        "category": "Seat General"
+      },
+      {
+        "name": "v_toggle_mining_mode",
+        "label": "Toggle Mining Mode",
+        "category": "Mining Operations"
+      },
+      {
+        "name": "v_toggle_salvage_mode",
+        "label": "Toggle Salvage Mode",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_toggle_refuel_mode",
+        "label": "Toggle Refuel Mode",
+        "category": "Seat General"
+      },
+      {
+        "name": "v_toggle_scan_mode",
+        "label": "Toggle Scan Mode",
+        "category": "Scanning"
+      },
+      {
+        "name": "v_toggle_quantum_mode",
+        "label": "Toggle Quantum Mode",
+        "category": "Quantum Travel"
+      },
+      {
+        "name": "v_toggle_missile_mode",
+        "label": "Toggle Missile Mode",
+        "category": "Missile Systems"
+      },
+      {
+        "name": "v_toggle_guns_mode",
+        "label": "Toggle Guns Mode",
+        "category": "Seat General"
+      },
+      {
+        "name": "v_toggle_flight_mode",
+        "label": "Toggle Flight Mode",
+        "category": "Seat General"
+      },
+      {
+        "name": "v_set_mining_mode",
+        "label": "Set Mining Mode",
+        "category": "Mining Operations"
+      },
+      {
+        "name": "v_set_salvage_mode",
+        "label": "Set Salvage Mode",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_set_refuel_mode",
+        "label": "Set Refuel Operator Mode",
+        "category": "Seat General"
+      },
+      {
+        "name": "v_set_scan_mode",
+        "label": "Set Scan Mode",
+        "category": "Scanning"
+      },
+      {
+        "name": "v_set_quantum_mode",
+        "label": "Set Quantum Mode",
+        "category": "Quantum Travel"
+      },
+      {
+        "name": "v_set_missile_mode",
+        "label": "Set Missile Mode",
+        "category": "Missile Systems"
+      },
+      {
+        "name": "v_set_guns_mode",
+        "label": "Set Guns Mode",
+        "category": "Seat General"
+      },
+      {
+        "name": "v_set_flight_mode",
+        "label": "Set Flight Mode",
+        "category": "Seat General"
+      },
+      {
+        "name": "v_enter_remote_turret_1",
+        "label": "Enter Remote Turret 1",
+        "category": "Seat General"
+      },
+      {
+        "name": "v_enter_remote_turret_2",
+        "label": "Enter Remote Turret 2",
+        "category": "Seat General"
+      },
+      {
+        "name": "v_enter_remote_turret_3",
+        "label": "Enter Remote Turret 3",
+        "category": "Seat General"
+      },
+      {
+        "name": "v_operator_mode_cycle_forward",
+        "label": "Operator Mode Cycle Forward",
+        "category": "Seat General"
+      },
+      {
+        "name": "v_operator_mode_cycle_back",
+        "label": "Operator Mode Cycle Back",
+        "category": "Seat General"
+      },
+      {
+        "name": "v_light_amplification_toggle",
+        "label": "Light Amplification Toggle",
+        "category": "Seat General"
+      },
+      {
+        "name": "v_light_amplification_on",
+        "label": "Light Amplification On",
+        "category": "Seat General"
+      },
+      {
+        "name": "v_light_amplification_off",
+        "label": "Light Amplification Off",
+        "category": "Seat General"
+      }
+    ]
+  },
+  "server_renderer": {
+    "mapName": "server_renderer",
+    "label": "Server Renderer",
+    "domain": "general",
+    "actions": [
+      {
+        "name": "v_view_cycle_fwd",
+        "label": "View Cycle Fwd",
+        "category": "Server Renderer"
+      }
+    ]
+  },
+  "spaceship_auto_weapons": {
+    "mapName": "spaceship_auto_weapons",
+    "label": "Spaceship Auto Weapons",
+    "domain": "spaceship",
+    "actions": [
+      {
+        "name": "v_weapon_toggle_ai",
+        "label": "Weapon Toggle Ai",
+        "category": "Weapons & Combat"
+      }
+    ]
+  },
+  "spaceship_defensive": {
+    "mapName": "spaceship_defensive",
+    "label": "Space Ship - Defensive Functionality",
+    "domain": "spaceship",
+    "actions": [
+      {
+        "name": "v_weapon_countermeasure_decoy_launch",
+        "label": "Weapon Countermeasure Decoy Launch",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_countermeasure_decoy_burst_increase",
+        "label": "Weapon Countermeasure Decoy Burst Increase",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_countermeasure_decoy_burst_decrease",
+        "label": "Weapon Countermeasure Decoy Burst Decrease",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_countermeasure_decoy_launch_panic",
+        "label": "Weapon Countermeasure Decoy Launch Panic",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_countermeasure_noise_launch",
+        "label": "Weapon Countermeasure Noise Launch",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_shield_raise_level_forward",
+        "label": "Shield Raise Level Forward",
+        "category": "Defensive & Shields"
+      },
+      {
+        "name": "v_shield_raise_level_back",
+        "label": "Shield Raise Level Back",
+        "category": "Defensive & Shields"
+      },
+      {
+        "name": "v_shield_raise_level_left",
+        "label": "Shield Raise Level Left",
+        "category": "Defensive & Shields"
+      },
+      {
+        "name": "v_shield_raise_level_right",
+        "label": "Shield Raise Level Right",
+        "category": "Defensive & Shields"
+      },
+      {
+        "name": "v_shield_raise_level_up",
+        "label": "Shield Raise Level Up",
+        "category": "Defensive & Shields"
+      },
+      {
+        "name": "v_shield_raise_level_down",
+        "label": "Shield Raise Level Down",
+        "category": "Defensive & Shields"
+      },
+      {
+        "name": "v_shield_reset_level",
+        "label": "Shield Reset Level",
+        "category": "Defensive & Shields"
+      }
+    ]
+  },
+  "spaceship_docking": {
+    "mapName": "spaceship_docking",
+    "label": "Spaceship Docking",
+    "domain": "spaceship",
+    "actions": [
+      {
+        "name": "v_toggle_docking_request",
+        "label": "Toggle Docking Request",
+        "category": "Spaceship Docking"
+      },
+      {
+        "name": "v_dock_toggle_view",
+        "label": "Toggle Docking Camera",
+        "category": "Spaceship Docking",
+        "description": "Toggles the docking camera."
+      }
+    ]
+  },
+  "spaceship_general": {
+    "mapName": "spaceship_general",
+    "label": "Space Ship - General Functionality",
+    "domain": "spaceship",
+    "actions": [
+      {
+        "name": "v_self_destruct",
+        "label": "Self Destruct",
+        "category": "Spaceship General"
+      },
+      {
+        "name": "v_cooler_throttle_up",
+        "label": "Cooler Throttle Up",
+        "category": "Spaceship General"
+      },
+      {
+        "name": "v_cooler_throttle_down",
+        "label": "Cooler Throttle Down",
+        "category": "Spaceship General"
+      },
+      {
+        "name": "spectate_enterpuremode",
+        "label": "Spectate Enterpuremode",
+        "category": "Spaceship General"
+      },
+      {
+        "name": "v_flightready",
+        "label": "Flightready",
+        "category": "Spaceship General"
+      },
+      {
+        "name": "v_toggle_all_doors",
+        "label": "Toggle All Doors",
+        "category": "Seat & Access"
+      },
+      {
+        "name": "v_open_all_doors",
+        "label": "Open All Doors",
+        "category": "Seat & Access"
+      },
+      {
+        "name": "v_close_all_doors",
+        "label": "Close All Doors",
+        "category": "Seat & Access"
+      },
+      {
+        "name": "v_toggle_all_doorlocks",
+        "label": "Toggle All Doorlocks",
+        "category": "Seat & Access"
+      },
+      {
+        "name": "v_lock_all_doors",
+        "label": "Lock All Doors",
+        "category": "Seat & Access"
+      },
+      {
+        "name": "v_unlock_all_doors",
+        "label": "Unlock All Doors",
+        "category": "Seat & Access"
+      },
+      {
+        "name": "v_toggle_all_portlocks",
+        "label": "Toggle All Portlocks",
+        "category": "Spaceship General"
+      },
+      {
+        "name": "v_lock_all_ports",
+        "label": "Lock All Ports",
+        "category": "Spaceship General"
+      },
+      {
+        "name": "v_unlock_all_ports",
+        "label": "Unlock All Ports",
+        "category": "Spaceship General"
+      },
+      {
+        "name": "pc_conversation_option1",
+        "label": "Pc Conversation Option1",
+        "category": "Spaceship General"
+      },
+      {
+        "name": "pc_conversation_option2",
+        "label": "Pc Conversation Option2",
+        "category": "Spaceship General"
+      },
+      {
+        "name": "pc_conversation_option3",
+        "label": "Pc Conversation Option3",
+        "category": "Spaceship General"
+      },
+      {
+        "name": "pc_conversation_option4",
+        "label": "Pc Conversation Option4",
+        "category": "Spaceship General"
+      },
+      {
+        "name": "pc_conversation_option5",
+        "label": "Pc Conversation Option5",
+        "category": "Spaceship General"
+      }
+    ]
+  },
+  "spaceship_hud": {
+    "mapName": "spaceship_hud",
+    "label": "Spaceship Hud",
+    "domain": "spaceship",
+    "actions": [
+      {
+        "name": "v_cycle_pitch_ladder_mode",
+        "label": "Cycle Pitch Ladder Mode",
+        "category": "Flight Movement",
+        "description": "Cycles the pitch ladder mode between off, HUD, look direction and mixed."
+      },
+      {
+        "name": "mobiglas",
+        "label": "Mobiglas",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "toggle_ar_mode",
+        "label": "Toggle Ar Mode",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_hud_open_scoreboard",
+        "label": "Hud Open Scoreboard",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_hud_interact_toggle",
+        "label": "Hud Interact Toggle",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_hud_cycle_mode_fwd",
+        "label": "Hud Cycle Mode Fwd",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_hud_cycle_mode_back",
+        "label": "Hud Cycle Mode Back",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_hud_focused_cycle_mode_fwd",
+        "label": "Hud Focused Cycle Mode Fwd",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_hud_focused_cycle_mode_back",
+        "label": "Hud Focused Cycle Mode Back",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_hud_left_panel_up",
+        "label": "Hud Left Panel Up",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_hud_left_panel_down",
+        "label": "Hud Left Panel Down",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_hud_left_panel_left",
+        "label": "Hud Left Panel Left",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_hud_left_panel_right",
+        "label": "Hud Left Panel Right",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_hud_confirm",
+        "label": "Hud Confirm",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_hud_cancel",
+        "label": "Hud Cancel",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_hud_stick_x",
+        "label": "Hud Stick X",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_hud_stick_y",
+        "label": "Hud Stick Y",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_comm_open_chat",
+        "label": "Comm Open Chat",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_comm_show_chat",
+        "label": "Comm Show Chat",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_comm_open_precanned",
+        "label": "Comm Open Precanned",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_comm_select_precanned_1",
+        "label": "Comm Select Precanned 1",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_comm_select_precanned_2",
+        "label": "Comm Select Precanned 2",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_comm_select_precanned_3",
+        "label": "Comm Select Precanned 3",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_comm_select_precanned_4",
+        "label": "Comm Select Precanned 4",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_comm_select_precanned_5",
+        "label": "Comm Select Precanned 5",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "v_starmap",
+        "label": "Starmap",
+        "category": "Spaceship Hud"
+      },
+      {
+        "name": "visor_wipe",
+        "label": "Visor Wipe",
+        "category": "Spaceship Hud"
+      }
+    ]
+  },
+  "spaceship_mining": {
+    "mapName": "spaceship_mining",
+    "label": "Spaceship Mining",
+    "domain": "spaceship",
+    "actions": [
+      {
+        "name": "v_toggle_mining_laser_fire",
+        "label": "Toggle Mining Laser Fire",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_toggle_mining_laser_type",
+        "label": "Toggle Mining Laser Type",
+        "category": "Mining Operations"
+      },
+      {
+        "name": "v_increase_mining_throttle",
+        "label": "Increase Mining Throttle",
+        "category": "Mining Operations"
+      },
+      {
+        "name": "v_decrease_mining_throttle",
+        "label": "Decrease Mining Throttle",
+        "category": "Mining Operations"
+      },
+      {
+        "name": "v_mining_throttle",
+        "label": "Mining Throttle",
+        "category": "Mining Operations"
+      },
+      {
+        "name": "v_mining_use_consumable1",
+        "label": "Mining Use Consumable1",
+        "category": "Mining Operations"
+      },
+      {
+        "name": "v_mining_use_consumable2",
+        "label": "Mining Use Consumable2",
+        "category": "Mining Operations"
+      },
+      {
+        "name": "v_mining_use_consumable3",
+        "label": "Mining Use Consumable3",
+        "category": "Mining Operations"
+      },
+      {
+        "name": "v_mining_use_permanent_modifier",
+        "label": "Mining Use Permanent Modifier",
+        "category": "Mining Operations"
+      },
+      {
+        "name": "v_jettison_volatile_cargo",
+        "label": "Jettison Volatile Cargo",
+        "category": "Spaceship Mining"
+      }
+    ]
+  },
+  "spaceship_missiles": {
+    "mapName": "spaceship_missiles",
+    "label": "Spaceship Missiles",
+    "domain": "spaceship",
+    "actions": [
+      {
+        "name": "v_weapon_toggle_launch_missile",
+        "label": "Weapon Toggle Launch Missile",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_launch_missile",
+        "label": "Weapon Launch Missile",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_cycle_missile_fwd",
+        "label": "Weapon Cycle Missile Fwd",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_cycle_missile_back",
+        "label": "Weapon Cycle Missile Back",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_increase_max_missiles",
+        "label": "Weapon Increase Max Missiles",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_decrease_max_missiles",
+        "label": "Weapon Decrease Max Missiles",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_reset_max_missiles",
+        "label": "Weapon Reset Max Missiles",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_bombing_toggle_desired_impact_point",
+        "label": "Weapon Bombing Toggle Desired Impact Point",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_bombing_toggle_desired_impact_point_hold",
+        "label": "Weapon Bombing Toggle Desired Impact Point Hold",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_bombing_hud_range_increase",
+        "label": "Weapon Bombing Hud Range Increase",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_bombing_hud_range_decrease",
+        "label": "Weapon Bombing Hud Range Decrease",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_bombing_hud_range_reset",
+        "label": "Weapon Bombing Hud Range Reset",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_launch_missile_cinematic",
+        "label": "Weapon Launch Missile Cinematic",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_launch_missile_cinematic_hold",
+        "label": "Weapon Launch Missile Cinematic Hold",
+        "category": "Weapons & Combat"
+      }
+    ]
+  },
+  "spaceship_movement": {
+    "mapName": "spaceship_movement",
+    "label": "Spaceship Movement",
+    "domain": "spaceship",
+    "actions": [
+      {
+        "name": "v_pitch_up",
+        "label": "Pitch Up",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_pitch_down",
+        "label": "Pitch Down",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_pitch",
+        "label": "Pitch",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_pitch_mouse",
+        "label": "Pitch Mouse",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_yaw_left",
+        "label": "Yaw Left",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_yaw_right",
+        "label": "Yaw Right",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_yaw",
+        "label": "Yaw",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_yaw_mouse",
+        "label": "Yaw Mouse",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_roll_left",
+        "label": "Roll Left",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_roll_right",
+        "label": "Roll Right",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_roll",
+        "label": "Roll",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_roll_mouse",
+        "label": "Roll Mouse",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_toggle_relative_mouse_mode",
+        "label": "Toggle Relative Mouse Mode",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_toggle_yaw_roll_swap",
+        "label": "Toggle Yaw Roll Swap",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_strafe_up",
+        "label": "Strafe Up",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_strafe_down",
+        "label": "Strafe Down",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_strafe_vertical",
+        "label": "Strafe Vertical",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_strafe_left",
+        "label": "Strafe Left",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_strafe_right",
+        "label": "Strafe Right",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_strafe_lateral",
+        "label": "Strafe Lateral",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_strafe_forward",
+        "label": "Throttle - Increase",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_strafe_back",
+        "label": "Throttle - Decrease",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_strafe_longitudinal",
+        "label": "Throttle - Forward / Back",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_strafe_longitudinal_invert",
+        "label": "Strafe Longitudinal Invert",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_ifcs_throttle_swap_mode",
+        "label": "Throttle - Cruise Mode - Toggle",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_ifcs_throttle_set_sticky",
+        "label": "Throttle - Cruise Mode - Enable",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_ifcs_throttle_set_normal",
+        "label": "Throttle - Cruise Mode - Disable",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_strafe_trim_set_long",
+        "label": "Throttle - Trim - Set (Long Press)",
+        "category": "Flight Movement",
+        "description": "Throttle - Trim - Set (Long Press)"
+      },
+      {
+        "name": "v_strafe_trim_set_short",
+        "label": "Throttle - Trim - Set (Short Press)",
+        "category": "Flight Movement",
+        "description": "Throttle - Trim - Set (Short Press)"
+      },
+      {
+        "name": "v_strafe_trim_set_100_long",
+        "label": "Throttle - Trim - Set To 100% (Long Press)",
+        "category": "Flight Movement",
+        "description": "Throttle - Trim - Set To 100% (Long Press)"
+      },
+      {
+        "name": "v_strafe_trim_set_100_short",
+        "label": "Throttle - Trim - Set To 100% (Short Press)",
+        "category": "Flight Movement",
+        "description": "Throttle - Trim - Set To 100% (Short Press)"
+      },
+      {
+        "name": "v_strafe_trim_set_50_long",
+        "label": "Throttle - Trim - Set To 50% (Long Press)",
+        "category": "Flight Movement",
+        "description": "Throttle - Trim - Set To 50% (Long Press)"
+      },
+      {
+        "name": "v_strafe_trim_set_50_short",
+        "label": "Throttle - Trim - Set To 50% (Short Press)",
+        "category": "Flight Movement",
+        "description": "Throttle - Trim - Set To 50% (Short Press)"
+      },
+      {
+        "name": "v_strafe_trim_reset_long",
+        "label": "Throttle - Trim - Release (Long Press)",
+        "category": "Flight Movement",
+        "description": "Throttle - Trim - Release (Long Press)"
+      },
+      {
+        "name": "v_strafe_trim_reset_short",
+        "label": "Throttle - Trim - Release (Short Press)",
+        "category": "Flight Movement",
+        "description": "Throttle - Trim - Release (Short Press)"
+      },
+      {
+        "name": "v_ifcs_vector_decoupling_toggle",
+        "label": "Ifcs Vector Decoupling Toggle",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_ifcs_vector_decoupling_on",
+        "label": "Ifcs Vector Decoupling On",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_ifcs_vector_decoupling_off",
+        "label": "Ifcs Vector Decoupling Off",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_afterburner",
+        "label": "Afterburner",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_ifcs_speed_limiter_up",
+        "label": "Speed Limiter - Increase (hold)",
+        "category": "Spaceship Movement",
+        "description": "Speed Limiter - Increase (hold)"
+      },
+      {
+        "name": "v_ifcs_speed_limiter_down",
+        "label": "Speed Limiter - Decrease (hold)",
+        "category": "Spaceship Movement",
+        "description": "Speed Limiter - Decrease (hold)"
+      },
+      {
+        "name": "v_ifcs_speed_limiter_increment",
+        "label": "Speed Limiter - Step Up (tap)",
+        "category": "Spaceship Movement",
+        "description": "Speed Limiter - Step Up (tap)"
+      },
+      {
+        "name": "v_ifcs_speed_limiter_decrement",
+        "label": "Speed Limiter - Step Down (tap)",
+        "category": "Spaceship Movement",
+        "description": "Speed Limiter - Step Down (tap)"
+      },
+      {
+        "name": "v_ifcs_speed_limiter_rel",
+        "label": "Speed Limiter (rel)",
+        "category": "Spaceship Movement",
+        "description": "Speed Limiter (rel)"
+      },
+      {
+        "name": "v_ifcs_speed_limiter_abs",
+        "label": "Speed Limiter (abs)",
+        "category": "Spaceship Movement",
+        "description": "Speed Limiter (abs)"
+      },
+      {
+        "name": "v_ifcs_speed_limiter_toggle",
+        "label": "Speed Limiter - Enable / Disable",
+        "category": "Spaceship Movement",
+        "description": "Speed Limiter - Enable / Disable"
+      },
+      {
+        "name": "v_ifcs_speed_limiter_on",
+        "label": "Speed Limiter - Enable",
+        "category": "Spaceship Movement",
+        "description": "Speed Limiter - Enable"
+      },
+      {
+        "name": "v_ifcs_speed_limiter_off",
+        "label": "Speed Limiter - Disable",
+        "category": "Spaceship Movement",
+        "description": "Speed Limiter - Disable"
+      },
+      {
+        "name": "v_accel_range_up",
+        "label": "Acceleration Limiter - Increase (hold)",
+        "category": "Spaceship Movement",
+        "description": "Acceleration Limiter - Increase (hold)"
+      },
+      {
+        "name": "v_accel_range_down",
+        "label": "Acceleration Limiter - Decrease (hold)",
+        "category": "Spaceship Movement",
+        "description": "Acceleration Limiter - Decrease (hold)"
+      },
+      {
+        "name": "v_accel_range_increment",
+        "label": "Acceleration Limiter - Step Up (tap)",
+        "category": "Spaceship Movement",
+        "description": "Acceleration Limiter - Step Up (tap)"
+      },
+      {
+        "name": "v_accel_range_decrement",
+        "label": "Acceleration Limiter - Step Down (tap)",
+        "category": "Spaceship Movement",
+        "description": "Acceleration Limiter - Step Down (tap)"
+      },
+      {
+        "name": "v_accel_range_rel",
+        "label": "Acceleration Limiter (rel)",
+        "category": "Spaceship Movement",
+        "description": "Acceleration Limiter (rel)"
+      },
+      {
+        "name": "v_accel_range_abs",
+        "label": "Acceleration Limiter (abs)",
+        "category": "Spaceship Movement",
+        "description": "Acceleration Limiter (abs)"
+      },
+      {
+        "name": "v_space_brake",
+        "label": "Space Brake",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_lock_rotation",
+        "label": "Lock Rotation",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_ifcs_gsafe_on",
+        "label": "G-Force safety on",
+        "category": "Spaceship Movement",
+        "description": "G-Force safety on"
+      },
+      {
+        "name": "v_ifcs_gsafe_off",
+        "label": "G-Force safety off",
+        "category": "Spaceship Movement",
+        "description": "G-Force safety off"
+      },
+      {
+        "name": "v_ifcs_toggle_gforce_safety",
+        "label": "Ifcs Toggle Gforce Safety",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_ifcs_toggle_esp",
+        "label": "Ifcs Toggle Esp",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_ifcs_esp_hold",
+        "label": "E.S.P. - Enable Temporarily (Hold)",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_toggle_landing_system",
+        "label": "Toggle Landing System",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_deploy_landing_system",
+        "label": "Deploy Landing System",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_retract_landing_system",
+        "label": "Retract Landing System",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_vtol_toggle",
+        "label": "Vtol Toggle",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_vtol_on",
+        "label": "Vtol On",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_vtol_off",
+        "label": "Vtol Off",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_transform_deploy",
+        "label": "Transform Deploy",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_transform_retract",
+        "label": "Transform Retract",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_transform_cycle",
+        "label": "Transform Cycle",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_autoland",
+        "label": "Autoland",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_atc_request",
+        "label": "Atc Request",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_atc_loading_area_request",
+        "label": "Atc Loading Area Request",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_master_mode_cycle",
+        "label": "Master Mode Cycle",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_master_mode_cycle_long",
+        "label": "Cycle Master Mode (Long Press)",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_master_mode_set_nav",
+        "label": "Set Master Mode to Nav",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_master_mode_set_scm",
+        "label": "Set Master Mode to SCM",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_toggle_jump_request",
+        "label": "Toggle Jump Request",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_ifcs_gravity_compensation_toggle",
+        "label": "Ifcs Gravity Compensation Toggle",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_ifcs_gravity_compensation_on",
+        "label": "IFCS - Gravity Compensation - Enable",
+        "category": "Spaceship Movement",
+        "description": "IFCS - Gravity Compensation - Enable"
+      },
+      {
+        "name": "v_ifcs_gravity_compensation_off",
+        "label": "IFCS - Gravity Compensation - Disable",
+        "category": "Spaceship Movement",
+        "description": "IFCS - Gravity Compensation - Disable"
+      },
+      {
+        "name": "v_ifcs_wind_compensation_toggle",
+        "label": "IFCS - Wind Compensation - Toggle",
+        "category": "Spaceship Movement",
+        "description": "IFCS - Wind Compensation - Toggle"
+      },
+      {
+        "name": "v_ifcs_wind_compensation_on",
+        "label": "IFCS - Wind Compensation - Enable",
+        "category": "Spaceship Movement",
+        "description": "IFCS - Wind Compensation - Enable"
+      },
+      {
+        "name": "v_ifcs_wind_compensation_off",
+        "label": "IFCS - Wind Compensation - Disable",
+        "category": "Spaceship Movement",
+        "description": "IFCS - Wind Compensation - Disable"
+      },
+      {
+        "name": "v_auto_precision_mode_toggle",
+        "label": "Automatic Precision Mode - Toggle",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_auto_precision_mode_on",
+        "label": "Automatic Precision Mode - Enable",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_auto_precision_mode_off",
+        "label": "Automatic Precision Mode - Disable",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_ifcs_proximity_assist_toggle",
+        "label": "IFCS - Proximity Assist - Toggle",
+        "category": "Spaceship Movement",
+        "description": "IFCS - Proximity Assist - Toggle"
+      },
+      {
+        "name": "v_ifcs_proximity_assist_on",
+        "label": "IFCS - Proximity Assist - Enable",
+        "category": "Spaceship Movement",
+        "description": "IFCS - Proximity Assist - Enable"
+      },
+      {
+        "name": "v_ifcs_proximity_assist_off",
+        "label": "IFCS - Proximity Assist - Disable",
+        "category": "Spaceship Movement",
+        "description": "IFCS - Proximity Assist - Disable"
+      },
+      {
+        "name": "v_ifcs_stability_toggle",
+        "label": "IFCS - Stability - Toggle",
+        "category": "Spaceship Movement",
+        "description": "IFCS - Stability - Toggle"
+      },
+      {
+        "name": "v_ifcs_stability_on",
+        "label": "IFCS - Stability - Enable",
+        "category": "Spaceship Movement",
+        "description": "IFCS - Stability - Enable"
+      },
+      {
+        "name": "v_ifcs_stability_off",
+        "label": "IFCS - Stability - Disable",
+        "category": "Spaceship Movement",
+        "description": "IFCS - Stability - Disable"
+      },
+      {
+        "name": "v_ifcs_command_toggle",
+        "label": "Ifcs Command Toggle",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_ifcs_command_on",
+        "label": "Ifcs Command On",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_ifcs_command_off",
+        "label": "Ifcs Command Off",
+        "category": "Spaceship Movement"
+      },
+      {
+        "name": "v_ifcs_core_toggle",
+        "label": "IFCS - Core - Toggle On / Off",
+        "category": "Spaceship Movement",
+        "description": "IFCS - Core - Toggle On / Off"
+      },
+      {
+        "name": "v_ifcs_core_on",
+        "label": "IFCS - Core - Enable",
+        "category": "Spaceship Movement",
+        "description": "IFCS - Core - Enable"
+      },
+      {
+        "name": "v_ifcs_core_off",
+        "label": "IFCS - Core - Disable",
+        "category": "Spaceship Movement",
+        "description": "IFCS - Core - Disable"
+      },
+      {
+        "name": "v_ifcs_reset_gmeter_max",
+        "label": "Reset Flight Accelerometer",
+        "category": "Spaceship Movement",
+        "description": "Resets the max endured Gs for the accelerometer."
+      },
+      {
+        "name": "v_flight_advanced_hud_toggle",
+        "label": "Advanced HUD - Toggle",
+        "category": "Spaceship Movement",
+        "description": "Advanced HUD - Toggle"
+      },
+      {
+        "name": "v_flight_advanced_hud_on",
+        "label": "Advanced HUD - Enable",
+        "category": "Spaceship Movement",
+        "description": "Advanced HUD - Enable"
+      },
+      {
+        "name": "v_flight_advanced_hud_off",
+        "label": "Advanced HUD - Disable",
+        "category": "Spaceship Movement",
+        "description": "Advanced HUD - Disable"
+      }
+    ]
+  },
+  "spaceship_power": {
+    "mapName": "spaceship_power",
+    "label": "Spaceship Power",
+    "domain": "spaceship",
+    "actions": [
+      {
+        "name": "v_power_toggle",
+        "label": "Power Toggle",
+        "category": "Power Management"
+      },
+      {
+        "name": "v_power_set_on",
+        "label": "Power Set On",
+        "category": "Power Management"
+      },
+      {
+        "name": "v_power_set_off",
+        "label": "Power Set Off",
+        "category": "Power Management"
+      },
+      {
+        "name": "v_power_toggle_thrusters",
+        "label": "Power Toggle Thrusters",
+        "category": "Power Management"
+      },
+      {
+        "name": "v_power_set_thrusters_on",
+        "label": "Power Set Thrusters On",
+        "category": "Power Management"
+      },
+      {
+        "name": "v_power_set_thrusters_off",
+        "label": "Power Set Thrusters Off",
+        "category": "Power Management"
+      },
+      {
+        "name": "v_power_toggle_shields",
+        "label": "Power Toggle Shields",
+        "category": "Defensive & Shields"
+      },
+      {
+        "name": "v_power_set_shields_on",
+        "label": "Power Set Shields On",
+        "category": "Defensive & Shields"
+      },
+      {
+        "name": "v_power_set_shields_off",
+        "label": "Power Set Shields Off",
+        "category": "Defensive & Shields"
+      },
+      {
+        "name": "v_power_toggle_weapons",
+        "label": "Power Toggle Weapons",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_power_set_weapons_on",
+        "label": "Power Set Weapons On",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_power_set_weapons_off",
+        "label": "Power Set Weapons Off",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_power_throttle_down",
+        "label": "Power Throttle Down",
+        "category": "Power Management"
+      },
+      {
+        "name": "v_power_throttle_min",
+        "label": "Power Throttle Min",
+        "category": "Power Management"
+      },
+      {
+        "name": "v_power_throttle_up",
+        "label": "Power Throttle Up",
+        "category": "Power Management"
+      },
+      {
+        "name": "v_power_throttle_max",
+        "label": "Power Throttle Max",
+        "category": "Power Management"
+      },
+      {
+        "name": "v_engineering_assignment_engine_increase",
+        "label": "Engineering Assignment Engine Increase",
+        "category": "Spaceship Power"
+      },
+      {
+        "name": "v_engineering_assignment_engine_decrease",
+        "label": "Engineering Assignment Engine Decrease",
+        "category": "Spaceship Power"
+      },
+      {
+        "name": "v_engineering_assignment_engine_max",
+        "label": "Engineering Assignment Engine Max",
+        "category": "Spaceship Power"
+      },
+      {
+        "name": "v_engineering_assignment_engine_min",
+        "label": "Engineering Assignment Engine Min",
+        "category": "Spaceship Power"
+      },
+      {
+        "name": "v_engineering_assignment_shields_increase",
+        "label": "Engineering Assignment Shields Increase",
+        "category": "Defensive & Shields"
+      },
+      {
+        "name": "v_engineering_assignment_shields_decrease",
+        "label": "Engineering Assignment Shields Decrease",
+        "category": "Defensive & Shields"
+      },
+      {
+        "name": "v_engineering_assignment_shields_max",
+        "label": "Engineering Assignment Shields Max",
+        "category": "Defensive & Shields"
+      },
+      {
+        "name": "v_engineering_assignment_shields_min",
+        "label": "Engineering Assignment Shields Min",
+        "category": "Defensive & Shields"
+      },
+      {
+        "name": "v_engineering_assignment_weapons_increase",
+        "label": "Engineering Assignment Weapons Increase",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_engineering_assignment_weapons_decrease",
+        "label": "Engineering Assignment Weapons Decrease",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_engineering_assignment_weapons_max",
+        "label": "Engineering Assignment Weapons Max",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_engineering_assignment_weapons_min",
+        "label": "Engineering Assignment Weapons Min",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_engineering_assignment_reset",
+        "label": "Engineering Assignment Reset",
+        "category": "Spaceship Power"
+      }
+    ]
+  },
+  "spaceship_quantum": {
+    "mapName": "spaceship_quantum",
+    "label": "Spaceship Quantum",
+    "domain": "spaceship",
+    "actions": [
+      {
+        "name": "v_toggle_qdrive_engagement",
+        "label": "Engage Quantum Drive (Hold)",
+        "category": "Spaceship Quantum",
+        "description": "Engages the quantum drive."
+      }
+    ]
+  },
+  "spaceship_radar": {
+    "mapName": "spaceship_radar",
+    "label": "Spaceship Radar",
+    "domain": "spaceship",
+    "actions": [
+      {
+        "name": "v_invoke_ping",
+        "label": "Invoke Ping",
+        "category": "Targeting & Radar"
+      }
+    ]
+  },
+  "spaceship_salvage": {
+    "mapName": "spaceship_salvage",
+    "label": "Spaceship Salvage",
+    "domain": "spaceship",
+    "actions": [
+      {
+        "name": "tractor_beam_vehicle_increase_distance",
+        "label": "Tractor Beam Vehicle Increase Distance",
+        "category": "Spaceship Salvage"
+      },
+      {
+        "name": "tractor_beam_vehicle_decrease_distance",
+        "label": "Tractor Beam Vehicle Decrease Distance",
+        "category": "Spaceship Salvage"
+      },
+      {
+        "name": "v_salvage_toggle_fire_focused",
+        "label": "Salvage Toggle Fire Focused",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_salvage_toggle_fire_left",
+        "label": "Salvage Toggle Fire Left",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_salvage_toggle_fire_right",
+        "label": "Salvage Toggle Fire Right",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_salvage_toggle_fire_fracture",
+        "label": "Salvage Toggle Fire Fracture",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_salvage_toggle_fire_disintegrate",
+        "label": "Salvage Toggle Fire Disintegrate",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_salvage_toggle_gimbal_mode",
+        "label": "Salvage Toggle Gimbal Mode",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_reset_gimbal",
+        "label": "Salvage Reset Gimbal",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_increase_beam_spacing",
+        "label": "Salvage Increase Beam Spacing",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_decrease_beam_spacing",
+        "label": "Salvage Decrease Beam Spacing",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_beam_spacing_rel",
+        "label": "Salvage Beam Spacing Rel",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_beam_spacing_abs",
+        "label": "Salvage Beam Spacing Abs",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_toggle_beam_spacing_axis",
+        "label": "Salvage Toggle Beam Spacing Axis",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_cycle_modifiers_focused",
+        "label": "Salvage Cycle Modifiers Focused",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_cycle_modifiers_left",
+        "label": "Salvage Cycle Modifiers Left",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_cycle_modifiers_right",
+        "label": "Salvage Cycle Modifiers Right",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_cycle_modifiers_structural",
+        "label": "Salvage Cycle Modifiers Structural",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_focus_all_heads",
+        "label": "Salvage Focus All Heads",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_focus_left",
+        "label": "Salvage Focus Left",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_focus_right",
+        "label": "Salvage Focus Right",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_focus_fracture",
+        "label": "Salvage Focus Fracture",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_focus_disintegrate",
+        "label": "Salvage Focus Disintegrate",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_nudge_up__left",
+        "label": "Salvage Nudge Up  Left",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_nudge_down__left",
+        "label": "Salvage Nudge Down  Left",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_nudge_left__left",
+        "label": "Salvage Nudge Left  Left",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_nudge_right__left",
+        "label": "Salvage Nudge Right  Left",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_nudge_up__right",
+        "label": "Salvage Nudge Up  Right",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_nudge_down__right",
+        "label": "Salvage Nudge Down  Right",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_nudge_left__right",
+        "label": "Salvage Nudge Left  Right",
+        "category": "Salvage Operations"
+      },
+      {
+        "name": "v_salvage_nudge_right__right",
+        "label": "Salvage Nudge Right  Right",
+        "category": "Salvage Operations"
+      }
+    ]
+  },
+  "spaceship_scanning": {
+    "mapName": "spaceship_scanning",
+    "label": "Spaceship Scanning",
+    "domain": "spaceship",
+    "actions": [
+      {
+        "name": "v_scanning_trigger_scan",
+        "label": "Scanning Trigger Scan",
+        "category": "Scanning"
+      },
+      {
+        "name": "v_inc_scan_focus_level",
+        "label": "Inc Scan Focus Level",
+        "category": "Scanning"
+      },
+      {
+        "name": "v_dec_scan_focus_level",
+        "label": "Dec Scan Focus Level",
+        "category": "Scanning"
+      },
+      {
+        "name": "v_ui_prev_scan_tab",
+        "label": "Ui Prev Scan Tab",
+        "category": "Scanning"
+      },
+      {
+        "name": "v_ui_next_scan_tab",
+        "label": "Ui Next Scan Tab",
+        "category": "Scanning"
+      },
+      {
+        "name": "v_ui_prev_scan_page",
+        "label": "Ui Prev Scan Page",
+        "category": "Scanning"
+      },
+      {
+        "name": "v_ui_next_scan_page",
+        "label": "Ui Next Scan Page",
+        "category": "Scanning"
+      },
+      {
+        "name": "v_ui_prev_contact_page",
+        "label": "Ui Prev Contact Page",
+        "category": "Spaceship Scanning"
+      },
+      {
+        "name": "v_ui_next_contact_page",
+        "label": "Ui Next Contact Page",
+        "category": "Spaceship Scanning"
+      },
+      {
+        "name": "v_ui_prev_contact",
+        "label": "Ui Prev Contact",
+        "category": "Spaceship Scanning"
+      },
+      {
+        "name": "v_ui_next_contact",
+        "label": "Ui Next Contact",
+        "category": "Spaceship Scanning"
+      }
+    ]
+  },
+  "spaceship_target_hailing": {
+    "mapName": "spaceship_target_hailing",
+    "label": "Spaceship Target Hailing",
+    "domain": "spaceship",
+    "actions": [
+      {
+        "name": "v_target_hail",
+        "label": "Target Hail",
+        "category": "Targeting & Radar"
+      }
+    ]
+  },
+  "spaceship_targeting": {
+    "mapName": "spaceship_targeting",
+    "label": "Spaceship Targeting",
+    "domain": "spaceship",
+    "actions": [
+      {
+        "name": "v_auto_targeting_toggle_long",
+        "label": "Auto Targeting - Toggle On/Off (Long Press)",
+        "category": "Targeting & Radar",
+        "description": "Auto Targeting - Toggle On/Off (Long Press)"
+      },
+      {
+        "name": "v_auto_targeting_toggle_short",
+        "label": "Auto Targeting - Toggle On/Off (Short Press)",
+        "category": "Targeting & Radar",
+        "description": "Auto Targeting - Toggle On/Off (Short Press)"
+      },
+      {
+        "name": "v_auto_targeting_enable_short",
+        "label": "Auto Targeting - Toggle On (Short Press)",
+        "category": "Targeting & Radar",
+        "description": "Auto Targeting - Toggle On (Short Press)"
+      },
+      {
+        "name": "v_auto_targeting_enable_long",
+        "label": "Auto Targeting - Toggle On (Long Press)",
+        "category": "Targeting & Radar",
+        "description": "Auto Targeting - Toggle On (Long Press)"
+      },
+      {
+        "name": "v_auto_targeting_disable_short",
+        "label": "Auto Targeting - Toggle Off (Short Press)",
+        "category": "Targeting & Radar",
+        "description": "Auto Targeting - Toggle Off (Short Press)"
+      },
+      {
+        "name": "v_auto_targeting_disable_long",
+        "label": "Auto Targeting - Toggle Off (Long Press)",
+        "category": "Targeting & Radar",
+        "description": "Auto Targeting - Toggle Off (Long Press)"
+      },
+      {
+        "name": "v_target_toggle_lock_index_1",
+        "label": "Target Toggle Lock Index 1",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_toggle_lock_index_2",
+        "label": "Target Toggle Lock Index 2",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_toggle_lock_index_3",
+        "label": "Target Toggle Lock Index 3",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_toggle_pin_index_1",
+        "label": "Target Toggle Pin Index 1",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_toggle_pin_index_2",
+        "label": "Target Toggle Pin Index 2",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_toggle_pin_index_3",
+        "label": "Target Toggle Pin Index 3",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_toggle_pin_index_1_hold",
+        "label": "Target Toggle Pin Index 1 Hold",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_toggle_pin_index_2_hold",
+        "label": "Target Toggle Pin Index 2 Hold",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_toggle_pin_index_3_hold",
+        "label": "Target Toggle Pin Index 3 Hold",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_pin_selected",
+        "label": "Target Pin Selected",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_unpin_selected",
+        "label": "Target Unpin Selected",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_pin_selected_hold",
+        "label": "Target Pin Selected Hold",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_unpin_selected_hold",
+        "label": "Target Unpin Selected Hold",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_remove_all_pins",
+        "label": "Target Remove All Pins",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_lock_selected",
+        "label": "Target Lock Selected",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_unlock",
+        "label": "Unlock Current Target",
+        "category": "Targeting & Radar",
+        "description": "Unlock Current Target"
+      },
+      {
+        "name": "v_look_ahead_enable",
+        "label": "Look Ahead Enable",
+        "category": "Spaceship Targeting"
+      },
+      {
+        "name": "v_look_ahead_start_target_tracking",
+        "label": "Look Ahead Start Target Tracking",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_tracking_auto_zoom",
+        "label": "Target Tracking Auto Zoom",
+        "category": "Targeting & Radar"
+      }
+    ]
+  },
+  "spaceship_targeting_advanced": {
+    "mapName": "spaceship_targeting_advanced",
+    "label": "Spaceship Targeting Advanced",
+    "domain": "spaceship",
+    "actions": [
+      {
+        "name": "v_target_under_reticle",
+        "label": "Lock Target Under Reticle",
+        "category": "Targeting & Radar",
+        "description": "Lock Target Under Reticle"
+      },
+      {
+        "name": "v_target_cycle_in_view_back",
+        "label": "Target Cycle In View Back",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_cycle_in_view_fwd",
+        "label": "Target Cycle In View Fwd",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_cycle_in_view_reset",
+        "label": "Target Cycle In View Reset",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_cycle_pinned_back",
+        "label": "Target Cycle Pinned Back",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_cycle_pinned_fwd",
+        "label": "Target Cycle Pinned Fwd",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_cycle_pinned_reset",
+        "label": "Target Cycle Pinned Reset",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_cycle_attacker_back",
+        "label": "Target Cycle Attacker Back",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_target_cycle_attacker_fwd",
+        "label": "Target Cycle Attacker Fwd",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_target_cycle_attacker_reset",
+        "label": "Target Cycle Attacker Reset",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_target_cycle_hostile_back",
+        "label": "Target Cycle Hostile Back",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_cycle_hostile_fwd",
+        "label": "Target Cycle Hostile Fwd",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_cycle_hostile_reset",
+        "label": "Target Cycle Hostile Reset",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_cycle_friendly_back",
+        "label": "Target Cycle Friendly Back",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_cycle_friendly_fwd",
+        "label": "Target Cycle Friendly Fwd",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_cycle_friendly_reset",
+        "label": "Target Cycle Friendly Reset",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_cycle_all_back",
+        "label": "Target Cycle All Back",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_cycle_all_fwd",
+        "label": "Target Cycle All Fwd",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_cycle_all_reset",
+        "label": "Target Cycle All Reset",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_cycle_subitem_back",
+        "label": "Target Cycle Subitem Back",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_cycle_subitem_fwd",
+        "label": "Target Cycle Subitem Fwd",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_target_cycle_subitem_reset",
+        "label": "Target Cycle Subitem Reset",
+        "category": "Targeting & Radar"
+      }
+    ]
+  },
+  "spaceship_view": {
+    "mapName": "spaceship_view",
+    "label": "Spaceship View",
+    "domain": "spaceship",
+    "actions": [
+      {
+        "name": "v_view_yaw_left",
+        "label": "View Yaw Left",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_view_yaw_right",
+        "label": "View Yaw Right",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_view_yaw",
+        "label": "View Yaw",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_view_yaw_mouse",
+        "label": "View Yaw Mouse",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_view_yaw_absolute",
+        "label": "View Yaw Absolute",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_view_pitch_up",
+        "label": "View Pitch Up",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_view_pitch_down",
+        "label": "View Pitch Down",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_view_pitch",
+        "label": "View Pitch",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_view_pitch_mouse",
+        "label": "View Pitch Mouse",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_view_pitch_absolute",
+        "label": "View Pitch Absolute",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_view_roll_absolute",
+        "label": "View Roll Absolute",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_view_cycle_fwd",
+        "label": "View Cycle Fwd",
+        "category": "Spaceship View"
+      },
+      {
+        "name": "v_view_cycle_internal_fwd",
+        "label": "View Cycle Internal Fwd",
+        "category": "Spaceship View"
+      },
+      {
+        "name": "v_view_option",
+        "label": "View Option",
+        "category": "Spaceship View"
+      },
+      {
+        "name": "v_view_mode",
+        "label": "View Mode",
+        "category": "Spaceship View"
+      },
+      {
+        "name": "v_view_zoom_in",
+        "label": "View Zoom In",
+        "category": "Spaceship View"
+      },
+      {
+        "name": "v_view_zoom_out",
+        "label": "View Zoom Out",
+        "category": "Spaceship View"
+      },
+      {
+        "name": "v_view_interact",
+        "label": "View Interact",
+        "category": "Spaceship View"
+      },
+      {
+        "name": "v_view_freelook_mode",
+        "label": "View Freelook Mode",
+        "category": "Spaceship View"
+      },
+      {
+        "name": "v_view_dynamic_zoom_rel",
+        "label": "View Dynamic Zoom Rel",
+        "category": "Spaceship View"
+      },
+      {
+        "name": "v_view_dynamic_zoom_rel_in",
+        "label": "View Dynamic Zoom Rel In",
+        "category": "Spaceship View"
+      },
+      {
+        "name": "v_view_dynamic_zoom_rel_out",
+        "label": "View Dynamic Zoom Rel Out",
+        "category": "Spaceship View"
+      },
+      {
+        "name": "v_view_dynamic_zoom_abs",
+        "label": "View Dynamic Zoom Abs",
+        "category": "Spaceship View"
+      },
+      {
+        "name": "v_view_dynamic_zoom_abs_toggle",
+        "label": "View Dynamic Zoom Abs Toggle",
+        "category": "Spaceship View"
+      },
+      {
+        "name": "v_ads_hold",
+        "label": "Precision Targeting - Hold",
+        "category": "Spaceship View"
+      },
+      {
+        "name": "v_ads_toggle",
+        "label": "Precision Targeting - Toggle On / Off",
+        "category": "Spaceship View"
+      },
+      {
+        "name": "v_ads_stable_max_zoom_hold",
+        "label": "Precision Targeting - Maximum Zoom (hold)",
+        "category": "Spaceship View"
+      },
+      {
+        "name": "v_ads_cycle_tracking",
+        "label": "Precision Targeting - Toggle Camera Tracking",
+        "category": "Spaceship View"
+      }
+    ]
+  },
+  "spaceship_weapons": {
+    "mapName": "spaceship_weapons",
+    "label": "Spaceship Weapons",
+    "domain": "spaceship",
+    "actions": [
+      {
+        "name": "v_attack_group2",
+        "label": "Fire Weapon Group 2",
+        "category": "Weapons & Combat",
+        "description": "Fire secondary weapon group"
+      },
+      {
+        "name": "v_attack_group1",
+        "label": "Fire Weapon Group 1",
+        "category": "Weapons & Combat",
+        "description": "Fire primary weapon group"
+      },
+      {
+        "name": "v_attack_all",
+        "label": "Fire All Weapons",
+        "category": "Weapons & Combat",
+        "description": "Fire all weapon groups concurrently"
+      },
+      {
+        "name": "v_weapon_gimbals_state_toggle",
+        "label": "Gimbal State - Toggle Locked / Unlocked",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_gimbals_state_set_locked",
+        "label": "Gimbal State - Set Locked",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_gimbals_state_set_unlocked",
+        "label": "Gimbal State - Set Unlocked",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_gimbals_unlocked_cycle_source",
+        "label": "Gimbal State - Unlocked - Cycle Source (VJoy / View)",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_aim_type_cycle",
+        "label": "Aim Mode - Cycle",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_aim_type_set_pip_aiming",
+        "label": "Aim Mode - Set to PIP Aiming",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_aim_type_set_painting",
+        "label": "Aim Mode - Set to Painting",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_aim_type_set_auto",
+        "label": "Aim Mode - Set to Automatic",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_staggered_fire_toggle",
+        "label": "Staggered Fire - Toggle On / Off",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_staggered_fire_on",
+        "label": "Staggered Fire - On",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_staggered_fire_off",
+        "label": "Staggered Fire - Off",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_suppress_aim_assists_hold",
+        "label": "Suppress Aim Assists (Hold)",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_pip_toggle_lead_lag",
+        "label": "Toggle Lead / Lag PIPs",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_pip_set_lag",
+        "label": "Set Lag PIPs",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_pip_set_lead",
+        "label": "Set Lead PIPs",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_pip_combination_type_toggle",
+        "label": "PIP Combination Type: Toggle",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_pip_combination_type_set_single",
+        "label": "PIP Combination Type: Set One PIP Per Weapon",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_pip_combination_type_set_combined_weapon_group",
+        "label": "PIP Combination Type: Set One PIP Per Weapon Type",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_pip_prec_line_toggle",
+        "label": "PIP Precision Lines Toggle",
+        "category": "Weapons & Combat",
+        "description": "PIP Precision Lines Toggle"
+      },
+      {
+        "name": "v_weapon_pip_prec_line_on",
+        "label": "PIP Precision Lines On",
+        "category": "Weapons & Combat",
+        "description": "PIP Precision Lines On"
+      },
+      {
+        "name": "v_weapon_pip_prec_line_off",
+        "label": "PIP Precision Lines Off",
+        "category": "Weapons & Combat",
+        "description": "PIP Precision Lines Off"
+      },
+      {
+        "name": "v_weapon_pip_fade_toggle",
+        "label": "PIP Fading Toggle",
+        "category": "Weapons & Combat",
+        "description": "PIP Fading Toggle"
+      },
+      {
+        "name": "v_weapon_pip_fade_on",
+        "label": "PIP Fading On",
+        "category": "Weapons & Combat",
+        "description": "PIP Fading On"
+      },
+      {
+        "name": "v_weapon_pip_fade_off",
+        "label": "PIP Fading Off",
+        "category": "Weapons & Combat",
+        "description": "PIP Fading Off"
+      },
+      {
+        "name": "v_weapon_ui_scale_toggle",
+        "label": "Gunnery UI Magnification Toggle",
+        "category": "Weapons & Combat",
+        "description": "Gunnery UI Magnification Toggle"
+      },
+      {
+        "name": "v_weapon_ui_scale_on",
+        "label": "Gunnery UI Magnification On",
+        "category": "Weapons & Combat",
+        "description": "Gunnery UI Magnification On"
+      },
+      {
+        "name": "v_weapon_ui_scale_off",
+        "label": "Gunnery UI Magnification Off",
+        "category": "Weapons & Combat",
+        "description": "Gunnery UI Magnification Off"
+      },
+      {
+        "name": "v_weapon_convergence_distance_rel",
+        "label": "Manual Convergence Distance (rel.)",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_convergence_distance_rel_increase",
+        "label": "Manual Convergence Distance - Increase",
+        "category": "Weapons & Combat",
+        "description": "Increases the Manual Convergence Distance"
+      },
+      {
+        "name": "v_weapon_convergence_distance_rel_decrease",
+        "label": "Manual Convergence Distance - Decrease",
+        "category": "Weapons & Combat",
+        "description": "Decreases the Manual Convergence Distance"
+      },
+      {
+        "name": "v_weapon_convergence_distance_abs",
+        "label": "Manual Convergence Distance (abs.)",
+        "category": "Weapons & Combat",
+        "description": "Sets the Manual Convergence Distance on an absolute axis"
+      },
+      {
+        "name": "v_weapon_convergence_distance_set_default",
+        "label": "Manual Convergence Distance - Reset",
+        "category": "Weapons & Combat",
+        "description": "Resets the Manual Convergence Distance to the default value"
+      },
+      {
+        "name": "v_weapon_preset_attack",
+        "label": "Weapon Preset - Fire",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_preset_fire_guns0",
+        "label": "Weapon Presets - Fire Guns Group 1",
+        "category": "Weapons & Combat",
+        "description": "Weapon Presets - Fire Guns Group 1"
+      },
+      {
+        "name": "v_weapon_preset_fire_guns1",
+        "label": "Weapon Presets - Fire Guns Group 2",
+        "category": "Weapons & Combat",
+        "description": "Weapon Presets - Fire Guns Group 2"
+      },
+      {
+        "name": "v_weapon_preset_fire_guns2",
+        "label": "Weapon Presets - Fire Guns Group 3",
+        "category": "Weapons & Combat",
+        "description": "Weapon Presets - Fire Guns Group 3"
+      },
+      {
+        "name": "v_weapon_preset_fire_guns3",
+        "label": "Weapon Presets - Fire Guns Group 4",
+        "category": "Weapons & Combat",
+        "description": "Weapon Presets - Fire Guns Group 4"
+      },
+      {
+        "name": "v_weapon_preset_next",
+        "label": "Weapon Presets - Next",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_preset_prev",
+        "label": "Weapon Presets - Previous",
+        "category": "Weapons & Combat"
+      },
+      {
+        "name": "v_weapon_preset_next_overflow",
+        "label": "Weapon Presets - Next (Overflow)",
+        "category": "Weapons & Combat",
+        "description": "Weapon Presets - Next (Overflow)"
+      },
+      {
+        "name": "v_weapon_preset_prev_overflow",
+        "label": "Weapon Presets - Previous (Overflow)",
+        "category": "Weapons & Combat",
+        "description": "Weapon Presets - Previous (Overflow)"
+      },
+      {
+        "name": "v_weapon_preset_guns0",
+        "label": "Weapon Presets - Set Guns Group 1",
+        "category": "Weapons & Combat",
+        "description": "Weapon Presets - Set Guns Group 1"
+      },
+      {
+        "name": "v_weapon_preset_guns1",
+        "label": "Weapon Presets - Set Guns Group 2",
+        "category": "Weapons & Combat",
+        "description": "Weapon Presets - Set Guns Group 2"
+      },
+      {
+        "name": "v_weapon_preset_guns2",
+        "label": "Weapon Presets - Set Guns Group 3",
+        "category": "Weapons & Combat",
+        "description": "Weapon Presets - Set Guns Group 3"
+      },
+      {
+        "name": "v_weapon_preset_guns3",
+        "label": "Weapon Presets - Set Guns Group 4",
+        "category": "Weapons & Combat",
+        "description": "Weapon Presets - Set Guns Group 4"
+      },
+      {
+        "name": "v_weapon_preset_emp",
+        "label": "Weapon Presets - Set EMPs",
+        "category": "Weapons & Combat",
+        "description": "Weapon Presets - Set EMPs"
+      },
+      {
+        "name": "v_weapon_preset_qid_jammer",
+        "label": "Weapon Presets - Set Quantum Jammers (short range)",
+        "category": "Weapons & Combat",
+        "description": "Weapon Presets - Set Quantum Jammers (short range)"
+      },
+      {
+        "name": "v_weapon_preset_qid_pulse",
+        "label": "Weapon Presets - Set Quantum Snares / Pulse (long range)",
+        "category": "Weapons & Combat",
+        "description": "Weapon Presets - Set Quantum Snares / Pulse (long range)"
+      },
+      {
+        "name": "v_weapon_preset_qid",
+        "label": "Weapon Presets - Set QIDs",
+        "category": "Weapons & Combat",
+        "description": "Weapon Presets - Set QIDs"
+      }
+    ]
+  },
+  "spectator": {
+    "mapName": "spectator",
+    "label": "Spectator",
+    "domain": "spectator",
+    "actions": [
+      {
+        "name": "spectate_next_target",
+        "label": "Spectate Next Target",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "spectate_prev_target",
+        "label": "Spectate Prev Target",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "spectate_toggle_lock_target",
+        "label": "Spectate Toggle Lock Target",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "spectate_zoom",
+        "label": "Spectate Zoom",
+        "category": "Spectator"
+      },
+      {
+        "name": "spectate_zoom_in",
+        "label": "Spectate Zoom In",
+        "category": "Spectator"
+      },
+      {
+        "name": "spectate_zoom_out",
+        "label": "Spectate Zoom Out",
+        "category": "Spectator"
+      },
+      {
+        "name": "spectate_rotateyaw_mouse",
+        "label": "Spectate Rotateyaw Mouse",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "spectate_rotatepitch_mouse",
+        "label": "Spectate Rotatepitch Mouse",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "spectate_rotateyaw",
+        "label": "Spectate Rotateyaw",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "spectate_rotatepitch",
+        "label": "Spectate Rotatepitch",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "spectate_toggle_hud",
+        "label": "Spectate Toggle Hud",
+        "category": "Spectator"
+      },
+      {
+        "name": "spectate_gen_nextcamera",
+        "label": "Spectate Gen Nextcamera",
+        "category": "Spectator"
+      },
+      {
+        "name": "spectate_gen_nextmode",
+        "label": "Spectate Gen Nextmode",
+        "category": "Spectator"
+      },
+      {
+        "name": "spectate_gen_prevmode",
+        "label": "Spectate Gen Prevmode",
+        "category": "Spectator"
+      },
+      {
+        "name": "spectate_moveleft",
+        "label": "Spectate Moveleft",
+        "category": "Spectator"
+      },
+      {
+        "name": "spectate_moveright",
+        "label": "Spectate Moveright",
+        "category": "Spectator"
+      },
+      {
+        "name": "spectate_moveforward",
+        "label": "Spectate Moveforward",
+        "category": "Spectator"
+      },
+      {
+        "name": "spectate_moveback",
+        "label": "Spectate Moveback",
+        "category": "Spectator"
+      },
+      {
+        "name": "spectate_moveup",
+        "label": "Spectate Moveup",
+        "category": "Spectator"
+      },
+      {
+        "name": "spectate_movedown",
+        "label": "Spectate Movedown",
+        "category": "Spectator"
+      },
+      {
+        "name": "spectate_freecam_sprint",
+        "label": "Spectate Freecam Sprint",
+        "category": "Spectator"
+      },
+      {
+        "name": "spectate_toggle_freecam",
+        "label": "Spectate Toggle Freecam",
+        "category": "Spectator"
+      },
+      {
+        "name": "spectate_toggle_thirdperson",
+        "label": "Spectate Toggle Thirdperson",
+        "category": "Spectator"
+      },
+      {
+        "name": "spectate_roll_left",
+        "label": "Spectate Roll Left",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "spectate_roll_right",
+        "label": "Spectate Roll Right",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "spectate_speed_increment",
+        "label": "Spectate Speed Increment",
+        "category": "Spectator"
+      },
+      {
+        "name": "spectate_speed_decrement",
+        "label": "Spectate Speed Decrement",
+        "category": "Spectator"
+      },
+      {
+        "name": "spectate_free_look",
+        "label": "Spectate Free Look",
+        "category": "Spectator"
+      }
+    ]
+  },
+  "stopwatch": {
+    "mapName": "stopwatch",
+    "label": "Stopwatch",
+    "domain": "general",
+    "actions": [
+      {
+        "name": "stopwatch_reset",
+        "label": "Reset (Long Press)",
+        "category": "Stopwatch"
+      },
+      {
+        "name": "stopwatch_trigger",
+        "label": "Start / Pause (Short Press)",
+        "category": "Stopwatch"
+      }
+    ]
+  },
+  "tractor_beam": {
+    "mapName": "tractor_beam",
+    "label": "Tractor Beam",
+    "domain": "general",
+    "actions": [
+      {
+        "name": "tractor_beam_increase_distance",
+        "label": "Tractor Beam Increase Distance",
+        "category": "Tractor Beam"
+      },
+      {
+        "name": "tractor_beam_decrease_distance",
+        "label": "Tractor Beam Decrease Distance",
+        "category": "Tractor Beam"
+      },
+      {
+        "name": "tractor_beam_rotate",
+        "label": "Tractor Beam Rotate",
+        "category": "Tractor Beam"
+      },
+      {
+        "name": "tractor_beam_rotate_x",
+        "label": "Tractor Beam Rotate X",
+        "category": "Tractor Beam"
+      },
+      {
+        "name": "tractor_beam_rotate_y",
+        "label": "Tractor Beam Rotate Y",
+        "category": "Tractor Beam"
+      },
+      {
+        "name": "tractor_beam_rotate_z_up",
+        "label": "Tractor Beam Rotate Z Up",
+        "category": "Tractor Beam"
+      },
+      {
+        "name": "tractor_beam_rotate_z_down",
+        "label": "Tractor Beam Rotate Z Down",
+        "category": "Tractor Beam"
+      },
+      {
+        "name": "tractor_beam_detach",
+        "label": "Tractor Beam Detach",
+        "category": "Tractor Beam"
+      },
+      {
+        "name": "tractor_beam_throw",
+        "label": "Tractor Beam Throw",
+        "category": "Tractor Beam"
+      },
+      {
+        "name": "tractor_beam_reset_rotation",
+        "label": "Tractor Beam Reset Rotation",
+        "category": "Tractor Beam"
+      }
+    ]
+  },
+  "turret_advanced": {
+    "mapName": "turret_advanced",
+    "label": "Turret Advanced",
+    "domain": "turret",
+    "actions": [
+      {
+        "name": "turret_esp_toggle",
+        "label": "Turret Esp Toggle",
+        "category": "Turret Advanced"
+      },
+      {
+        "name": "turret_esp_hold",
+        "label": "Turret E.S.P. - Enable Temporarily (Hold)",
+        "category": "Turret Advanced"
+      },
+      {
+        "name": "turret_recenter",
+        "label": "Turret Recenter",
+        "category": "Turret Advanced"
+      },
+      {
+        "name": "turret_limiter_toggle",
+        "label": "Turret Limiter Toggle",
+        "category": "Turret Advanced"
+      },
+      {
+        "name": "turret_limiter_rel",
+        "label": "Turret Limiter Rel",
+        "category": "Turret Advanced"
+      },
+      {
+        "name": "turret_limiter_rel_increase",
+        "label": "Turret Limiter Rel Increase",
+        "category": "Turret Advanced"
+      },
+      {
+        "name": "turret_limiter_rel_decrease",
+        "label": "Turret Limiter Rel Decrease",
+        "category": "Turret Advanced"
+      },
+      {
+        "name": "turret_limiter_abs",
+        "label": "Turret Limiter Abs",
+        "category": "Turret Advanced"
+      },
+      {
+        "name": "turret_change_position",
+        "label": "Change Turret Position",
+        "category": "Turret Advanced"
+      }
+    ]
+  },
+  "turret_movement": {
+    "mapName": "turret_movement",
+    "label": "Turret Movement",
+    "domain": "turret",
+    "actions": [
+      {
+        "name": "turret_pitch_up",
+        "label": "Turret Pitch Up",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "turret_pitch_down",
+        "label": "Turret Pitch Down",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "turret_pitch",
+        "label": "Turret Pitch",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "turret_pitch_mouse",
+        "label": "Turret Pitch Mouse",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "turret_yaw_left",
+        "label": "Turret Yaw Left",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "turret_yaw_right",
+        "label": "Turret Yaw Right",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "turret_yaw",
+        "label": "Turret Yaw",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "turret_yaw_mouse",
+        "label": "Turret Yaw Mouse",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "turret_toggle_mouse_mode",
+        "label": "Turret Toggle Mouse Mode",
+        "category": "Turret Movement"
+      },
+      {
+        "name": "turret_mouse_mode_cycle",
+        "label": "Turret Mouse Mode - Cycle Modes",
+        "category": "Turret Movement"
+      },
+      {
+        "name": "turret_mouse_mode_set_vjoy",
+        "label": "Turret Mouse Mode - VJoy Dragging",
+        "category": "Turret Movement"
+      },
+      {
+        "name": "turret_mouse_mode_set_1to1",
+        "label": "Turret Mouse Mode - Relative Dragging",
+        "category": "Turret Movement"
+      },
+      {
+        "name": "turret_mouse_mode_set_pointer",
+        "label": "Turret Mouse Mode - Pointer",
+        "category": "Turret Movement"
+      },
+      {
+        "name": "turret_remote_exit",
+        "label": "Turret Remote Exit",
+        "category": "Seat & Access"
+      },
+      {
+        "name": "turret_gyromode",
+        "label": "Turret Gyromode",
+        "category": "Turret Movement"
+      },
+      {
+        "name": "turret_remote_cycle_next",
+        "label": "Next Remote Turret",
+        "category": "Turret Movement"
+      },
+      {
+        "name": "turret_remote_cycle_prev",
+        "label": "Previous Remote Turret",
+        "category": "Turret Movement"
+      }
+    ]
+  },
+  "ui_notification": {
+    "mapName": "ui_notification",
+    "label": "Ui Notification",
+    "domain": "general",
+    "actions": [
+      {
+        "name": "ui_notification_accept",
+        "label": "Ui Notification Accept",
+        "category": "Ui Notification"
+      },
+      {
+        "name": "ui_notification_decline",
+        "label": "Ui Notification Decline",
+        "category": "Ui Notification"
+      },
+      {
+        "name": "ui_notification_ignore",
+        "label": "Ui Notification Ignore",
+        "category": "Ui Notification"
+      }
+    ]
+  },
+  "ui_textfield": {
+    "mapName": "ui_textfield",
+    "label": "Ui Textfield",
+    "domain": "general",
+    "actions": [
+      {
+        "name": "ui_textfield_enter",
+        "label": "Ui Textfield Enter",
+        "category": "Ui Textfield"
+      },
+      {
+        "name": "ui_textfield_backspace",
+        "label": "Ui Textfield Backspace",
+        "category": "Ui Textfield"
+      },
+      {
+        "name": "ui_textfield_arrow_up",
+        "label": "Ui Textfield Arrow Up",
+        "category": "Ui Textfield"
+      },
+      {
+        "name": "ui_textfield_arrow_down",
+        "label": "Ui Textfield Arrow Down",
+        "category": "Ui Textfield"
+      },
+      {
+        "name": "ui_textfield_arrow_left",
+        "label": "Ui Textfield Arrow Left",
+        "category": "Ui Textfield"
+      },
+      {
+        "name": "ui_textfield_arrow_right",
+        "label": "Ui Textfield Arrow Right",
+        "category": "Ui Textfield"
+      }
+    ]
+  },
+  "vehicle_driver": {
+    "mapName": "vehicle_driver",
+    "label": "Vehicle Driver",
+    "domain": "ground_vehicle",
+    "actions": [
+      {
+        "name": "v_move_forward",
+        "label": "Move Forward",
+        "category": "Vehicle Driver"
+      },
+      {
+        "name": "v_move_back",
+        "label": "Move Back",
+        "category": "Vehicle Driver"
+      },
+      {
+        "name": "v_move",
+        "label": "Move",
+        "category": "Vehicle Driver"
+      },
+      {
+        "name": "v_yaw_left",
+        "label": "Yaw Left",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_yaw_right",
+        "label": "Yaw Right",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_yaw",
+        "label": "Yaw",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_yaw_mouse",
+        "label": "Yaw Mouse",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_pitch_up",
+        "label": "Pitch Up",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_pitch_down",
+        "label": "Pitch Down",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_pitch",
+        "label": "Pitch",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_pitch_mouse",
+        "label": "Pitch Mouse",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_brake",
+        "label": "Brake",
+        "category": "Vehicle Driver"
+      },
+      {
+        "name": "v_view_dynamic_zoom_rel",
+        "label": "View Dynamic Zoom Rel",
+        "category": "Vehicle Driver"
+      },
+      {
+        "name": "v_view_dynamic_zoom_rel_in",
+        "label": "View Dynamic Zoom Rel In",
+        "category": "Vehicle Driver"
+      },
+      {
+        "name": "v_view_dynamic_zoom_rel_out",
+        "label": "View Dynamic Zoom Rel Out",
+        "category": "Vehicle Driver"
+      },
+      {
+        "name": "v_view_dynamic_zoom_abs",
+        "label": "View Dynamic Zoom Abs",
+        "category": "Vehicle Driver"
+      },
+      {
+        "name": "v_view_dynamic_zoom_abs_toggle",
+        "label": "View Dynamic Zoom Abs Toggle",
+        "category": "Vehicle Driver"
+      },
+      {
+        "name": "v_boost",
+        "label": "Boost",
+        "category": "Vehicle Driver"
+      },
+      {
+        "name": "v_lock_rotation",
+        "label": "Lock Rotation",
+        "category": "Vehicle Driver"
+      },
+      {
+        "name": "v_mgv_switch_brake_on_idle",
+        "label": "Mgv Switch Brake On Idle",
+        "category": "Vehicle Driver"
+      }
+    ]
+  },
+  "vehicle_general": {
+    "mapName": "vehicle_general",
+    "label": "Vehicle General",
+    "domain": "ground_vehicle",
+    "actions": [
+      {
+        "name": "v_attack_all",
+        "label": "Fire All Weapons",
+        "category": "Vehicle Combat"
+      },
+      {
+        "name": "v_horn",
+        "label": "Horn",
+        "category": "Vehicle General"
+      },
+      {
+        "name": "v_view_cycle_fwd",
+        "label": "View Cycle Fwd",
+        "category": "Vehicle General"
+      },
+      {
+        "name": "v_view_option",
+        "label": "View Option",
+        "category": "Vehicle General"
+      },
+      {
+        "name": "v_view_zoom_in",
+        "label": "View Zoom In",
+        "category": "Vehicle General"
+      },
+      {
+        "name": "v_view_zoom_out",
+        "label": "View Zoom Out",
+        "category": "Vehicle General"
+      },
+      {
+        "name": "v_view_yaw_mouse",
+        "label": "View Yaw Mouse",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_view_pitch_mouse",
+        "label": "View Pitch Mouse",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_view_yaw",
+        "label": "View Yaw",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_view_pitch",
+        "label": "View Pitch",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_view_freelook_mode",
+        "label": "View Freelook Mode",
+        "category": "Vehicle General"
+      },
+      {
+        "name": "v_toggle_cursor_input",
+        "label": "Toggle Cursor Input",
+        "category": "Vehicle General"
+      },
+      {
+        "name": "v_view_yaw_absolute",
+        "label": "View Yaw Absolute",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_view_pitch_absolute",
+        "label": "View Pitch Absolute",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "v_view_roll_absolute",
+        "label": "View Roll Absolute",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "mobiglas",
+        "label": "Mobiglas",
+        "category": "Vehicle General"
+      },
+      {
+        "name": "v_flightready",
+        "label": "Flightready",
+        "category": "Vehicle General"
+      },
+      {
+        "name": "v_toggle_all_doors",
+        "label": "Toggle All Doors",
+        "category": "Seat & Access"
+      },
+      {
+        "name": "v_open_all_doors",
+        "label": "Open All Doors",
+        "category": "Seat & Access"
+      },
+      {
+        "name": "v_close_all_doors",
+        "label": "Close All Doors",
+        "category": "Seat & Access"
+      },
+      {
+        "name": "v_toggle_all_doorlocks",
+        "label": "Toggle All Doorlocks",
+        "category": "Seat & Access"
+      },
+      {
+        "name": "v_lock_all_doors",
+        "label": "Lock All Doors",
+        "category": "Seat & Access"
+      },
+      {
+        "name": "v_unlock_all_doors",
+        "label": "Unlock All Doors",
+        "category": "Seat & Access"
+      },
+      {
+        "name": "v_toggle_all_portlocks",
+        "label": "Toggle All Portlocks",
+        "category": "Vehicle General"
+      },
+      {
+        "name": "v_lock_all_ports",
+        "label": "Lock All Ports",
+        "category": "Vehicle General"
+      },
+      {
+        "name": "v_unlock_all_ports",
+        "label": "Unlock All Ports",
+        "category": "Vehicle General"
+      },
+      {
+        "name": "v_starmap",
+        "label": "Starmap",
+        "category": "Vehicle General"
+      },
+      {
+        "name": "visor_wipe",
+        "label": "Visor Wipe",
+        "category": "Vehicle General"
+      }
+    ]
+  },
+  "vehicle_mfd": {
+    "mapName": "vehicle_mfd",
+    "label": "Vehicle Mfd",
+    "domain": "ground_vehicle",
+    "actions": [
+      {
+        "name": "v_mfd_interact_cycle_forwards_short",
+        "label": "Mfd Interact Cycle Forwards Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_interact_cycle_forwards_long",
+        "label": "Mfd Interact Cycle Forwards Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_interact_cycle_backwards_short",
+        "label": "Mfd Interact Cycle Backwards Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_interact_cycle_backwards_long",
+        "label": "Mfd Interact Cycle Backwards Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_movement_up_short",
+        "label": "Mfd Movement Up Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_movement_up_long",
+        "label": "Mfd Movement Up Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_movement_down_short",
+        "label": "Mfd Movement Down Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_movement_down_long",
+        "label": "Mfd Movement Down Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_movement_left_short",
+        "label": "Mfd Movement Left Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_movement_left_long",
+        "label": "Mfd Movement Left Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_movement_right_short",
+        "label": "Mfd Movement Right Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_movement_right_long",
+        "label": "Mfd Movement Right Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_primary_short",
+        "label": "Mfd Soft Select Mfd Primary Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_primary_long",
+        "label": "Mfd Soft Select Mfd Primary Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_cast_left_short",
+        "label": "Mfd Soft Select Cast Left Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_cast_left_long",
+        "label": "Mfd Soft Select Cast Left Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_cast_right_short",
+        "label": "Mfd Soft Select Cast Right Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_cast_right_long",
+        "label": "Mfd Soft Select Cast Right Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_1_short",
+        "label": "Mfd Soft Select Mfd 1 Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_1_long",
+        "label": "Mfd Soft Select Mfd 1 Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_2_short",
+        "label": "Mfd Soft Select Mfd 2 Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_2_long",
+        "label": "Mfd Soft Select Mfd 2 Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_3_short",
+        "label": "Mfd Soft Select Mfd 3 Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_3_long",
+        "label": "Mfd Soft Select Mfd 3 Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_4_short",
+        "label": "Mfd Soft Select Mfd 4 Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_4_long",
+        "label": "Mfd Soft Select Mfd 4 Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_5_short",
+        "label": "Mfd Soft Select Mfd 5 Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_5_long",
+        "label": "Mfd Soft Select Mfd 5 Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_6_short",
+        "label": "Mfd Soft Select Mfd 6 Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_6_long",
+        "label": "Mfd Soft Select Mfd 6 Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_7_short",
+        "label": "Mfd Soft Select Mfd 7 Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_7_long",
+        "label": "Mfd Soft Select Mfd 7 Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_8_short",
+        "label": "Mfd Soft Select Mfd 8 Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_8_long",
+        "label": "Mfd Soft Select Mfd 8 Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_9_short",
+        "label": "Mfd Soft Select Mfd 9 Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_9_long",
+        "label": "Mfd Soft Select Mfd 9 Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_10_short",
+        "label": "Mfd Soft Select Mfd 10 Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_soft_select_mfd_10_long",
+        "label": "Mfd Soft Select Mfd 10 Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_quick_action_repair_all",
+        "label": "Mfd Quick Action Repair All",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_select_view_self_status_short",
+        "label": "Mfd Select View Self Status Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_select_view_self_status_long",
+        "label": "Mfd Select View Self Status Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_select_view_target_status_short",
+        "label": "Mfd Select View Target Status Short",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_mfd_select_view_target_status_long",
+        "label": "Mfd Select View Target Status Long",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "v_mfd_select_view_scanning_short",
+        "label": "Mfd Select View Scanning Short",
+        "category": "Scanning"
+      },
+      {
+        "name": "v_mfd_select_view_scanning_long",
+        "label": "Mfd Select View Scanning Long",
+        "category": "Scanning"
+      },
+      {
+        "name": "v_mfd_select_view_configuration_short",
+        "label": "Mfd Select View Configuration Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_select_view_configuration_long",
+        "label": "Mfd Select View Configuration Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_select_view_comms_short",
+        "label": "Mfd Select View Comms Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_select_view_comms_long",
+        "label": "Mfd Select View Comms Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_select_view_ifcs_short",
+        "label": "Mfd Select View Ifcs Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_select_view_ifcs_long",
+        "label": "Mfd Select View Ifcs Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_select_view_diagnostics_short",
+        "label": "Mfd Select View Diagnostics Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_select_view_diagnostics_long",
+        "label": "Mfd Select View Diagnostics Long",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_select_view_resource_network_short",
+        "label": "Mfd Select View Resource Network Short",
+        "category": "Vehicle Mfd"
+      },
+      {
+        "name": "v_mfd_select_view_resource_network_long",
+        "label": "Mfd Select View Resource Network Long",
+        "category": "Vehicle Mfd"
+      }
+    ]
+  },
+  "vehicle_mobiglas": {
+    "mapName": "vehicle_mobiglas",
+    "label": "Vehicle Mobiglas",
+    "domain": "ground_vehicle",
+    "actions": [
+      {
+        "name": "ui_3d_display_select",
+        "label": "Ui 3d Display Select",
+        "category": "Vehicle Mobiglas"
+      },
+      {
+        "name": "ui_3d_display_reorient",
+        "label": "Ui 3d Display Reorient",
+        "category": "Vehicle Mobiglas"
+      },
+      {
+        "name": "ui_3d_display_center",
+        "label": "Ui 3d Display Center",
+        "category": "Vehicle Mobiglas"
+      },
+      {
+        "name": "ui_3d_display_decenter",
+        "label": "Ui 3d Display Decenter",
+        "category": "Vehicle Mobiglas"
+      },
+      {
+        "name": "ui_3d_display_zoom_out_button",
+        "label": "Ui 3d Display Zoom Out Button",
+        "category": "Vehicle Mobiglas"
+      },
+      {
+        "name": "ui_3d_display_zoom_in_button",
+        "label": "Ui 3d Display Zoom In Button",
+        "category": "Vehicle Mobiglas"
+      },
+      {
+        "name": "ui_3d_display_zoom_in_analog",
+        "label": "Ui 3d Display Zoom In Analog",
+        "category": "Vehicle Mobiglas"
+      },
+      {
+        "name": "ui_3d_display_zoom_out_analog",
+        "label": "Ui 3d Display Zoom Out Analog",
+        "category": "Vehicle Mobiglas"
+      },
+      {
+        "name": "ui_3d_display_zoom_out_wheel",
+        "label": "Ui 3d Display Zoom Out Wheel",
+        "category": "Vehicle Mobiglas"
+      },
+      {
+        "name": "ui_3d_display_zoom_in_wheel",
+        "label": "Ui 3d Display Zoom In Wheel",
+        "category": "Vehicle Mobiglas"
+      },
+      {
+        "name": "ui_3d_display_pan_toggle",
+        "label": "Ui 3d Display Pan Toggle",
+        "category": "Vehicle Mobiglas"
+      },
+      {
+        "name": "ui_3d_display_rotate_toggle",
+        "label": "Ui 3d Display Rotate Toggle",
+        "category": "Vehicle Mobiglas"
+      },
+      {
+        "name": "ui_3d_display_zoom_toggle",
+        "label": "Ui 3d Display Zoom Toggle",
+        "category": "Vehicle Mobiglas"
+      },
+      {
+        "name": "ui_3d_display_toggledPanX",
+        "label": "Ui 3d Display ToggledPanX",
+        "category": "Vehicle Mobiglas"
+      },
+      {
+        "name": "ui_3d_display_toggledPanY",
+        "label": "Ui 3d Display ToggledPanY",
+        "category": "Vehicle Mobiglas"
+      },
+      {
+        "name": "ui_3d_display_toggledYaw",
+        "label": "Ui 3d Display ToggledYaw",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "ui_3d_display_toggledPitch",
+        "label": "Ui 3d Display ToggledPitch",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "ui_3d_display_toggledZoom",
+        "label": "Ui 3d Display ToggledZoom",
+        "category": "Vehicle Mobiglas"
+      },
+      {
+        "name": "ui_3d_display_nonToggledPanUp",
+        "label": "Ui 3d Display NonToggledPanUp",
+        "category": "Vehicle Mobiglas"
+      },
+      {
+        "name": "ui_3d_display_nonToggledPanDown",
+        "label": "Ui 3d Display NonToggledPanDown",
+        "category": "Vehicle Mobiglas"
+      },
+      {
+        "name": "ui_3d_display_nonToggledPanLeft",
+        "label": "Ui 3d Display NonToggledPanLeft",
+        "category": "Vehicle Mobiglas"
+      },
+      {
+        "name": "ui_3d_display_nonToggledPanRight",
+        "label": "Ui 3d Display NonToggledPanRight",
+        "category": "Vehicle Mobiglas"
+      },
+      {
+        "name": "ui_3d_display_nonToggledYawUp",
+        "label": "Ui 3d Display NonToggledYawUp",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "ui_3d_display_nonToggledYawDown",
+        "label": "Ui 3d Display NonToggledYawDown",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "ui_3d_display_nonToggledPitchLeft",
+        "label": "Ui 3d Display NonToggledPitchLeft",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "ui_3d_display_nonToggledPitchRight",
+        "label": "Ui 3d Display NonToggledPitchRight",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "ui_3d_display_pinMode",
+        "label": "Ui 3d Display PinMode",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "ui_3d_display_pinSelect",
+        "label": "Ui 3d Display PinSelect",
+        "category": "Targeting & Radar"
+      }
+    ]
+  },
+  "view_director_mode": {
+    "mapName": "view_director_mode",
+    "label": "View Director Mode",
+    "domain": "spectator",
+    "actions": [
+      {
+        "name": "view_enable_camview_mode",
+        "label": "View Enable Camview Mode",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_switch_to_alternative",
+        "label": "View Switch To Alternative",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_save_view_1",
+        "label": "View Save View 1",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_save_view_2",
+        "label": "View Save View 2",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_save_view_3",
+        "label": "View Save View 3",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_save_view_4",
+        "label": "View Save View 4",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_save_view_5",
+        "label": "View Save View 5",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_save_view_6",
+        "label": "View Save View 6",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_save_view_7",
+        "label": "View Save View 7",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_save_view_8",
+        "label": "View Save View 8",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_save_view_9",
+        "label": "View Save View 9",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_load_view_1",
+        "label": "View Load View 1",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_load_view_2",
+        "label": "View Load View 2",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_load_view_3",
+        "label": "View Load View 3",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_load_view_4",
+        "label": "View Load View 4",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_load_view_5",
+        "label": "View Load View 5",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_load_view_6",
+        "label": "View Load View 6",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_load_view_7",
+        "label": "View Load View 7",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_load_view_8",
+        "label": "View Load View 8",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_load_view_9",
+        "label": "View Load View 9",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_reset_saved",
+        "label": "View Reset Saved",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_move_target_X_pos",
+        "label": "View Move Target X Pos",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "view_move_target_X_neg",
+        "label": "View Move Target X Neg",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "view_move_target_Y_pos",
+        "label": "View Move Target Y Pos",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "view_move_target_Y_neg",
+        "label": "View Move Target Y Neg",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "view_move_target_Z_pos",
+        "label": "View Move Target Z Pos",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "view_move_target_Z_neg",
+        "label": "View Move Target Z Neg",
+        "category": "Targeting & Radar"
+      },
+      {
+        "name": "view_fov_in",
+        "label": "View Fov In",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_fov_out",
+        "label": "View Fov Out",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_fstop_in",
+        "label": "View Fstop In",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_fstop_out",
+        "label": "View Fstop Out",
+        "category": "View Director Mode"
+      },
+      {
+        "name": "view_restore_defaults",
+        "label": "View Restore Defaults",
+        "category": "View Director Mode"
+      }
+    ]
+  },
+  "zero_gravity_eva": {
+    "mapName": "zero_gravity_eva",
+    "label": "Zero Gravity Eva",
+    "domain": "eva",
+    "actions": [
+      {
+        "name": "eva_view_yaw_left",
+        "label": "Eva View Yaw Left",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "eva_view_yaw_right",
+        "label": "Eva View Yaw Right",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "eva_view_yaw",
+        "label": "Eva View Yaw",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "eva_view_yaw_mouse",
+        "label": "Eva View Yaw Mouse",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "eva_view_pitch_up",
+        "label": "Eva View Pitch Up",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "eva_view_pitch_down",
+        "label": "Eva View Pitch Down",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "eva_view_pitch",
+        "label": "Eva View Pitch",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "eva_view_pitch_mouse",
+        "label": "Eva View Pitch Mouse",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "eva_roll_left",
+        "label": "Eva Roll Left",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "eva_roll_right",
+        "label": "Eva Roll Right",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "eva_roll",
+        "label": "Eva Roll",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "eva_strafe_up",
+        "label": "Eva Strafe Up",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "eva_strafe_down",
+        "label": "Eva Strafe Down",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "eva_strafe_vertical",
+        "label": "Eva Strafe Vertical",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "eva_strafe_left",
+        "label": "Eva Strafe Left",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "eva_strafe_right",
+        "label": "Eva Strafe Right",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "eva_strafe_lateral",
+        "label": "Eva Strafe Lateral",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "eva_strafe_forward",
+        "label": "Eva Strafe Forward",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "eva_strafe_back",
+        "label": "Eva Strafe Back",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "eva_strafe_longitudinal",
+        "label": "Eva Strafe Longitudinal",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "eva_brake",
+        "label": "Eva Brake",
+        "category": "Zero Gravity Eva"
+      },
+      {
+        "name": "eva_boost",
+        "label": "Eva Boost",
+        "category": "Zero Gravity Eva"
+      },
+      {
+        "name": "eva_toggle_headlook_mode",
+        "label": "Eva Toggle Headlook Mode",
+        "category": "Zero Gravity Eva"
+      }
+    ]
+  },
+  "zero_gravity_traversal": {
+    "mapName": "zero_gravity_traversal",
+    "label": "Zero Gravity Traversal",
+    "domain": "eva",
+    "actions": [
+      {
+        "name": "zgt_launch",
+        "label": "Zgt Launch",
+        "category": "Zero Gravity Traversal"
+      },
+      {
+        "name": "zgt_detach",
+        "label": "Zgt Detach",
+        "category": "Zero Gravity Traversal"
+      },
+      {
+        "name": "zgt_roll_left",
+        "label": "Zgt Roll Left",
+        "category": "Flight Movement"
+      },
+      {
+        "name": "zgt_roll_right",
+        "label": "Zgt Roll Right",
+        "category": "Flight Movement"
+      }
     ]
   }
 };

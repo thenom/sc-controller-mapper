@@ -141,19 +141,25 @@ export class ExclusionMatrix {
    */
   private static readonly ACTION_MASTER_MODES: Record<string, MasterFlightMode> = {
     // SCM Mode (Standard Control Model / Weapons active, shields up, speed capped)
-    'v_attack1_group1': 'SCM',
-    'v_attack1_group2': 'SCM',
+    'v_attack_all': 'SCM',
     'v_attack_group1': 'SCM',
     'v_attack_group2': 'SCM',
+    'v_attack1_group1': 'SCM',
+    'v_attack1_group2': 'SCM',
     'v_target_lock_selected': 'SCM',
+    'v_target_cycle_pinned_all': 'SCM',
     'v_target_cycle_pinned': 'SCM',
+    'v_missile_fire': 'SCM',
     'v_missile_launch': 'SCM',
+    'v_toggle_missile_mode': 'SCM',
+    'v_weapon_pip_toggle_lead_lag': 'SCM',
     'v_weapon_pip_type_toggle': 'SCM',
 
     // NAV Mode (Quantum spooling / High-speed flight / Guns & Shields offline)
     'v_toggle_quantum_mode': 'NAV',
     'v_toggle_qdrive_engagement': 'NAV',
     'v_master_mode_set_nav': 'NAV',
+    'v_master_mode_cycle_long': 'NAV',
     'v_nav_flt_speed_boost': 'NAV'
   };
 

@@ -52,8 +52,11 @@ export class RedundancyEvaluator {
     ]),
 
     // In Star Citizen 3.23+ Master Modes, entering NAV mode automatically spools quantum
-    'v_nav_flight_mode_toggle': new Set([
-      'v_quantum_spool'
+    'v_master_mode_set_nav': new Set([
+      'v_toggle_qdrive_engagement'
+    ]),
+    'v_master_mode_cycle_long': new Set([
+      'v_toggle_qdrive_engagement'
     ])
   };
 
@@ -74,6 +77,21 @@ export class RedundancyEvaluator {
     'v_ifcs_speed_limiter_reset_scm': {
       reason: 'SCM speed limiter reset was superseded by Master Modes automatic flight velocity scaling.',
       replacement: 'Use Boost or NAV mode transition to manage top speed.',
+      deprecatedSince: 'Alpha 3.23.0'
+    },
+    'v_ifcs_toggle_speed_limiter': {
+      reason: 'Legacy speed limiter toggle was superseded by Master Modes acceleration limiter.',
+      replacement: 'Bind to Acceleration Limiter (v_accel_range_up / down / abs).',
+      deprecatedSince: 'Alpha 3.23.0'
+    },
+    'v_ifcs_toggle_vector_decoupling': {
+      reason: 'Legacy vector decoupling toggle was superseded by IFCS flight mode toggling (v_toggle_flight_mode).',
+      replacement: 'Rebind to IFCS toggle flight mode (v_toggle_flight_mode).',
+      deprecatedSince: 'Alpha 3.23.0'
+    },
+    'v_target_match_vel': {
+      reason: 'Target velocity matching was removed in Star Citizen 3.23 (Master Modes).',
+      replacement: 'Clear binding or rebind to target cycling.',
       deprecatedSince: 'Alpha 3.23.0'
     },
     'v_toggle_quantum_mode': {

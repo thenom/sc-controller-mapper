@@ -72,16 +72,16 @@ const SAMPLE_XML = `<?xml version="1.0" encoding="utf-8"?>
     <action name="v_boost">
       <rebind input="js1_button4" activationMode="press"/>
     </action>
-    <action name="v_spacebreak">
+    <action name="v_space_brake">
       <rebind input="js1_button4" activationMode="double_tap"/>
     </action>
     <action name="v_eject">
       <rebind input="js1_button5" activationMode="hold"/>
     </action>
-    <action name="v_lights_toggle">
+    <action name="v_toggle_headlights">
       <rebind input="js1_button5" activationMode="press"/>
     </action>
-    <action name="v_toggle_quantum_mode">
+    <action name="v_toggle_qdrive_engagement">
       <rebind input="js1_button3" activationMode="press"/>
     </action>
     <action name="v_master_mode_cycle">
@@ -89,12 +89,12 @@ const SAMPLE_XML = `<?xml version="1.0" encoding="utf-8"?>
     </action>
   </actionmap>
   <actionmap name="spaceship_weapons">
-    <action name="v_attack1_group1">
+    <action name="v_attack_group1">
       <rebind input="js1_button1" activationMode="press"/>
     </action>
   </actionmap>
   <actionmap name="player">
-    <action name="fire">
+    <action name="attack1">
       <rebind input="js1_button1" activationMode="press"/>
     </action>
   </actionmap>
@@ -110,10 +110,10 @@ export const App: React.FC = () => {
         'v_yaw': 'Yaw (Rudder)',
         'v_roll': 'Roll (Ailerons)',
         'v_boost': 'Engine Boost / Afterburner',
-        'v_spacebreak': 'Space Brake',
+        'v_space_brake': 'Space Brake',
         'v_eject': 'Emergency Ejection',
-        'v_lights_toggle': 'Exterior Ship Lights',
-        'v_attack1_group1': 'Primary Weapon Group 1'
+        'v_toggle_headlights': 'Exterior Ship Lights',
+        'v_attack_group1': 'Primary Weapon Group 1'
       });
       merger.enrichDocument(parsed);
       return parsed;
