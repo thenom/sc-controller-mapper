@@ -77,13 +77,8 @@ export class RedundancyEvaluator {
       deprecatedSince: 'Alpha 3.23.0'
     },
     'v_toggle_quantum_mode': {
-      reason: 'Legacy quantum mode toggle was superseded by Master Modes NAV mode toggle (v_nav_flight_mode_toggle).',
-      replacement: "Rebind to 'v_nav_flight_mode_toggle' (Master Modes SCM/NAV switch).",
-      deprecatedSince: 'Alpha 3.23.0'
-    },
-    'v_toggle_qdrive_engagement': {
-      reason: 'Superseded by Master Modes quantum travel engage (v_quantum_travel / spooling in NAV mode).',
-      replacement: "Rebind to 'v_quantum_travel' or use primary trigger in NAV mode.",
+      reason: 'Legacy quantum mode toggle was superseded by Master Modes NAV mode toggle (v_master_mode_cycle_long).',
+      replacement: "Rebind to Master Modes cycle (v_master_mode_cycle_long / NAV mode).",
       deprecatedSince: 'Alpha 3.23.0'
     },
     'v_weapon_pip_toggle_lead_lag': {

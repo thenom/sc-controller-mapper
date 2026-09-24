@@ -89,11 +89,16 @@ export const MASTER_ACTION_CATALOG: MasterActionCatalog = {
   },
   spaceship_quantum: {
     mapName: "spaceship_quantum",
-    label: "Quantum Travel",
+    label: "Spaceship Quantum",
     domain: "spaceship",
     actions: [
-      { name: "v_quantum_spool", label: "Quantum Spool / Align", category: "Quantum Travel", description: "Spool quantum drive engine toward selected navigation beacon", masterFlightMode: "NAV" },
-      { name: "v_quantum_travel", label: "Engage Quantum Travel", category: "Quantum Travel", description: "Jump into quantum space towards calibrated beacon", masterFlightMode: "NAV" }
+      {
+        name: "v_toggle_qdrive_engagement",
+        label: "Engage Quantum Drive (Hold)",
+        category: "Spaceship Quantum",
+        description: "Engages the quantum drive (hold to jump)",
+        masterFlightMode: "NAV"
+      }
     ]
   },
   spaceship_mining: {

@@ -81,4 +81,22 @@ describe('ActionMapsParser', () => {
     expect(() => ActionMapsParser.parseXML('')).toThrow();
     expect(() => ActionMapsParser.parseXML('<BrokenXml')).toThrow();
   });
+
+  it('should normalize legacy or mock aliases like v_quantum_travel to canonical v_toggle_qdrive_engagement', () => {
+    const xml = `<ActionMaps version="1">
+      <actionmap name="spaceship_quantum">
+        <action name="v_quantum_travel">
+          <rebind input="js2_button3"/>
+        </action>
+      </actionmap>
+    </ActionMaps>`;
+
+    const doc = ActionMapsParser.parseXML(xml);
+    const action = doc.actionMaps['spaceship_quantum'].actions['v_toggle_qdrive_engagement'];
+    expect(action).toBeDefined();
+    expect(action.inputs).toHaveLength(1);
+    expect(action.inputs[0].input).toBe('js2_button3');
+    // Ensure the fake name is not present as a separate action
+    expect(doc.actionMaps['spaceship_quantum'].actions['v_quantum_travel']).toBeUndefined();
+  });
 });

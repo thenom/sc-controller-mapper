@@ -151,11 +151,9 @@ export class ExclusionMatrix {
     'v_weapon_pip_type_toggle': 'SCM',
 
     // NAV Mode (Quantum spooling / High-speed flight / Guns & Shields offline)
-    'v_quantum_spool': 'NAV',
-    'v_quantum_travel': 'NAV',
     'v_toggle_quantum_mode': 'NAV',
     'v_toggle_qdrive_engagement': 'NAV',
-    'v_nav_flight_mode_toggle': 'NAV',
+    'v_master_mode_set_nav': 'NAV',
     'v_nav_flt_speed_boost': 'NAV'
   };
 

@@ -187,8 +187,15 @@ export class ActionMapsParser {
       const actionNodes = amNode.getElementsByTagName('action');
       for (let j = 0; j < actionNodes.length; j++) {
         const actNode = actionNodes[j];
-        const actionName = actNode.getAttribute('name');
-        if (!actionName) continue;
+        const rawActionName = actNode.getAttribute('name');
+        if (!rawActionName) continue;
+
+        // Normalize known fictitious or deprecated aliases (e.g. v_quantum_travel -> v_toggle_qdrive_engagement)
+        const actionAliases: Record<string, string> = {
+          v_quantum_travel: 'v_toggle_qdrive_engagement',
+          v_quantum_spool: 'v_toggle_qdrive_engagement'
+        };
+        const actionName = actionAliases[rawActionName] || rawActionName;
 
         const actionBinding: ActionBinding = {
           name: actionName,
@@ -240,7 +247,11 @@ export class ActionMapsParser {
           }
         }
 
-        group.actions[actionName] = actionBinding;
+        if (group.actions[actionName]) {
+          group.actions[actionName].inputs.push(...actionBinding.inputs);
+        } else {
+          group.actions[actionName] = actionBinding;
+        }
       }
 
       result.actionMaps[mapName] = group;
