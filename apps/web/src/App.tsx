@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   ActionMapsParser,
   ActionMapsExporter,
@@ -135,11 +135,30 @@ export const App: React.FC = () => {
   const [inspectorSelectedInput, setInspectorSelectedInput] = useState<string | null>(null);
 
   // Game Version & Suite Versioning State
-  const [gameVersion, setGameVersion] = useState<string>('4.10.193.11644');
-  const [gameBranch, setGameBranch] = useState<string>('sc-alpha-4.10.0');
-  const [gameBuildDate, setGameBuildDate] = useState<string>('Tue Sep 15 2026');
+  const [gameVersion, setGameVersion] = useState<string>('12660092');
+  const [gameBranch, setGameBranch] = useState<string>('sc-alpha-4.10.1');
+  const [gameBuildDate, setGameBuildDate] = useState<string>('Thu Sep 24 2026');
   const suiteVersion = '1.0.0';
   const [isVersionInfoOpen, setIsVersionInfoOpen] = useState(false);
+
+  // Automatically sync target game version metadata from bundled/extracted static data
+  useEffect(() => {
+    fetch('/game-data.json')
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (!data) return;
+        if (data.game_version) setGameVersion(data.game_version);
+        if (data.game_branch) setGameBranch(data.game_branch);
+        if (data.game_build_date) {
+          setGameBuildDate(data.game_build_date);
+        } else if (data.extracted_at) {
+          setGameBuildDate(new Date(data.extracted_at).toDateString());
+        }
+      })
+      .catch(() => {
+        // Fallback to static defaults if offline or running in test runner
+      });
+  }, []);
 
   // Hardware Generator / Submission Studio Modal State
   const [isHardwareStudioOpen, setIsHardwareStudioOpen] = useState(false);
@@ -195,7 +214,11 @@ export const App: React.FC = () => {
     }
     if (data.game_version) setGameVersion(data.game_version);
     if (data.game_branch) setGameBranch(data.game_branch);
-    if (data.game_build_date) setGameBuildDate(data.game_build_date);
+    if (data.game_build_date) {
+      setGameBuildDate(data.game_build_date);
+    } else if (data.extracted_at) {
+      setGameBuildDate(new Date(data.extracted_at).toDateString());
+    }
     setDoc(parsed);
     const initialMap = new Map<number, number>();
     parsed.devices.forEach(d => {
@@ -411,7 +434,7 @@ export const App: React.FC = () => {
                   title="Click to view Star Citizen Game Version Compatibility details"
                 >
                   <ShieldCheck className="w-3.5 h-3.5 text-[#00ff88]" />
-                  <span>Target Game: <strong>Star Citizen Alpha {gameBranch.replace('sc-alpha-', '')}</strong> (Build {gameVersion})</span>
+                  <span>Target Game: <strong>Star Citizen Alpha {gameBranch.replace(/^sc-alpha-|^alpha-\s*|^sc-/i, '')}</strong> (Build {gameVersion})</span>
                   <Info className="w-3 h-3 text-[#94a3b8]" />
                 </button>
                 <span className="text-[11px] text-[#64748b] font-mono">• Build: {gameBuildDate}</span>

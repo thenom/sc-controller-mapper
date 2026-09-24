@@ -30,6 +30,9 @@ func main() {
 		sanitizeFlag      bool
 		updateProjectFlag bool
 		projectRootFlag   string
+		gameVersionFlag   string
+		gameBranchFlag    string
+		gameBuildDateFlag string
 	)
 
 	fs := flag.NewFlagSet("sc-daemon", flag.ExitOnError)
@@ -47,6 +50,12 @@ func main() {
 	fs.BoolVar(&updateProjectFlag, "update-project", false, "Update project action catalog and web data files (packages/parser and apps/web/public)")
 	fs.BoolVar(&updateProjectFlag, "u", false, "Shorthand for --update-project")
 	fs.StringVar(&projectRootFlag, "project-root", ".", "Path to project root monorepo directory (default: current directory)")
+	fs.StringVar(&gameVersionFlag, "game-version", "", "Override or explicitly specify Star Citizen build version (e.g. 12660092)")
+	fs.StringVar(&gameVersionFlag, "gv", "", "Shorthand for --game-version")
+	fs.StringVar(&gameBranchFlag, "game-branch", "", "Override or explicitly specify Star Citizen branch (e.g. sc-alpha-4.10.1 or LIVE)")
+	fs.StringVar(&gameBranchFlag, "gb", "", "Shorthand for --game-branch")
+	fs.StringVar(&gameBuildDateFlag, "game-build-date", "", "Override or explicitly specify Star Citizen build date (e.g. Wed Sep 23 2026)")
+	fs.StringVar(&gameBuildDateFlag, "gd", "", "Shorthand for --game-build-date")
 
 	fs.Usage = func() {
 		fmt.Printf("sc-daemon v%s — Star Citizen Keybinding Suite Extraction Daemon\n\n", Version)
@@ -107,10 +116,16 @@ func main() {
 		fmt.Printf("[daemon] Discovered Star Citizen Path: %s\n", gameRoot)
 	}
 
+	overrides := VersionOverrides{
+		Version:   gameVersionFlag,
+		Branch:    gameBranchFlag,
+		BuildDate: gameBuildDateFlag,
+	}
+
 	// 2. Perform Extraction / Cache Check if gameRoot is available
 	var gameData *config.GameDataConfig
 	if gameRoot != "" {
-		gameData, err = processGameData(gameRoot, outputFlag, sanitizeFlag)
+		gameData, err = processGameData(gameRoot, outputFlag, sanitizeFlag, overrides)
 		if err != nil {
 			log.Printf("[daemon] Extraction error: %v\n", err)
 		} else {
@@ -157,7 +172,14 @@ func main() {
 	}
 }
 
-func processGameData(gameRoot string, outputPath string, sanitize bool) (*config.GameDataConfig, error) {
+// VersionOverrides allows manual CLI specification of game version details
+type VersionOverrides struct {
+	Version   string
+	Branch    string
+	BuildDate string
+}
+
+func processGameData(gameRoot string, outputPath string, sanitize bool, overrides VersionOverrides) (*config.GameDataConfig, error) {
 	p4kPath, err := p4k.FindDataP4K(gameRoot)
 	if err != nil {
 		return nil, err
@@ -169,10 +191,18 @@ func processGameData(gameRoot string, outputPath string, sanitize bool) (*config
 		return nil, fmt.Errorf("failed to compute p4k signature: %w", err)
 	}
 
-	manifest, mErr := locator.ReadBuildManifest(gameRoot)
-	if mErr == nil && manifest != nil {
-		fmt.Printf("[daemon] Star Citizen Build: %s (%s, %s)\n", manifest.Data.Version, manifest.Data.Branch, manifest.Data.BuildDateStamp)
+	manifest := locator.ResolveBuildMetadata(gameRoot, p4kPath)
+	if overrides.Version != "" {
+		manifest.Data.Version = overrides.Version
 	}
+	if overrides.Branch != "" {
+		manifest.Data.Branch = overrides.Branch
+	}
+	if overrides.BuildDate != "" {
+		manifest.Data.BuildDateStamp = overrides.BuildDate
+	}
+
+	fmt.Printf("[daemon] Star Citizen Build: %s (%s, %s)\n", manifest.Data.Version, manifest.Data.Branch, manifest.Data.BuildDateStamp)
 
 	cacheDir := filepath.Join(os.TempDir(), "sc-mapping")
 	cacheFile := filepath.Join(cacheDir, "cache.scj")
@@ -182,11 +212,10 @@ func processGameData(gameRoot string, outputPath string, sanitize bool) (*config
 	if err == nil && cachedData != nil {
 		fmt.Println("[daemon] ✓ Cache hit: Using existing .scj cache payload.")
 		cachedData.Version = Version
-		if manifest != nil {
-			cachedData.GameVersion = manifest.Data.Version
-			cachedData.GameBranch = manifest.Data.Branch
-			cachedData.GameBuildDate = manifest.Data.BuildDateStamp
-		}
+		cachedData.GameVersion = manifest.Data.Version
+		cachedData.GameBranch = manifest.Data.Branch
+		cachedData.GameBuildDate = manifest.Data.BuildDateStamp
+		cachedData.ExtractedAt = time.Now()
 		if sanitize {
 			cachedData.GamePath = "StarCitizen/LIVE"
 		} else {
@@ -206,11 +235,9 @@ func processGameData(gameRoot string, outputPath string, sanitize bool) (*config
 		return nil, fmt.Errorf("extraction failed: %w", err)
 	}
 	data.Version = Version
-	if manifest != nil {
-		data.GameVersion = manifest.Data.Version
-		data.GameBranch = manifest.Data.Branch
-		data.GameBuildDate = manifest.Data.BuildDateStamp
-	}
+	data.GameVersion = manifest.Data.Version
+	data.GameBranch = manifest.Data.Branch
+	data.GameBuildDate = manifest.Data.BuildDateStamp
 	if sanitize {
 		data.GamePath = "StarCitizen/LIVE"
 	} else {
