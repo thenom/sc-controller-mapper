@@ -57,7 +57,7 @@ export const BindingTable: React.FC<BindingTableProps> = ({
 }) => {
   const [selectedMap, setSelectedMap] = useState<string>('all');
   const [selectedDevice, setSelectedDevice] = useState<string>('all');
-  const [showUnbound, setShowUnbound] = useState<boolean>(true);
+  const [bindingFilter, setBindingFilter] = useState<'all' | 'bound' | 'unbound'>('bound');
   const [isAddCustomModalOpen, setIsAddCustomModalOpen] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
@@ -108,11 +108,59 @@ export const BindingTable: React.FC<BindingTableProps> = ({
     return Array.from(mapSet).sort();
   }, [doc, catalogManager]);
 
-  // Count of unbound catalog actions in current map scope
+  // Count of bound actions in current map scope
+  const boundCount = useMemo(() => {
+    if (!doc) return 0;
+    let count = 0;
+    for (const [mapName, group] of Object.entries(doc.actionMaps)) {
+      if (selectedMap !== 'all' && mapName.toLowerCase() !== selectedMap.toLowerCase()) continue;
+      for (const action of Object.values(group.actions)) {
+        const hasInputs = (action.inputs || []).some(i => !ConflictResolver.isUnboundPlaceholder(i));
+        if (hasInputs) count++;
+      }
+    }
+    return count;
+  }, [doc, selectedMap]);
+
+  // Count of unbound catalog actions in current map scope (deduplicated against bound actions)
   const unboundCount = useMemo(() => {
-    if (!doc) return catalogManager.getAllActions().length;
-    return catalogManager.getUnboundActions(doc, selectedMap === 'all' ? undefined : selectedMap).length;
+    const boundKeySet = new Set<string>();
+    const seenUnbound = new Set<string>();
+
+    if (doc) {
+      for (const [mapName, group] of Object.entries(doc.actionMaps)) {
+        for (const [actName, action] of Object.entries(group.actions)) {
+          const hasInputs = (action.inputs || []).some(i => !ConflictResolver.isUnboundPlaceholder(i));
+          if (hasInputs) {
+            boundKeySet.add(`${mapName.toLowerCase()}::${actName.toLowerCase()}`);
+          }
+        }
+      }
+
+      for (const [mapName, group] of Object.entries(doc.actionMaps)) {
+        if (selectedMap !== 'all' && mapName.toLowerCase() !== selectedMap.toLowerCase()) continue;
+        for (const [actName, action] of Object.entries(group.actions)) {
+          const key = `${mapName.toLowerCase()}::${actName.toLowerCase()}`;
+          if (!boundKeySet.has(key)) {
+            seenUnbound.add(key);
+          }
+        }
+      }
+    }
+
+    const catalogActions = catalogManager.getAllActions();
+    for (const item of catalogActions) {
+      if (selectedMap !== 'all' && item.mapName.toLowerCase() !== selectedMap.toLowerCase()) continue;
+      const key = `${item.mapName.toLowerCase()}::${item.action.name.toLowerCase()}`;
+      if (!boundKeySet.has(key)) {
+        seenUnbound.add(key);
+      }
+    }
+
+    return seenUnbound.size;
   }, [doc, catalogManager, selectedMap]);
+
+  const totalActionsCount = boundCount + unboundCount;
 
   // Dynamic list of devices available in document (e.g. ALL, JS1, JS2, JS3..., KB1, MO1)
   const availableDevices = useMemo(() => {
@@ -162,7 +210,7 @@ export const BindingTable: React.FC<BindingTableProps> = ({
     });
   }, [doc]);
 
-  // Filtered Actions List (combines active profile actions + unbound catalog actions)
+  // Filtered Actions List (strictly respects bindingFilter: all / bound / unbound)
   const filteredList = useMemo(() => {
     const result: Array<{
       mapName: string;
@@ -171,9 +219,43 @@ export const BindingTable: React.FC<BindingTableProps> = ({
     }> = [];
 
     const boundKeys = new Set<string>();
+    const seenActionKeys = new Set<string>();
     const q = searchQuery.toLowerCase().trim();
 
-    // 1. Process actions present in the active document
+    // 1. Identify all bound actions in the active document
+    if (doc) {
+      for (const [mapName, group] of Object.entries(doc.actionMaps)) {
+        for (const [actName, action] of Object.entries(group.actions)) {
+          const physicalInputs = (action.inputs || []).filter(i => !ConflictResolver.isUnboundPlaceholder(i));
+          if (physicalInputs.length > 0) {
+            boundKeys.add(`${mapName.toLowerCase()}::${actName.toLowerCase()}`);
+          }
+        }
+      }
+    }
+
+    // Helper for search matching
+    const stripMod = (s: string) => (s.includes('+') ? s.split('+').pop()! : s);
+    const matchesQuery = (name: string, label?: string, map?: string, desc?: string, inputs?: BindingInput[]) => {
+      if (!q) return true;
+      if (name.toLowerCase().includes(q)) return true;
+      if (label && label.toLowerCase().includes(q)) return true;
+      if (map && map.toLowerCase().includes(q)) return true;
+      if (desc && desc.toLowerCase().includes(q)) return true;
+      if (
+        inputs &&
+        inputs.some(i => {
+          const raw = i.input.toLowerCase();
+          const stripped = stripMod(raw);
+          return raw.includes(q) || stripped.includes(q) || stripped === q;
+        })
+      ) {
+        return true;
+      }
+      return false;
+    };
+
+    // 2. Process actions present in the active document
     if (doc) {
       for (const [mapName, group] of Object.entries(doc.actionMaps)) {
         if (selectedMap !== 'all' && mapName.toLowerCase() !== selectedMap.toLowerCase()) continue;
@@ -181,72 +263,55 @@ export const BindingTable: React.FC<BindingTableProps> = ({
         for (const [actName, action] of Object.entries(group.actions)) {
           const physicalInputs = (action.inputs || []).filter(i => !ConflictResolver.isUnboundPlaceholder(i));
           const hasPhysicalInputs = physicalInputs.length > 0;
+          const isUnbound = !hasPhysicalInputs;
 
-          if (hasPhysicalInputs) {
-            boundKeys.add(`${mapName.toLowerCase()}::${actName.toLowerCase()}`);
-          }
+          // Strictly enforce binding filter mode (even when searching!)
+          if (bindingFilter === 'bound' && isUnbound) continue;
+          if (bindingFilter === 'unbound' && !isUnbound) continue;
 
-          // If in "Bound Only" mode and action has no real physical inputs, hide it (unless user explicitly searches)
-          if (!showUnbound && !hasPhysicalInputs && !q) {
-            continue;
-          }
-
-          // Device filtering: match only actions with real physical inputs for the selected device
+          // Device filtering: applies only to actions with real physical inputs
           if (selectedDevice !== 'all') {
-            const hasDevice = physicalInputs.some(i =>
-              i.devicePrefix.toLowerCase() === selectedDevice.toLowerCase() ||
-              i.input.toLowerCase().startsWith(selectedDevice.toLowerCase() + '_')
+            if (isUnbound) continue;
+            const hasDevice = physicalInputs.some(
+              i =>
+                i.devicePrefix.toLowerCase() === selectedDevice.toLowerCase() ||
+                i.input.toLowerCase().startsWith(selectedDevice.toLowerCase() + '_')
             );
             if (!hasDevice) continue;
           }
 
           // Query filtering
-          if (q) {
-            const stripMod = (s: string) => s.includes('+') ? s.split('+').pop()! : s;
-            const matches =
-              actName.toLowerCase().includes(q) ||
-              (action.label && action.label.toLowerCase().includes(q)) ||
-              mapName.toLowerCase().includes(q) ||
-              (action.description && action.description.toLowerCase().includes(q)) ||
-              action.inputs.some(i => {
-                const raw = i.input.toLowerCase();
-                const stripped = stripMod(raw);
-                return raw.includes(q) || stripped.includes(q) || stripped === q;
-              });
-
-            if (!matches) continue;
+          if (!matchesQuery(actName, action.label, mapName, action.description, action.inputs)) {
+            continue;
           }
+
+          const actionKey = `${mapName.toLowerCase()}::${actName.toLowerCase()}`;
+          seenActionKeys.add(actionKey);
 
           result.push({
             mapName,
             action,
-            isUnbound: !hasPhysicalInputs
+            isUnbound
           });
         }
       }
     }
 
-    // 2. Process unbound catalog actions if enabled or searching (and device filter is 'all')
-    if ((showUnbound || q) && selectedDevice === 'all') {
+    // 3. Process unbound catalog actions if filter allows unbound actions (and device filter is 'all')
+    if (bindingFilter !== 'bound' && selectedDevice === 'all') {
       for (const item of catalogManager.getAllActions()) {
         const key = `${item.mapName.toLowerCase()}::${item.action.name.toLowerCase()}`;
-        if (boundKeys.has(key)) continue;
+        if (boundKeys.has(key) || seenActionKeys.has(key)) continue;
 
         if (selectedMap !== 'all' && item.mapName.toLowerCase() !== selectedMap.toLowerCase()) {
           continue;
         }
 
-        if (q) {
-          const matches =
-            item.action.name.toLowerCase().includes(q) ||
-            item.action.label.toLowerCase().includes(q) ||
-            (item.action.category && item.action.category.toLowerCase().includes(q)) ||
-            (item.action.description && item.action.description.toLowerCase().includes(q)) ||
-            item.mapName.toLowerCase().includes(q) ||
-            item.mapLabel.toLowerCase().includes(q);
-
-          if (!matches) continue;
+        if (!matchesQuery(item.action.name, item.action.label, item.mapName, item.action.description)) {
+          continue;
         }
+
+        seenActionKeys.add(key);
 
         result.push({
           mapName: item.mapName,
@@ -261,13 +326,25 @@ export const BindingTable: React.FC<BindingTableProps> = ({
       }
     }
 
+    // 4. Sort results if in 'all' mode: group by mapName, then bound actions first
+    if (bindingFilter === 'all') {
+      result.sort((a, b) => {
+        if (a.mapName !== b.mapName) {
+          return a.mapName.localeCompare(b.mapName);
+        }
+        if (!a.isUnbound && b.isUnbound) return -1;
+        if (a.isUnbound && !b.isUnbound) return 1;
+        return a.action.name.localeCompare(b.action.name);
+      });
+    }
+
     return result;
-  }, [doc, searchQuery, selectedMap, selectedDevice, showUnbound, catalogManager]);
+  }, [doc, searchQuery, selectedMap, selectedDevice, bindingFilter, catalogManager]);
 
   // Reset page when search or filters change
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedMap, selectedDevice, showUnbound]);
+  }, [searchQuery, selectedMap, selectedDevice, bindingFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredList.length / ITEMS_PER_PAGE));
   const paginatedActions = useMemo(() => {
@@ -384,19 +461,48 @@ export const BindingTable: React.FC<BindingTableProps> = ({
             ))}
           </div>
 
-          {/* Unbound Catalog Toggle */}
-          <button
-            onClick={() => setShowUnbound(!showUnbound)}
-            className={`px-2.5 py-1.5 text-xs font-mono rounded flex items-center gap-1.5 transition-all border ${
-              showUnbound
-                ? 'bg-[#00f0ff]/10 text-[#00f0ff] border-[#00f0ff]/40 shadow-[0_0_10px_rgba(0,240,255,0.15)] font-semibold'
-                : 'bg-[#090d15] text-[#8492a6] border-[#2d415f] hover:text-white'
-            }`}
-            title="Toggle display of Star Citizen catalog actions that are currently unbound in this profile"
-          >
-            {showUnbound ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5 text-slate-500" />}
-            <span>Unbound Catalog ({unboundCount})</span>
-          </button>
+          {/* Binding Status Filter: All / Bound / Unbound */}
+          <div className="flex items-center gap-1 bg-[#090d15] p-1 rounded border border-[#2d415f]">
+            <button
+              onClick={() => setBindingFilter('all')}
+              className={`px-2.5 py-1 text-xs font-mono rounded transition-all flex items-center gap-1 ${
+                bindingFilter === 'all'
+                  ? 'bg-[#00f0ff] text-black font-bold shadow-[0_0_10px_rgba(0,240,255,0.3)]'
+                  : 'text-[#8492a6] hover:text-white'
+              }`}
+              title="Show all actions (both bound in profile and unbound catalog commands)"
+            >
+              <span>All</span>
+              <span className="text-[10px] opacity-80">({totalActionsCount})</span>
+            </button>
+            <button
+              onClick={() => setBindingFilter('bound')}
+              className={`px-2.5 py-1 text-xs font-mono rounded transition-all flex items-center gap-1 ${
+                bindingFilter === 'bound'
+                  ? 'bg-[#00ff88] text-black font-bold shadow-[0_0_10px_rgba(0,255,136,0.3)]'
+                  : 'text-[#8492a6] hover:text-white'
+              }`}
+              title="Show only actions that have hardware keys assigned in this profile"
+            >
+              <span>Bound</span>
+              <span className="text-[10px] opacity-80">({boundCount})</span>
+            </button>
+            <button
+              onClick={() => {
+                setBindingFilter('unbound');
+                if (selectedDevice !== 'all') setSelectedDevice('all');
+              }}
+              className={`px-2.5 py-1 text-xs font-mono rounded transition-all flex items-center gap-1 ${
+                bindingFilter === 'unbound'
+                  ? 'bg-[#ffaa00] text-black font-bold shadow-[0_0_10px_rgba(255,170,0,0.3)]'
+                  : 'text-[#8492a6] hover:text-white'
+              }`}
+              title="Show only unassigned actions from the Star Citizen catalog ready to be bound"
+            >
+              <span>Unbound</span>
+              <span className="text-[10px] opacity-80">({unboundCount})</span>
+            </button>
+          </div>
 
           {/* Add Custom Action Button */}
           <button
@@ -428,7 +534,15 @@ export const BindingTable: React.FC<BindingTableProps> = ({
       {/* Action Table Header */}
       <div className="flex items-center justify-between text-xs text-[#8492a6] mb-3 px-1">
         <div>
-          Showing <strong className="text-white font-mono">{filteredList.length}</strong> actions
+          Showing <strong className="text-white font-mono">{filteredList.length}</strong>{' '}
+          {bindingFilter === 'bound' ? (
+            <span className="text-[#00ff88] font-semibold">bound</span>
+          ) : bindingFilter === 'unbound' ? (
+            <span className="text-[#ffaa00] font-semibold">unbound</span>
+          ) : (
+            ''
+          )}{' '}
+          actions
           {selectedMap !== 'all' && ` in ${selectedMap}`}
           {selectedDevice !== 'all' && ` (Device: ${selectedDevice.toUpperCase()})`}
         </div>
