@@ -109,9 +109,6 @@ func main() {
 	gameRoot, err := locator.ResolveGamePath(gamePathFlag)
 	if err != nil {
 		log.Printf("[daemon] Game path resolution: %v\n", err)
-		if !runDaemonFlag {
-			log.Fatalf("[daemon] Fatal: Cannot proceed without a valid game path. Use --game-path=\"...\" or --p4k=\"...\"")
-		}
 	} else {
 		fmt.Printf("[daemon] Discovered Star Citizen Path: %s\n", gameRoot)
 	}
@@ -130,6 +127,28 @@ func main() {
 			log.Printf("[daemon] Extraction error: %v\n", err)
 		} else {
 			fmt.Printf("[daemon] ✓ Generated web application config at: %s\n", outputFlag)
+		}
+	} else {
+		// Fallback for offline development, CI, or when updating catalogs from existing game-data.json:
+		candidatePaths := []string{
+			outputFlag,
+			filepath.Join(projectRootFlag, "apps", "web", "public", "game-data.json"),
+			"apps/web/public/game-data.json",
+			"game-data.json",
+		}
+		for _, p := range candidatePaths {
+			if fileBytes, readErr := os.ReadFile(p); readErr == nil {
+				var loaded config.GameDataConfig
+				if jsonErr := json.Unmarshal(fileBytes, &loaded); jsonErr == nil && loaded.DefaultProfileXML != "" {
+					fmt.Printf("[daemon] Discovered existing game data cache at: %s\n", p)
+					gameData = &loaded
+					break
+				}
+			}
+		}
+
+		if gameData == nil && !runDaemonFlag && !updateProjectFlag {
+			log.Fatalf("[daemon] Fatal: Cannot proceed without a valid game path or game-data.json. Use --game-path=\"...\" or --p4k=\"...\"")
 		}
 	}
 
@@ -272,6 +291,7 @@ func writeOutputFile(path string, data *config.GameDataConfig) error {
 	if err != nil {
 		return fmt.Errorf("failed to serialize JSON config: %w", err)
 	}
+	fileBytes = append(fileBytes, '\n')
 
 	if err := os.WriteFile(path, fileBytes, 0644); err != nil {
 		return fmt.Errorf("failed to write output file: %w", err)

@@ -1,4 +1,5 @@
 import type { MasterFlightMode } from '@sc-mapping/shared-types';
+import { CatalogManager } from '@sc-mapping/parser';
 
 /**
  * Operational Context Matrix
@@ -248,13 +249,20 @@ export class ExclusionMatrix {
       }
     }
 
-    // 3. Sequential quantum travel state machine: spooling vs engaging drive
-    // In Star Citizen, toggling spool mode ('v_toggle_quantum_mode') and engaging the drive
-    // ('v_toggle_qdrive_engagement') are bound to the same input because engagement cannot occur
-    // until the drive is spooled and aligned.
+    // 3. Sequential quantum travel & Master Mode state machine: mode cycling vs engaging quantum drive
+    // In Star Citizen, cycling/setting Master Modes or NAV sub-modes ('v_master_mode_cycle',
+    // 'v_master_mode_cycle_long', 'v_master_mode_set_nav', 'v_toggle_quantum_mode') and engaging
+    // the quantum drive ('v_toggle_qdrive_engagement') are sequentially gated. Drive engagement
+    // can only occur after entering NAV mode and completing spooling/calibration.
+    const isMasterModeAction = (act: string) =>
+      act === 'v_master_mode_cycle' ||
+      act === 'v_master_mode_cycle_long' ||
+      act === 'v_master_mode_set_nav' ||
+      act === 'v_toggle_quantum_mode';
+
     if (
-      (actA === 'v_toggle_quantum_mode' && actB === 'v_toggle_qdrive_engagement') ||
-      (actB === 'v_toggle_quantum_mode' && actA === 'v_toggle_qdrive_engagement')
+      (isMasterModeAction(actA) && actB === 'v_toggle_qdrive_engagement') ||
+      (isMasterModeAction(actB) && actA === 'v_toggle_qdrive_engagement')
     ) {
       return true;
     }
@@ -300,8 +308,8 @@ export class ExclusionMatrix {
    * or false if they are conditionally isolated by active Master Mode.
    */
   public static areMasterModesConcurrent(actionA: string, actionB: string): boolean {
-    const modeA = this.ACTION_MASTER_MODES[actionA] || 'ANY';
-    const modeB = this.ACTION_MASTER_MODES[actionB] || 'ANY';
+    const modeA = CatalogManager.getMasterFlightMode(actionA) || this.ACTION_MASTER_MODES[actionA] || 'ANY';
+    const modeB = CatalogManager.getMasterFlightMode(actionB) || this.ACTION_MASTER_MODES[actionB] || 'ANY';
 
     // If one is explicitly SCM and the other is explicitly NAV, they are mutually exclusive!
     if ((modeA === 'SCM' && modeB === 'NAV') || (modeA === 'NAV' && modeB === 'SCM')) {

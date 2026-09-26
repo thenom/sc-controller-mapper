@@ -103,4 +103,18 @@ describe('CatalogManager', () => {
     expect(rollUnbound).toBeDefined();
     expect(rollUnbound?.isBound).toBe(false);
   });
+
+  it('should expose static and instance lookups for game-extracted activation modes and flight modes', () => {
+    // v_toggle_qdrive_engagement should be delayed_press and NAV mode
+    expect(CatalogManager.getDefaultActivationMode('v_toggle_qdrive_engagement')).toBe('delayed_press');
+    expect(CatalogManager.getMasterFlightMode('v_toggle_qdrive_engagement')).toBe('NAV');
+    expect(manager.getDefaultActivationMode('v_toggle_qdrive_engagement')).toBe('delayed_press');
+
+    // v_master_mode_cycle should be tap
+    expect(CatalogManager.getDefaultActivationMode('v_master_mode_cycle')).toBe('tap');
+
+    // v_eject should be press
+    expect(CatalogManager.getDefaultActivationMode('v_eject')).toBe('press');
+    expect(CatalogManager.getDefaultMultiTap('v_eject')).toBe(1);
+  });
 });

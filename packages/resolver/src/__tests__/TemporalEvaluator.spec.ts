@@ -60,4 +60,39 @@ describe('TemporalEvaluator', () => {
     expect(result.severity).toBe(ConflictSeverity.Fatal);
     expect(result.reason).toContain('Destructive Action Safety Conflict');
   });
+
+  it('should detect inherent hold actions like v_toggle_qdrive_engagement and return None when paired with tap', () => {
+    const qdriveAction: ActionBinding = {
+      name: 'v_toggle_qdrive_engagement',
+      label: 'Engage Quantum Drive (Hold)',
+      description: 'Engages the quantum drive.',
+      inputs: []
+    };
+    const mmCycleAction: ActionBinding = {
+      name: 'v_master_mode_cycle',
+      inputs: []
+    };
+
+    const inputA = mockInput('js2_button3', 'rebind'); // activationMode omitted in user XML
+    const inputB = mockInput('js2_button3', 'rebind'); // activationMode omitted in user XML
+
+    const result = TemporalEvaluator.evaluate(mmCycleAction, inputA, qdriveAction, inputB);
+    expect(result.severity).toBe(ConflictSeverity.None);
+    expect(result.reason).toContain('Compatible Tap vs. Hold combination');
+  });
+
+  it('should query CatalogManager when activationMode, label, and description are omitted', () => {
+    const rawQdrive: ActionBinding = { name: 'v_toggle_qdrive_engagement', inputs: [] };
+    const rawCycle: ActionBinding = { name: 'v_master_mode_cycle', inputs: [] };
+    const inputA = mockInput('js2_button3', 'rebind');
+    const inputB = mockInput('js2_button3', 'rebind');
+
+    const modeA = TemporalEvaluator.resolveEffectiveActivationMode(rawCycle, inputA);
+    const modeB = TemporalEvaluator.resolveEffectiveActivationMode(rawQdrive, inputB);
+    expect(modeA).toBe('tap');
+    expect(modeB).toBe('delayed_press');
+
+    const evalResult = TemporalEvaluator.evaluate(rawCycle, inputA, rawQdrive, inputB);
+    expect(evalResult.severity).toBe(ConflictSeverity.None);
+  });
 });

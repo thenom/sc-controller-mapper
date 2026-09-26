@@ -198,4 +198,27 @@ describe('ConflictResolver', () => {
     expect(result2.severity).toBe(ConflictSeverity.None);
     expect(result2.reason).toContain('Mutually exclusive');
   });
+
+  it('should return Severity 0 (None) for v_master_mode_cycle vs v_toggle_qdrive_engagement on the same trigger', () => {
+    const cycleAction: ActionBinding = {
+      name: 'v_master_mode_cycle',
+      inputs: [mockInput('js2_button3', 'rebind')]
+    };
+    const qdriveAction: ActionBinding = {
+      name: 'v_toggle_qdrive_engagement',
+      label: 'Engage Quantum Drive (Hold)',
+      description: 'Engages the quantum drive.',
+      inputs: [mockInput('js2_button3', 'rebind')]
+    };
+
+    const result = ConflictResolver.evaluateActions(
+      'spaceship_movement',
+      cycleAction,
+      'spaceship_quantum',
+      qdriveAction
+    );
+
+    expect(result.severity).toBe(ConflictSeverity.None);
+    expect(result.reason).toContain('Mutually exclusive');
+  });
 });

@@ -13,8 +13,10 @@ export interface ActionCatalogEntry {
   category?: string;
   /** Detailed description or tooltip */
   description?: string;
-  /** Default activation mode if known ('press', 'hold', 'double_tap') */
+  /** Default activation mode if known ('press', 'hold', 'delayed_press', 'tap', 'double_tap') */
   defaultActivationMode?: string;
+  /** Inherent multiTap count if known (e.g. 1 for single tap/press, 2 for double tap) */
+  defaultMultiTap?: number;
   /** Whether this action is exclusive to a specific flight mode (e.g. 'SCM' or 'NAV') */
   masterFlightMode?: 'SCM' | 'NAV';
 }

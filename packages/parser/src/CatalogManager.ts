@@ -10,10 +10,82 @@ import type {
 import { MASTER_ACTION_CATALOG } from './catalog/defaultCatalog.js';
 
 export class CatalogManager {
+  private static defaultIndex: Map<string, ActionCatalogEntry> | null = null;
   private catalog: MasterActionCatalog;
+  private instanceIndex: Map<string, ActionCatalogEntry> | null = null;
 
   constructor(customCatalog?: MasterActionCatalog) {
     this.catalog = customCatalog || MASTER_ACTION_CATALOG;
+  }
+
+  private static getDefaultIndex(): Map<string, ActionCatalogEntry> {
+    if (!CatalogManager.defaultIndex) {
+      CatalogManager.defaultIndex = new Map();
+      for (const mapCatalog of Object.values(MASTER_ACTION_CATALOG)) {
+        for (const action of mapCatalog.actions) {
+          CatalogManager.defaultIndex.set(action.name.toLowerCase(), action);
+        }
+      }
+    }
+    return CatalogManager.defaultIndex;
+  }
+
+  /**
+   * Get an action definition from the canonical game-extracted default catalog.
+   */
+  public static getActionEntry(actionName: string): ActionCatalogEntry | undefined {
+    return CatalogManager.getDefaultIndex().get(actionName.toLowerCase());
+  }
+
+  /**
+   * Get the engine-default activation mode for an action ('delayed_press', 'tap', 'press', etc.).
+   */
+  public static getDefaultActivationMode(actionName: string): string | undefined {
+    return CatalogManager.getActionEntry(actionName)?.defaultActivationMode;
+  }
+
+  /**
+   * Get the inherent multiTap count for an action (1 for single tap/press, 2 for double tap).
+   */
+  public static getDefaultMultiTap(actionName: string): number | undefined {
+    return CatalogManager.getActionEntry(actionName)?.defaultMultiTap;
+  }
+
+  /**
+   * Get the Master Flight Mode ('SCM' | 'NAV') if the action is exclusive to one.
+   */
+  public static getMasterFlightMode(actionName: string): 'SCM' | 'NAV' | undefined {
+    return CatalogManager.getActionEntry(actionName)?.masterFlightMode;
+  }
+
+  /**
+   * Instance lookup for action definition.
+   */
+  public getActionEntry(actionName: string): ActionCatalogEntry | undefined {
+    if (this.catalog === MASTER_ACTION_CATALOG) {
+      return CatalogManager.getActionEntry(actionName);
+    }
+    if (!this.instanceIndex) {
+      this.instanceIndex = new Map();
+      for (const mapCatalog of Object.values(this.catalog)) {
+        for (const action of mapCatalog.actions) {
+          this.instanceIndex.set(action.name.toLowerCase(), action);
+        }
+      }
+    }
+    return this.instanceIndex.get(actionName.toLowerCase());
+  }
+
+  public getDefaultActivationMode(actionName: string): string | undefined {
+    return this.getActionEntry(actionName)?.defaultActivationMode;
+  }
+
+  public getDefaultMultiTap(actionName: string): number | undefined {
+    return this.getActionEntry(actionName)?.defaultMultiTap;
+  }
+
+  public getMasterFlightMode(actionName: string): 'SCM' | 'NAV' | undefined {
+    return this.getActionEntry(actionName)?.masterFlightMode;
   }
 
   /**

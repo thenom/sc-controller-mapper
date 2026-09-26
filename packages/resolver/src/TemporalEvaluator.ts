@@ -3,6 +3,7 @@ import {
   BindingInput,
   ConflictSeverity
 } from '@sc-mapping/shared-types';
+import { CatalogManager } from '@sc-mapping/parser';
 
 export interface TemporalEvaluationResult {
   severity: ConflictSeverity;
@@ -29,6 +30,76 @@ export class TemporalEvaluator {
   ]);
 
   /**
+   * Resolves the effective activation mode for an action.
+   * Checks the user's custom input first, then queries the game-extracted
+   * action catalog (defaultProfile.xml) via CatalogManager, before falling back
+   * to textual/naming cues or engine defaults ('press').
+   */
+  public static resolveEffectiveActivationMode(action: ActionBinding, input: BindingInput): string {
+    if (input.activationMode) {
+      return input.activationMode.toLowerCase();
+    }
+
+    const name = action.name.toLowerCase();
+
+    // 1. Dynamic lookup from master catalog extracted from Star Citizen defaultProfile.xml
+    const catalogMode = CatalogManager.getDefaultActivationMode(name);
+    if (catalogMode) {
+      return catalogMode.toLowerCase();
+    }
+
+    const label = (action.label || '').toLowerCase();
+    const desc = (action.description || '').toLowerCase();
+
+    // 2. Textual indication of hold in label or description (e.g. "Engage Quantum Drive (Hold)")
+    if (
+      label.includes('(hold)') ||
+      desc.includes('(hold)') ||
+      label.includes('long press') ||
+      desc.includes('long press')
+    ) {
+      return 'delayed_press';
+    }
+
+    // 3. Programmatic naming suffix conventions
+    if (name.endsWith('_hold') || name.endsWith('_long') || name.endsWith('_delayed')) {
+      return 'delayed_press';
+    }
+
+    // 4. Inherent tap actions
+    if (name.endsWith('_tap')) {
+      return 'tap';
+    }
+
+    return 'press';
+  }
+
+  /**
+   * Resolves the effective multiTap count for an action.
+   * If not explicitly specified on the input, queries the game catalog default.
+   */
+  public static resolveEffectiveMultiTap(action: ActionBinding, input: BindingInput): number {
+    if (input.multiTap != null) {
+      return input.multiTap;
+    }
+    const catalogMultiTap = CatalogManager.getDefaultMultiTap(action.name);
+    if (catalogMultiTap != null) {
+      return catalogMultiTap;
+    }
+    return 1;
+  }
+
+  private static isHoldMode(mode: string): boolean {
+    const m = mode.toLowerCase();
+    return m === 'hold' || m.startsWith('delayed_') || m.includes('hold');
+  }
+
+  private static isTapMode(mode: string): boolean {
+    const m = mode.toLowerCase();
+    return m === 'tap' || m === 'tap_quicker';
+  }
+
+  /**
    * Evaluates the temporal dynamics of two binding inputs sharing the same physical key inside concurrent contexts.
    */
   public static evaluate(
@@ -37,10 +108,10 @@ export class TemporalEvaluator {
     actionB: ActionBinding,
     inputB: BindingInput
   ): TemporalEvaluationResult {
-    const actModeA = inputA.activationMode || 'press';
-    const actModeB = inputB.activationMode || 'press';
-    const multiTapA = inputA.multiTap ?? 1;
-    const multiTapB = inputB.multiTap ?? 1;
+    const actModeA = this.resolveEffectiveActivationMode(actionA, inputA);
+    const actModeB = this.resolveEffectiveActivationMode(actionB, inputB);
+    const multiTapA = this.resolveEffectiveMultiTap(actionA, inputA);
+    const multiTapB = this.resolveEffectiveMultiTap(actionB, inputB);
 
     // Rule B: multiTap="2" (double tap) vs. single tap (multiTap="1") = Warning (Latency buffer)
     // In Star Citizen / CryEngine, binding multiTap="2" alongside a single-tap action opens a ~250ms
@@ -78,14 +149,15 @@ export class TemporalEvaluator {
       };
     }
 
-    // Rule C: activationMode="hold" vs single tap = Contextual Conflict (Destructive vs Non-destructive)
-    // When a button mapped to both 'hold' and 'press' is pressed, the single-press action
-    // triggers on key-down unless guarded by delayed_press. If the hold action is destructive,
-    // or if the press action ruins flight stability, severe consequences occur.
-    if (
-      (actModeA === 'hold' && actModeB === 'press') ||
-      (actModeB === 'hold' && actModeA === 'press')
-    ) {
+    // Rule C: hold / delayed_press vs tap / press
+    const isHoldA = this.isHoldMode(actModeA);
+    const isHoldB = this.isHoldMode(actModeB);
+    const isTapA = this.isTapMode(actModeA);
+    const isTapB = this.isTapMode(actModeB);
+    const isPressA = actModeA === 'press';
+    const isPressB = actModeB === 'press';
+
+    if ((isHoldA && (isTapB || isPressB)) || (isHoldB && (isTapA || isPressA))) {
       const isDestructive =
         this.DESTRUCTIVE_ACTIONS.has(actionA.name) ||
         this.DESTRUCTIVE_ACTIONS.has(actionB.name);
@@ -98,6 +170,20 @@ export class TemporalEvaluator {
         };
       }
 
+      // If one action is a clean 'tap' (fires on release) and the other is 'delayed_press' / 'hold',
+      // or if either mode is delayed (e.g. delayed_press threshold of ~250ms like v_toggle_qdrive_engagement),
+      // Star Citizen cleanly multiplexes tap vs hold without executing the hold on tap:
+      const hasTap = isTapA || isTapB;
+      const hasDelayed = actModeA.includes('delayed') || actModeB.includes('delayed');
+
+      if (hasTap || hasDelayed) {
+        return {
+          severity: ConflictSeverity.None,
+          reason: `Compatible Tap vs. Hold combination: '${isHoldA ? actionB.name : actionA.name}' triggers on quick tap, while '${isHoldA ? actionA.name : actionB.name}' requires a sustained hold.`
+        };
+      }
+
+      // Immediate button-down press vs generic hold (potential bleed-through on initial down)
       return {
         severity: ConflictSeverity.Warning,
         reason: 'Contextual Activation Conflict: Pressing and holding will trigger the single-press action on button down before the hold threshold is reached.',

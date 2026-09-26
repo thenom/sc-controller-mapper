@@ -89,6 +89,22 @@ Conflicts are rated across a 4-tier severity spectrum:
 - When working with `.tf` files, **always** use the `tofu` CLI binary (OpenTofu).
 - Maintain local state (`backend "local"`), and never commit `.tfstate`, `*.tfvars`, or cloud credentials to git.
 
+### F. Daemon-Managed Catalog & Game Metadata Extraction
+- **Rule of Dynamic Sourcing (No Hardcoded Game Action Lists)**:
+  - Game properties that can change across Star Citizen patches—including `defaultActivationMode` (`delayed_press`, `tap`, `press`, `hold`), `defaultMultiTap` (1 or 2), and `masterFlightMode` (`SCM` vs `NAV`)—**must be managed dynamically by the Go extraction daemon (`sc-daemon`)** and sourced from `defaultProfile.xml` and `global.ini`.
+  - **NEVER** hardcode lists of action names in resolver heuristics or parser logic (e.g. do not maintain static sets like `INHERENT_HOLD_ACTIONS` or static lists of SCM/NAV action names in TypeScript code).
+- **CryEngine XML Omission & Fallback Contract**:
+  - Star Citizen's XML profile exporter omits the `activationMode` and `multiTap` attributes when a custom keybinding uses the engine's default mode.
+  - When resolving input conflicts in `TemporalEvaluator` and `ExclusionMatrix`, code **MUST** query `CatalogManager.getDefaultActivationMode(actionName)` and `CatalogManager.getMasterFlightMode(actionName)` before falling back to textual cues (`(Hold)`, `long press`) or naming suffixes (`_hold`, `_tap`). Missing attributes must NOT simply default to `'press'` without consulting the catalog.
+- **Synchronized Catalog Regeneration Pipeline**:
+  - `sc-daemon` extracts `defaultProfile.xml` and `global.ini` from Star Citizen's `Data.p4k` (or falls back to `apps/web/public/game-data.json` during offline dev / CI).
+  - Running `npm run daemon:extract` (or `./daemon/bin/sc-daemon --update-project`) automatically updates:
+    1. `packages/parser/src/catalog/sc_action_catalog.json` (canonical parser catalog)
+    2. `apps/web/public/data/sc_action_catalog.json` (web app client catalog)
+    3. `packages/parser/src/catalog/defaultCatalog.ts` (TypeScript AST constant)
+    4. `apps/web/public/game-data.json` (web app live extraction cache)
+  - Whenever game files are updated or patch data changes, agents and contributors must run `npm run daemon:extract` to ensure resolver heuristics and action catalogs reflect the latest patch data.
+
 ---
 
 ## 4. Development & Verification Commands

@@ -12,10 +12,13 @@ import (
 
 // ActionCatalogEntry represents a single action within the catalog
 type ActionCatalogEntry struct {
-	Name        string `json:"name"`
-	Label       string `json:"label"`
-	Category    string `json:"category,omitempty"`
-	Description string `json:"description,omitempty"`
+	Name                  string `json:"name"`
+	Label                 string `json:"label"`
+	Category              string `json:"category,omitempty"`
+	Description           string `json:"description,omitempty"`
+	DefaultActivationMode string `json:"defaultActivationMode,omitempty"`
+	DefaultMultiTap       int    `json:"defaultMultiTap,omitempty"`
+	MasterFlightMode      string `json:"masterFlightMode,omitempty"`
 }
 
 // ActionMapCatalog represents an action map category and its child actions
@@ -42,11 +45,17 @@ type xmlActionGroup struct {
 
 type xmlActionMap struct {
 	Name    string      `xml:"name,attr"`
+	UILabel string      `xml:"UILabel,attr"`
 	Actions []xmlAction `xml:"action"`
 }
 
 type xmlAction struct {
-	Name string `xml:"name,attr"`
+	Name           string `xml:"name,attr"`
+	ActivationMode string `xml:"activationMode,attr"`
+	UILabel        string `xml:"UILabel,attr"`
+	UIDescription  string `xml:"UIDescription,attr"`
+	Category       string `xml:"Category,attr"`
+	UICategory     string `xml:"UICategory,attr"`
 }
 
 // GenerateCatalogFromGameData parses defaultProfile.xml and global.ini tokens into MasterActionCatalog
@@ -64,7 +73,7 @@ func GenerateCatalogFromGameData(defaultProfileXML string, loc map[string]string
 			continue
 		}
 
-		mapLabel := resolveMapLabel(mapName, loc)
+		mapLabel := resolveMapLabel(mapName, m.UILabel, loc)
 		domain := resolveDomain(mapName)
 
 		catalogActions := make([]ActionCatalogEntry, 0, len(m.Actions))
@@ -77,14 +86,19 @@ func GenerateCatalogFromGameData(defaultProfileXML string, loc map[string]string
 			}
 			seenActions[actName] = true
 
-			label, desc := resolveActionLocalization(actName, mapName, loc)
-			category := categorizeAction(actName, mapName)
+			label, desc := resolveActionLocalization(actName, mapName, a.UILabel, a.UIDescription, loc)
+			category := categorizeAction(actName, mapName, a.Category)
+			actMode, multiTap := resolveActivationMode(actName, a.ActivationMode, label, desc)
+			masterMode := resolveMasterFlightMode(actName, mapName)
 
 			catalogActions = append(catalogActions, ActionCatalogEntry{
-				Name:        actName,
-				Label:       label,
-				Category:    category,
-				Description: desc,
+				Name:                  actName,
+				Label:                 label,
+				Category:              category,
+				Description:           desc,
+				DefaultActivationMode: actMode,
+				DefaultMultiTap:       multiTap,
+				MasterFlightMode:      masterMode,
 			})
 		}
 
@@ -111,13 +125,18 @@ func GenerateCatalogFromGameData(defaultProfileXML string, loc map[string]string
 					for _, a := range g.Actions {
 						actName := strings.TrimSpace(a.Name)
 						if actName != "" && !existingNames[actName] {
-							label, desc := resolveActionLocalization(actName, tm, loc)
-							category := categorizeAction(actName, tm)
+							label, desc := resolveActionLocalization(actName, tm, a.UILabel, a.UIDescription, loc)
+							category := categorizeAction(actName, tm, a.Category)
+							actMode, multiTap := resolveActivationMode(actName, a.ActivationMode, label, desc)
+							masterMode := resolveMasterFlightMode(actName, tm)
 							newActions = append(newActions, ActionCatalogEntry{
-								Name:        actName,
-								Label:       label,
-								Category:    category,
-								Description: desc,
+								Name:                  actName,
+								Label:                 label,
+								Category:              category,
+								Description:           desc,
+								DefaultActivationMode: actMode,
+								DefaultMultiTap:       multiTap,
+								MasterFlightMode:      masterMode,
 							})
 							existingNames[actName] = true
 						}
@@ -132,6 +151,58 @@ func GenerateCatalogFromGameData(defaultProfileXML string, loc map[string]string
 	return result, nil
 }
 
+func resolveMasterFlightMode(actName, mapName string) string {
+	lowerAct := strings.ToLower(actName)
+	lowerMap := strings.ToLower(mapName)
+
+	if lowerAct == "v_master_mode_set_scm" ||
+		lowerMap == "spaceship_weapons" ||
+		lowerMap == "spaceship_missiles" ||
+		lowerMap == "spaceship_mining" ||
+		lowerMap == "spaceship_salvage" {
+		return "SCM"
+	}
+
+	if lowerAct == "v_master_mode_set_nav" ||
+		lowerAct == "v_master_mode_cycle_long" ||
+		lowerAct == "v_toggle_qdrive_engagement" ||
+		lowerAct == "v_toggle_quantum_mode" ||
+		lowerMap == "spaceship_quantum" {
+		return "NAV"
+	}
+
+	return ""
+}
+
+func resolveActivationMode(actName string, xmlMode string, label string, desc string) (string, int) {
+	m := strings.TrimSpace(xmlMode)
+	lowerMode := strings.ToLower(m)
+
+	if lowerMode != "" {
+		multiTap := 1
+		if strings.Contains(lowerMode, "double_tap") {
+			multiTap = 2
+		}
+		return lowerMode, multiTap
+	}
+
+	lowerAct := strings.ToLower(actName)
+	lowerLabel := strings.ToLower(label)
+	lowerDesc := strings.ToLower(desc)
+
+	if strings.Contains(lowerLabel, "(hold)") || strings.Contains(lowerDesc, "(hold)") ||
+		strings.Contains(lowerLabel, "long press") || strings.Contains(lowerDesc, "long press") ||
+		strings.HasSuffix(lowerAct, "_hold") || strings.HasSuffix(lowerAct, "_long") {
+		return "delayed_press", 1
+	}
+
+	if lowerAct == "v_master_mode_cycle" || strings.HasSuffix(lowerAct, "_tap") {
+		return "tap", 1
+	}
+
+	return "press", 1
+}
+
 // UpdateProjectCatalogFiles writes the serialized catalog into monorepo target files
 func UpdateProjectCatalogFiles(projectRoot string, catalog MasterActionCatalog) ([]string, error) {
 	paths := []string{
@@ -143,6 +214,7 @@ func UpdateProjectCatalogFiles(projectRoot string, catalog MasterActionCatalog) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal action catalog: %w", err)
 	}
+	data = append(data, '\n')
 
 	var written []string
 	for _, p := range paths {
@@ -167,39 +239,93 @@ func UpdateProjectCatalogFiles(projectRoot string, catalog MasterActionCatalog) 
 	return written, nil
 }
 
-func resolveActionLocalization(actName, mapName string, loc map[string]string) (string, string) {
+func locLookup(key string, loc map[string]string) string {
 	if loc == nil {
-		return humanizeIdentifier(actName), ""
+		return ""
+	}
+	clean := strings.ToLower(strings.TrimSpace(key))
+	clean = strings.TrimPrefix(clean, "@")
+	if clean == "" {
+		return ""
 	}
 
-	candidates := []string{
-		"ui_" + actName,
-		"ui_ci_" + actName,
-		"ui_" + mapName + "_" + actName,
-		actName,
+	// 1. Direct match
+	if val, ok := loc[clean]; ok && strings.TrimSpace(val) != "" {
+		return strings.TrimSpace(val)
 	}
 
-	for _, c := range candidates {
-		if val, exists := loc[strings.ToLower(c)]; exists && strings.TrimSpace(val) != "" {
-			// Check if there is an accompanying tooltip / description
-			descKey := strings.ToLower(c) + "_desc"
-			desc := loc[descKey]
-			return val, desc
+	// 2. Comma suffixes (Star Citizen localization format: key,p or key,u)
+	if val, ok := loc[clean+",p"]; ok && strings.TrimSpace(val) != "" {
+		return strings.TrimSpace(val)
+	}
+	if val, ok := loc[clean+",u"]; ok && strings.TrimSpace(val) != "" {
+		return strings.TrimSpace(val)
+	}
+
+	// 3. If key contains comma, try without suffix
+	if strings.Contains(clean, ",") {
+		base := strings.Split(clean, ",")[0]
+		if val, ok := loc[base]; ok && strings.TrimSpace(val) != "" {
+			return strings.TrimSpace(val)
 		}
 	}
 
-	return humanizeIdentifier(actName), ""
+	return ""
 }
 
-func resolveMapLabel(mapName string, loc map[string]string) string {
+func resolveActionLocalization(actName, mapName, uiLabel, uiDesc string, loc map[string]string) (string, string) {
+	label := ""
+	desc := ""
+
 	if loc != nil {
+		if uiLabel != "" {
+			label = locLookup(uiLabel, loc)
+		}
+		if uiDesc != "" {
+			desc = locLookup(uiDesc, loc)
+		}
+
+		if label == "" {
+			candidates := []string{
+				"ui_" + actName,
+				"ui_ci_" + actName,
+				"ui_" + mapName + "_" + actName,
+				actName,
+			}
+			for _, c := range candidates {
+				val := locLookup(c, loc)
+				if val != "" {
+					label = val
+					if desc == "" {
+						desc = locLookup(c+"_desc", loc)
+					}
+					break
+				}
+			}
+		}
+	}
+
+	if label == "" {
+		label = humanizeIdentifier(actName)
+	}
+
+	return label, desc
+}
+
+func resolveMapLabel(mapName, uiLabel string, loc map[string]string) string {
+	if loc != nil {
+		if uiLabel != "" {
+			if val := locLookup(uiLabel, loc); val != "" {
+				return val
+			}
+		}
 		candidates := []string{
 			"ui_" + mapName,
 			"ui_ci_" + mapName,
 			mapName,
 		}
 		for _, c := range candidates {
-			if val, exists := loc[strings.ToLower(c)]; exists && strings.TrimSpace(val) != "" {
+			if val := locLookup(c, loc); val != "" {
 				return val
 			}
 		}
@@ -228,7 +354,11 @@ func resolveDomain(mapName string) string {
 	}
 }
 
-func categorizeAction(actName, mapName string) string {
+func categorizeAction(actName, mapName, xmlCategory string) string {
+	if strings.TrimSpace(xmlCategory) != "" {
+		return humanizeIdentifier(xmlCategory)
+	}
+
 	lower := strings.ToLower(actName)
 	switch {
 	case strings.Contains(lower, "pitch") || strings.Contains(lower, "yaw") || strings.Contains(lower, "roll") || strings.Contains(lower, "strafe"):
