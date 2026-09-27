@@ -1,10 +1,10 @@
 # ==============================================================================
-# Dependabot Configuration: Automated Dependency Updates
+# Dependabot Configuration: Consolidated Grouped Dependency Updates
 # ==============================================================================
 version: 2
 updates:
   # ----------------------------------------------------------------------------
-  # NPM Workspace Monorepo (Packages & Web App)
+  # NPM Workspace Monorepo
   # ----------------------------------------------------------------------------
   - package-ecosystem: "npm"
     directory: "/"
@@ -13,36 +13,42 @@ updates:
       day: "monday"
       time: "04:00"
       timezone: "Etc/UTC"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
     groups:
-      dev-dependencies:
+      all-minor-and-patch:
         patterns:
           - "*"
         update-types:
           - "minor"
           - "patch"
-        dependency-type: "development"
-      type-definitions:
-        patterns:
-          - "@types/*"
-      production-minor-patch:
+      all-majors:
         patterns:
           - "*"
         update-types:
-          - "minor"
-          - "patch"
-        dependency-type: "production"
+          - "major"
+    # Prevent breaking framework rewrites from opening noise PRs
+    ignore:
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "tailwindcss"
+        update-types: ["version-update:semver-major"]
     commit-message:
       prefix: "🤖 chore(deps)"
 
   # ----------------------------------------------------------------------------
-  # GitHub Actions Workflows
+  # GitHub Actions Workflows (Consolidated into 1 PR)
   # ----------------------------------------------------------------------------
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "monthly"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
+    groups:
+      all-actions:
+        patterns:
+          - "*"
     commit-message:
       prefix: "🤖 chore(actions)"
 
@@ -52,18 +58,22 @@ updates:
   - package-ecosystem: "terraform"
     directory: "/infra/tofu"
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
+      interval: "monthly"
+    open-pull-requests-limit: 3
     commit-message:
       prefix: "🤖 chore(tofu)"
 
   # ----------------------------------------------------------------------------
-  # Docker Container Base Images
+  # Docker Container Base Images (Consolidated into 1 PR)
   # ----------------------------------------------------------------------------
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "monthly"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
+    groups:
+      all-docker:
+        patterns:
+          - "*"
     commit-message:
       prefix: "🤖 chore(docker)"
