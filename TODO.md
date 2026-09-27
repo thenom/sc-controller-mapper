@@ -44,6 +44,10 @@ This document tracks optional items, future stage milestones, and deferred confi
 - [ ] **Playwright Headless Browser Tests**:
   - Install `@playwright/test` for full browser automation when deeper CI coverage is desired.
   - Add end-to-end tests for XML file upload, drag-and-drop joystick re-indexing, and download flows.
+- [ ] **Tailwind CSS v4 Architectural Migration**:
+  - Migrate from Tailwind v3 (`tailwind.config.js` + PostCSS) to Tailwind v4 CSS-first architecture (`@tailwindcss/vite` + `@theme` directive in `index.css`).
+  - Migrate custom cockpit sci-fi colors (`#00f0ff`, `#ffb700`, `#0b111e`) and fonts into CSS `@theme` tokens.
+  - Verify zero visual regressions across all cockpit HUD themes and modals.
 
 ---
 
