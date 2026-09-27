@@ -66,3 +66,22 @@ jobs:
           file: ./Dockerfile
           push: false
           tags: sc-controller-mapper:smoke
+
+  secret-and-credential-scan:
+    name: Secret & Credential Leak Prevention
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Audit Tracked Files for Sensitive Extensions
+        run: |
+          chmod +x ./scripts/block-sensitive-files.sh
+          git ls-files | xargs ./scripts/block-sensitive-files.sh
+
+      - name: Gitleaks Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

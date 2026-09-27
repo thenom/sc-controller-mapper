@@ -1,0 +1,48 @@
+# ==============================================================================
+# Cloudflare Credentials & Scope
+# ==============================================================================
+# Cloudflare Account ID:
+# Found on the right sidebar of the Cloudflare Dashboard overview page
+cloudflare_account_id = "0123456789abcdef0123456789abcdef"
+
+# Cloudflare Zone ID:
+# Found on the overview page for your domain (scbind.com) in Cloudflare DNS
+cloudflare_zone_id = "fedcba9876543210fedcba9876543210"
+
+# ==============================================================================
+# Domain & Project Configuration
+# ==============================================================================
+# Apex domain ("scbind.com") or subdomain ("app.scbind.com")
+custom_domain     = "scbind.com"
+project_name      = "sc-controller-mapper"
+github_repo       = "thenom/sc-controller-mapper"
+production_branch = "main"
+
+# ==============================================================================
+# Build Configuration (Monorepo root build)
+# ==============================================================================
+build_command          = "npm run build"
+build_output_directory = "apps/web/dist"
+root_directory         = ""
+
+# ==============================================================================
+# Staged Rollout & Zero Trust Gating
+# ==============================================================================
+# Stage progression:
+# - Stage 2A (Alpha): enable_zero_trust = true, allowed_ips = ["<your-ip>/32"], allowed_emails = []
+# - Stage 2B (Beta):  enable_zero_trust = true, allowed_ips = [...], allowed_emails = ["friend@example.com"]
+# - Stage 3 (Public): enable_zero_trust = false (removes Access gate completely)
+enable_zero_trust = true
+session_duration  = "24h"
+
+# Stage 2A: Developer & Tester IP Whitelist (CIDR notation)
+allowed_ips = [
+  "203.0.113.42/32" # Replace with your current public IP address
+]
+
+# Stage 2B: Extended Tester Email Allowlist (Cloudflare Access One-Time PIN)
+# Add friend or tester emails here to grant access via email verification code
+allowed_emails = [
+  # "friend@example.com",
+  # "wingman@org.space"
+]

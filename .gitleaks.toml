@@ -1,0 +1,54 @@
+# ==============================================================================
+# Gitleaks Configuration: Hardened Secret Leak Prevention
+# ==============================================================================
+title = "sc-controller-mapper gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allowlist documentation and template example files"
+paths = [
+  '''(?i)\.example$''',
+  '''(?i)\.sample$''',
+  '''(?i)sample-data/''',
+  '''(?i)docs/''',
+  '''(?i)README\.md$'''
+]
+
+regexes = [
+  '''0123456789abcdef0123456789abcdef''',
+  '''fedcba9876543210fedcba9876543210''',
+  '''203\.0\.113\.\d+''',
+  '''192\.0\.2\.\d+''',
+  '''example\.com''',
+  '''thenom/sc-controller-mapper'''
+]
+
+# ------------------------------------------------------------------------------
+# Custom Rule: Cloudflare API Tokens & Keys
+# ------------------------------------------------------------------------------
+[[rules]]
+id = "cloudflare-api-token"
+description = "Detected Cloudflare API Token or Global Key"
+regex = '''(?i)(?:cloudflare|cf)[-_]?(?:api[-_]?token|token|key|auth[-_]?key)\s*[:=]\s*["']?([a-zA-Z0-9_\-]{40}|[a-f0-9]{37})["']?'''
+secretGroup = 1
+keywords = [
+  "cloudflare",
+  "cf_token",
+  "cloudflare_api_token"
+]
+
+# ------------------------------------------------------------------------------
+# Custom Rule: OpenTofu / Terraform Sensitive Variables
+# ------------------------------------------------------------------------------
+[[rules]]
+id = "opentofu-secret-assignment"
+description = "Detected sensitive variable assignment in .tf or .tfvars"
+regex = '''(?i)(?:api_key|api_token|secret_key|password|private_key)\s*=\s*"([^"]{8,})"'''
+secretGroup = 1
+keywords = [
+  "api_token",
+  "secret_key",
+  "private_key"
+]

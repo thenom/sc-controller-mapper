@@ -13,6 +13,7 @@ repos:
       - id: check-merge-conflict
       - id: check-added-large-files
         args: ['--maxkb=2048']
+      - id: detect-private-key
 
   # Secret and credential leak prevention
   - repo: https://github.com/gitleaks/gitleaks
@@ -23,6 +24,12 @@ repos:
   # Local validation hooks
   - repo: local
     hooks:
+      - id: block-sensitive-files
+        name: Block Sensitive Files From Git
+        entry: ./scripts/block-sensitive-files.sh
+        language: script
+        types: [file]
+
       - id: tofu-fmt
         name: OpenTofu Format Check
         entry: tofu fmt -check

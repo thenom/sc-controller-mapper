@@ -17,25 +17,55 @@ daemon/sc-daemon.exe
 *.log
 .DS_Store
 
-# Local configuration overrides
+# Local configuration overrides & environment files
 .env
-.env.local
-*.env.local
+.env.*
+*.env
+*.env.*
+!.env.example
+!*.env.example
 /game-data.json
 
 # OpenTofu & Terraform Local State & Variables
 *.tfstate
 *.tfstate.*
+*.tfstate.backup
+tofu.tfstate*
+terraform.tfstate*
 *.tfvars
+*.tfvars.json
+*.auto.tfvars
+*.auto.tfvars.json
 !*.tfvars.example
+!*.auto.tfvars.example
 .terraform/
 .tofu/
 .terraform.lock.hcl
+.tofu.lock.hcl
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
 crash.log
+crash.*.log
 
-# Cloud Provider Credentials & Secrets
+# Cloud Provider Credentials, Tokens, Keys & Certificates
 *gcp-key*.json
 service-account*.json
 credentials.json
+*credentials*.json
+*token*
+*.token
 *.pem
 *.key
+*.pkcs12
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+id_rsa*
+id_ed25519*
+*.id_rsa
+*.id_ed25519
+*.secret
