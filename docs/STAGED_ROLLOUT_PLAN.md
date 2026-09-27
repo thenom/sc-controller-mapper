@@ -10,9 +10,9 @@ The project transitions in controlled stages from a private containerized test e
 
 ```
 +---------------------------------------------------------------------------------------------------+
-| STAGE 1: Private Server Container (Active)                                                        |
+| STAGE 1: Private Server Container (Active Local / Dev)                                            |
 | - Multi-stage Docker build with unprivileged Nginx on port 8080                                  |
-| - Exposed to friends via simple home router NAT port forwarding                                   |
+| - Local containerized environment for offline development and testing                             |
 | - Functional & aesthetic monetization validation (AdSense sandbox, hardware affiliate cards,     |
 |   and "Fuel the Server" supporter button)                                                         |
 | - Multi-tier Vitest unit/component test suite (<1s run time) + pre-commit hygiene                  |
@@ -20,29 +20,31 @@ The project transitions in controlled stages from a private containerized test e
                                                 │
                                                 ▼
 +---------------------------------------------------------------------------------------------------+
-| STAGE 2: GCP Semi-Private via OpenTofu (Local State & IP Whitelisting)                            |
-| - Managed via OpenTofu CLI (`tofu`) with strictly local state (`tofu.tfstate`)                    |
-| - Git-safe: sensitive project IDs and IPs kept in local `terraform.tfvars` (gitignored)           |
-| - Cloud Run / Cloud Storage backend behind Global HTTPS Load Balancer                             |
-| - Google Cloud Armor Security Policy: Strict IP CIDR whitelist for testers; default 403 Forbidden |
+| STAGE 2: Cloudflare Pages & Zero Trust Staged Gating (Active Live on scbind.com)                  |
+| - Managed via OpenTofu CLI (`tofu`) in `infra/tofu/` with local state (`tofu.tfstate`)            |
+| - Git-safe: sensitive account/zone IDs, IPs, and emails kept in local `terraform.tfvars`          |
+| - Automatic build & edge deployment on push to `main` via Cloudflare Pages                        |
+| - Stage 2A: Direct IP Whitelist (`allowed_ips`) for developer & initial testers                  |
+| - Stage 2B: Email Allowlist (`allowed_emails`) for friends via Cloudflare Access One-Time PIN    |
+| - Cost: $0.00 / month (100% free Cloudflare tier)                                                 |
 +---------------------------------------------------------------------------------------------------+
                                                 │
                                                 ▼
 +---------------------------------------------------------------------------------------------------+
-| STAGE 3: GCP Geo-Locked Hardened Public Deployment                                                |
-| - Cloud Armor policy evolved to ISO country allowlist (e.g. US, GB, CA, DE, FR, AU)               |
-| - Layer 7 DDoS & Anti-Scraping Rate Limiting (max 120 req/min per IP)                             |
-| - Preconfigured OWASP WAF rules (scanner detection, protocol attacks)                             |
-| - Google-managed SSL/TLS certificate with auto-renewal and HTTP-to-HTTPS redirect                  |
+| STAGE 3: Cloudflare Pages Public Launch (`enable_zero_trust = false`)                             |
+| - Toggle `enable_zero_trust = false` via OpenTofu to remove the Access gate                      |
+| - Proxied DNS CNAME with automatic SSL/TLS certificate renewal and CNAME flattening on scbind.com  |
+| - Cloudflare Global Edge CDN with automated DDoS mitigation and fast worldwide asset delivery    |
+| - Cost: $0.00 / month (unlimited requests and bandwidth on Cloudflare Pages free plan)            |
 +---------------------------------------------------------------------------------------------------+
                                                 │
                                                 ▼
 +---------------------------------------------------------------------------------------------------+
 | STAGE 4: Self-Sustaining Traffic-Scaled Monetization                                              |
-| - Switch `VITE_MONETIZATION_MODE` from "test" to "live"                                           |
+| - Switch `monetization_mode` from "test" to "live" in `infra/tofu/terraform.tfvars`              |
 | - High-intent flight sim hardware affiliate partnerships (VKB, VIRPIL, Amazon sim mounts)         |
 | - Voluntary community supporter backing (Ko-fi / Patreon "Quantum Fuel")                          |
-| - Non-intrusive, dark-mode native Google AdSense / Carbon Ads to offset GCP Load Balancer costs    |
+| - Non-intrusive, dark-mode native Google AdSense / Carbon Ads                                     |
 +---------------------------------------------------------------------------------------------------+
 ```
 
@@ -99,19 +101,16 @@ pre-commit run --all-files
 
 ---
 
-## 4. Stage 2 & 3: GCP OpenTofu Specifications
+## 4. Stage 2 & 3: Cloudflare Pages & Zero Trust Specifications
 
 ### Directory Structure (`infra/tofu/`)
 ```
 infra/tofu/
-├── versions.tf               # OpenTofu requirement (>= 1.6.0) and google provider
-├── backend.tf                # local backend: path = "tofu.tfstate"
-├── variables.tf              # Configurable project_id, region, allowed_ips, access_mode
-├── terraform.tfvars.example  # Git-tracked placeholder template
-├── security.tf               # Google Cloud Armor security policies
-├── compute.tf                # Cloud Run container or Cloud Storage SPA backend
-├── loadbalancer.tf           # Global HTTPS Load Balancer & Google-managed SSL
-└── outputs.tf                # Public IP, DNS instructions
+├── versions.tf               # OpenTofu requirement (>= 1.6.0), cloudflare/cloudflare (~> 4.52), local backend
+├── variables.tf              # Account ID, Zone ID, custom_domain (scbind.com), allowed_ips, allowed_emails
+├── main.tf                   # cloudflare_pages_project, cloudflare_pages_domain, cloudflare_record, zero trust app & policy
+├── outputs.tf                # Live URLs, DNS CNAME, Zero Trust AUD tag, and staged rollout status
+└── terraform.tfvars.example  # Git-tracked placeholder template
 ```
 
 ### Critical Rules for OpenTofu
@@ -122,31 +121,33 @@ infra/tofu/
   tofu plan
   tofu apply
   ```
-- **Local State & Secrets**: `tofu.tfstate`, `*.tfvars`, and GCP service account keys are permanently `.gitignored`.
+- **Local State & Secrets**: `tofu.tfstate`, `*.tfvars`, and cloud API tokens are permanently `.gitignored` and blocked by pre-commit.
+- Authentication is handled securely via the `CLOUDFLARE_API_TOKEN` environment variable.
 
-### Cloud Armor Policy Modes
-- **Stage 2 (`access_mode = "ip_whitelist"`)**:
-  - Rule 1000: `src_ip_ranges: var.allowed_ip_cidrs` $\rightarrow$ `allow`
-  - Default: `deny(403)`
-- **Stage 3 (`access_mode = "geo_locked"`)**:
-  - Rule 1000: `origin.region_code` in `["US", "GB", "CA", "DE", "FR", "AU"]` $\rightarrow$ `allow`
-  - Rule 2000 (Rate Limit): Max 120 req/min/IP $\rightarrow$ `rate_limit_threshold`
-  - Rule 3000 (WAF): `evaluatePreconfiguredExpr('scannerdetection-v33-stable')` $\rightarrow$ `deny(403)`
-  - Default: `deny(403)`
+### Staged Access Policy Progression
+- **Stage 2A: Private Alpha (`enable_zero_trust = true`, `allowed_ips = ["<your-ip>/32"]`)**:
+  - Direct IP Whitelist: developer and initial testers access `https://scbind.com` seamlessly without login prompts.
+- **Stage 2B: Semi-Private Beta (`allowed_emails = ["friend@example.com", ...]`)**:
+  - Cloudflare Access One-Time PIN (OTP): friends and testers outside whitelisted IPs enter their email and receive a 6-digit access code for a 24-hour session.
+- **Stage 3: Public Release (`enable_zero_trust = false`)**:
+  - Zero Trust Access Application and Policy are destroyed.
+  - Traffic routes directly to Cloudflare Pages edge network on `scbind.com` with automatic DDoS protection and SSL/TLS.
 
 ---
 
 ## 5. Cost & Monetization Scaling
 
-### GCP Cost Baseline
-- An External Application Load Balancer costs ~$18–$20/month base fee for forwarding rules, plus Cloud Armor policy rules ($5/policy/mo + $1/rule/mo).
-- Cloud Run / Cloud Storage compute is near-zero for low/moderate traffic.
-- Target monthly infrastructure cost: ~$25–$30/month.
+### Cloudflare Cost Baseline: $0.00 / month
+- **Cloudflare Pages**: 100% Free (Unlimited bandwidth, unlimited requests, up to 500 builds/month, custom domain SSL/TLS).
+- **Cloudflare DNS & Proxy**: 100% Free (Unlimited DNS queries, edge DDoS mitigation, CNAME flattening for apex `scbind.com`).
+- **Cloudflare Zero Trust**: 100% Free (Includes up to 50 active user seats on the Free tier).
+- **Target monthly infrastructure cost**: **$0.00 / month**.
 
-### Recouping Strategy
-1. **Contextual Affiliates**: A single joystick or desk mount purchase via referral ($150–$300) yields ~$10–$25 commission, covering up to a full month of Load Balancer fees.
-2. **Voluntary Backers ("Quantum Fuel")**: 5–10 regular community supporters on Ko-fi/Patreon cover the baseline hosting.
-3. **Ad Units**: Once traffic exceeds ~20,000 monthly pageviews, live AdSense/Carbon ad impressions offset traffic bandwidth scaling.
+### Recouping Strategy & Revenue
+Because the hosting cost is $0.00:
+1. **Voluntary Backers ("Quantum Fuel")**: 100% of community contributions via Ko-fi / Patreon go toward developer time and hardware testbeds.
+2. **Contextual Affiliates**: Hardware referral links on VKB, VIRPIL, and Amazon provide pure upside.
+3. **Ad Units**: Optional AdSense / Carbon Ads can be enabled in Stage 4 by setting `monetization_mode = "live"`.
 
 ---
 
@@ -171,9 +172,9 @@ This section tracks items that are currently optional or deferred for future sta
 ### C. Google AdSense Public Review & Production Ad Units
 - **Purpose**: Transition display ads from sandbox test mode to real revenue generation.
 - **Tasks**:
-  1. After deploying to a public custom domain in Stage 3, submit the domain for Google AdSense site review.
+  1. After deploying to a public custom domain in Stage 3 (`enable_zero_trust = false`), submit `scbind.com` for Google AdSense site review.
   2. Create responsive ad units in AdSense dashboard and retrieve your live Publisher ID (`ca-pub-...`) and Slot ID.
-  3. Update `VITE_ADSENSE_CLIENT_ID` and `VITE_ADSENSE_SLOT_ID`, and switch `VITE_MONETIZATION_MODE=live`.
+  3. Update `adsense_client_id` and `adsense_slot_id` in `infra/tofu/terraform.tfvars`, and switch `monetization_mode = "live"`.
 
 ### D. End-to-End (E2E) Browser Automation
 - **Purpose**: Comprehensive browser-level testing for complex UI interactions.
@@ -181,10 +182,5 @@ This section tracks items that are currently optional or deferred for future sta
   1. Install `@playwright/test` when expanded CI automation is desired.
   2. Implement headless test specs for drag-and-drop device rack re-indexing and XML file upload/export flows.
 
-### E. Stage 2 & Stage 3 OpenTofu GCP Execution
-- **Purpose**: Migrate from private home server to automated GCP infrastructure.
-- **Tasks**:
-  1. Create GCP Project and set up billing.
-  2. Populate `infra/tofu/terraform.tfvars` with your project ID and friend IP CIDR blocks.
-  3. Deploy Stage 2 with `tofu apply` (Cloud Run / GCS + Global HTTPS LB + Cloud Armor IP whitelist).
-  4. Transition to Stage 3 (Cloud Armor Geo-fencing + OWASP WAF rules + Google Edge DDoS).
+### E. Cloudflare OpenTofu Live Deployment (Completed)
+- **Status**: **Complete**. Deployed live on `scbind.com` via Cloudflare Pages and Cloudflare Zero Trust. OpenTofu configuration tracked in `infra/tofu/`.

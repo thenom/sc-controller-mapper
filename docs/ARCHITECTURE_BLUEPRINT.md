@@ -60,21 +60,25 @@ sc-mapping/
 │           │   └── useActionMaps.ts  # State management & undo/redo stack
 │           └── services/
 │               └── daemonClient.ts   # WebSocket/HTTP client for sc-daemon
-└── daemon/                          # Lightweight Go Extraction Daemon (Phase 4)
+├── infra/                            # OpenTofu Infrastructure as Code
+│   └── tofu/                         # Cloudflare Pages, DNS CNAME & Zero Trust Staged Gating
+├── scripts/                          # Pre-commit security gates and developer hygiene
+│   └── block-sensitive-files.sh      # Staged sensitive file blocker
+└── daemon/                           # Lightweight Go Extraction Daemon (Phase 4)
     ├── go.mod
     ├── go.sum
-    ├── main.go                      # Daemon CLI & HTTP server entrypoint
+    ├── main.go                       # Daemon CLI & HTTP server entrypoint
     ├── pkg/
-    │   ├── locator/                 # RSI Launcher log parser & path discovery
+    │   ├── locator/                  # RSI Launcher log parser & path discovery
     │   │   └── locator.go
-    │   ├── p4k/                     # Low-level zip64 byte streamer & CryEngine cipher
+    │   ├── p4k/                      # Low-level zip64 byte streamer & CryEngine cipher
     │   │   ├── reader.go
     │   │   ├── cipher.go
     │   │   └── extractor.go
-    │   ├── parser/                  # In-memory defaultProfile.xml & global.ini parser
+    │   ├── parser/                   # In-memory defaultProfile.xml & global.ini parser
     │   │   ├── xml.go
     │   │   └── ini.go
-    │   └── cache/                   # Compressed .scj payload local store
+    │   └── cache/                    # Compressed .scj payload local store
     │       └── cache.go
     └── Makefile
 ```

@@ -7,6 +7,8 @@
 
 A high-performance visual keybinding management suite, conflict diagnostics engine, and device re-indexer engineered specifically for Star Citizen's CryEngine-derived XML input architecture.
 
+🚀 **Live Web Application**: **[https://scbind.com](https://scbind.com)** *(Currently in gated preview for authorized testers; public open access launching soon)*
+
 ![Star Citizen Keybinding Architect Dashboard](docs/images/main_dashboard.png)
 
 > [!WARNING]
@@ -66,22 +68,16 @@ Keybinding Architect supports all standard DirectInput devices, with tailored pr
 
 ## Quickstart Guide
 
-### Option 1: Run with Docker / Podman (Recommended)
+### Option 1: Live Web App (No Installation)
+Launch directly at **[https://scbind.com](https://scbind.com)** in any modern desktop browser. *(Note: Access is currently restricted to authorized alpha/beta testers via Cloudflare Zero Trust; open public access will be enabled in the upcoming Stage 3 release).* All file processing runs 100% locally in your browser.
+
+### Option 2: Run Locally with Node.js (Developers)
 ```bash
 # Clone the repository
 git clone https://github.com/thenom/sc-controller-mapper.git
 cd sc-controller-mapper
 
-# Build and start container (listens on port 8080)
-docker-compose up -d --build
-# Or with Podman:
-podman-compose up -d --build
-```
-Open [http://localhost:8080](http://localhost:8080) in your browser.
-
-### Option 2: Run Locally with Node.js
-```bash
-# Install dependencies
+# Install dependencies across all packages
 npm install
 
 # Start development server
@@ -89,14 +85,23 @@ npm run dev
 ```
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-### Option 3: Offline / Portable
+### Option 3: Run with Docker / Podman
+```bash
+# Build and start container (listens on port 8080)
+docker-compose up -d --build
+# Or with Podman:
+podman-compose up -d --build
+```
+Open [http://localhost:8080](http://localhost:8080) in your browser.
+
+### Option 4: Offline / Portable
 The web application operates 100% client-side in the browser. You can load sample XML profiles from `sample-data/` or import your own `actionmaps.xml` exported from Star Citizen (`LIVE/USER/Client/0/Controls/Mappings/`).
 
 ---
 
 ## Verification & Testing
 
-Keybinding Architect is backed by an automated test suite and pre-commit security scanning:
+Keybinding Architect is backed by an automated test suite, OpenTofu validation, and pre-commit security scanning:
 
 ```bash
 # Run the automated Vitest test suite across all packages (<1s execution)
@@ -104,6 +109,9 @@ npm test
 
 # Run pre-commit checks and Gitleaks secret scans
 pre-commit run --all-files
+
+# Validate OpenTofu infrastructure code (maintainers)
+cd infra/tofu && tofu init -backend=false && tofu fmt -check && tofu validate && cd ../..
 
 # Compile TypeScript monorepo and production web bundle
 npm run build
@@ -113,7 +121,7 @@ npm run build
 
 ## Fuel the Server
 
-Keybinding Architect is an open-source tool built for the Star Citizen community. If this application saved your bindings or simplified your sim-rig setup, consider contributing a coffee or quantum fuel canister to help offset load balancing and hosting costs:
+Keybinding Architect is an open-source tool built for the Star Citizen community. If this application saved your bindings or simplified your sim-rig setup, consider contributing a coffee or quantum fuel canister to help support continued maintenance and development:
 
 [![Fuel the Server on Ko-fi](https://img.shields.io/badge/Ko--fi-Fuel%20the%20Server-ff5e5b.svg?style=for-the-badge&logo=kofi)](https://ko-fi.com/thenom)
 
@@ -121,9 +129,10 @@ Keybinding Architect is an open-source tool built for the Star Citizen community
 
 ## Documentation & Roadmap
 
-- **[docs/STAGED_ROLLOUT_PLAN.md](docs/STAGED_ROLLOUT_PLAN.md)**: Full staged rollout roadmap (Private Server $\rightarrow$ GCP OpenTofu with IP Whitelisting $\rightarrow$ GCP Geo-Locked Cloud Armor WAF $\rightarrow$ Scaling Monetization).
+- **[docs/STAGED_ROLLOUT_PLAN.md](docs/STAGED_ROLLOUT_PLAN.md)**: Full staged rollout roadmap (Private Server $\rightarrow$ Cloudflare Pages & Zero Trust on scbind.com $\rightarrow$ Public Release & Monetization).
 - **[docs/ARCHITECTURE_BLUEPRINT.md](docs/ARCHITECTURE_BLUEPRINT.md)**: Full 40KB technical specification, CryEngine cipher routines, and conflict decision formulas.
 - **[CONTRIBUTING.md](CONTRIBUTING.md)**: Contributor onboarding, game patch extraction workflow (`sc-daemon`), PR guidelines, and code standards.
+- **[infra/tofu/](infra/tofu/)**: Maintainer OpenTofu configuration for production deployment to Cloudflare Pages on `scbind.com`.
 - **[daemon/README.md](daemon/README.md)**: Native Go extraction daemon CLI documentation, Zip64 streaming, and HTTP service reference.
 - **[TODO.md](TODO.md)**: Backlog of upcoming features and optional integrations.
 - **[AGENTS.md](AGENTS.md)**: Agent pairing guidelines, non-negotiable invariants, and AI PR disclosure policy.

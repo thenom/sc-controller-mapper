@@ -47,6 +47,10 @@ sc-mapping/
 │           ├── components/       # DeviceRack.tsx, MonetizationSlot.tsx, etc.
 │           ├── hooks/            # useGamepadListener.ts (HTML5 Gamepad API hook)
 │           └── App.tsx           # Main workspace UI
+├── infra/                        # OpenTofu infrastructure as code
+│   └── tofu/                     # Cloudflare Pages, DNS & Zero Trust Access configuration
+├── scripts/                      # Pre-commit security gates and developer utilities
+│   └── block-sensitive-files.sh  # Pre-commit sensitive file gate
 └── daemon/                       # Go extraction daemon (sc-daemon)
     ├── main.go                   # CLI and HTTP server
     └── pkg/                      # p4k extraction, locator, parser, cache
@@ -87,7 +91,10 @@ Conflicts are rated across a 4-tier severity spectrum:
 
 ### E. OpenTofu Compliance & Secret Safety
 - When working with `.tf` files, **always** use the `tofu` CLI binary (OpenTofu).
-- Maintain local state (`backend "local"`), and never commit `.tfstate`, `*.tfvars`, or cloud credentials to git.
+- The infrastructure resides in `infra/tofu/` and manages Cloudflare Pages, custom domain DNS CNAME mapping (`scbind.com`), and Cloudflare Zero Trust staged access gating.
+- Maintain strictly local state (`backend "local"` targeting `tofu.tfstate`), and never commit `.tfstate`, `*.tfvars`, or cloud credentials to Git.
+- Pass secrets (such as `CLOUDFLARE_API_TOKEN`) via environment variables, and mark sensitive variables (`cloudflare_account_id`, `cloudflare_zone_id`, `allowed_ips`, `allowed_emails`) with `sensitive = true` to mask outputs in logs and terminals.
+- Pre-commit enforcement (`scripts/block-sensitive-files.sh` and `gitleaks`) actively prevents committing sensitive files even when force-added.
 
 ### F. Daemon-Managed Catalog & Game Metadata Extraction
 - **Rule of Dynamic Sourcing (No Hardcoded Game Action Lists)**:
@@ -105,6 +112,33 @@ Conflicts are rated across a 4-tier severity spectrum:
     4. `apps/web/public/game-data.json` (web app live extraction cache)
   - Whenever game files are updated or patch data changes, agents and contributors must run `npm run daemon:extract` to ensure resolver heuristics and action catalogs reflect the latest patch data.
 
+### G. Documentation Synchronization & Maintenance Invariant
+- **Continuous Documentation Integrity**: Whenever changes are made to codebase architecture, cloud infrastructure, deployment configurations, security hooks, monetization models, or workflows, agents and contributors **MUST proactively update all relevant documentation**:
+  - [AGENTS.md](file:///home/simon.thorley/workspace/sc-controller-mapper/AGENTS.md): Agent context, invariants, monorepo directory tree, and commands.
+  - [README.md](file:///home/simon.thorley/workspace/sc-controller-mapper/README.md): Public feature showcases, live deployment domain (`scbind.com`), and quickstart.
+  - [CONTRIBUTING.md](file:///home/simon.thorley/workspace/sc-controller-mapper/CONTRIBUTING.md): Verification test sequences, OpenTofu validation steps, and PR guidelines.
+  - [TODO.md](file:///home/simon.thorley/workspace/sc-controller-mapper/TODO.md): Backlog tasks, completed stage milestones, and deferred enhancements.
+  - [docs/ARCHITECTURE_BLUEPRINT.md](file:///home/simon.thorley/workspace/sc-controller-mapper/docs/ARCHITECTURE_BLUEPRINT.md): Structural directories, schemas, and system specs.
+  - [docs/STAGED_ROLLOUT_PLAN.md](file:///home/simon.thorley/workspace/sc-controller-mapper/docs/STAGED_ROLLOUT_PLAN.md): Cloud rollout stages, Zero Trust stages, and monetization progression.
+- **No Stale Documentation**: Documentation must strictly reflect the active, running architecture of the repository. Obsolete designs, theoretical architectures, stale paths, or replaced technologies must be cleaned up and kept in sync with the codebase.
+
+### H. Public Repository Secret Safety & Sanitization Protocol
+- **Public Visibility Invariant**: This repository (`thenom/sc-controller-mapper`) is a **100% public open-source repository**. Every commit, branch push, pull request, issue, and workflow run is immediately visible to the public internet, search engines, and automated bot scrapers.
+- **Zero Tolerance for Real Credentials & Identifiers**:
+  - **NEVER** commit real Cloudflare Account IDs, Zone IDs, API Tokens, or Global Keys.
+  - **NEVER** commit real public IP addresses, home/office IP CIDRs, or tester IP ranges.
+  - **NEVER** commit real email addresses into configuration files, templates, or code.
+  - **NEVER** commit `.tfstate`, `*.tfvars`, `.env`, or credential files (strictly guarded by `.gitignore`, `scripts/block-sensitive-files.sh`, and `gitleaks`).
+- **Sanitization & Documentation Standard (RFC 5737)**:
+  - All template examples (`terraform.tfvars.example`, `.env.example`), documentation, and code comments MUST strictly use:
+    - Documentation IPs: RFC 5737 `203.0.113.0/24` (TEST-NET-3) or `192.0.2.0/24` (TEST-NET-1).
+    - Placeholder IDs: Generic hex strings like `0123456789abcdef0123456789abcdef`.
+    - Dummy domains & emails: `example.com`, `user@example.com`.
+- **Multi-Layer Enforcement**:
+  - `scripts/block-sensitive-files.sh` blocks sensitive files from git even if force-staged (`git add -f`).
+  - Gitleaks (`.gitleaks.toml`) scans every commit diff and CI run for token signatures.
+  - OpenTofu variables for accounts, zones, IPs, and emails are marked `sensitive = true` to mask output values in terminal recordings and CI logs.
+
 ---
 
 ## 4. Development & Verification Commands
@@ -118,6 +152,13 @@ npm test
 
 # Run pre-commit checks and secret scans across all files
 pre-commit run --all-files
+
+# Validate OpenTofu infrastructure code
+cd infra/tofu
+tofu init -backend=false
+tofu fmt -check
+tofu validate
+cd ../..
 
 # Start the Web Application locally in dev mode
 npm run dev

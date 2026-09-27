@@ -46,3 +46,20 @@ allowed_emails = [
   # "friend@example.com",
   # "wingman@org.space"
 ]
+
+# ==============================================================================
+# Monetization & Sponsor Settings (Optional overrides)
+# ==============================================================================
+# Supporter / Donation link for top-bar "FUEL SERVER" badge
+supporter_url = "https://ko-fi.com/thenom"
+
+# Monetization mode: "test" (safe mock sandbox), "live" (real ad network), or "off" (hide ads)
+# Leave blank ("") to automatically use "test" while enable_zero_trust is true, and "live" when false.
+monetization_mode = ""
+
+# Affiliate tag for recommended HOTAS/HOSAS flight hardware cards
+affiliate_amazon_tag = "scmapper-20"
+
+# Google AdSense Publisher & Slot IDs (for Stage 4 live ads)
+adsense_client_id = "ca-pub-0000000000000000"
+adsense_slot_id   = "0000000000"

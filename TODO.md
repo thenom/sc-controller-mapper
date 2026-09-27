@@ -38,15 +38,16 @@ This document tracks optional items, future stage milestones, and deferred confi
 
 ---
 
-## 4. Cloud Infrastructure Milestones (Stages 2 & 3)
+## 4. Cloud Infrastructure Milestones (Cloudflare Pages & Zero Trust)
 
-- [ ] **GCP Project Setup**:
-  - Create GCP project and enable compute/load balancing APIs.
-- [ ] **Stage 2: OpenTofu Semi-Private Deployment**:
-  - Populate `infra/tofu/terraform.tfvars` with GCP Project ID and friend IP CIDR ranges.
-  - Deploy with `tofu apply` (Cloud Run / GCS + HTTPS Load Balancer + Cloud Armor IP whitelist).
-- [ ] **Stage 3: GCP Geo-Locked Public Release**:
-  - Transition Cloud Armor security policy to ISO country codes (`origin.region_code`).
-  - Enable anti-scraping rate limiting (max 120 req/min/IP).
-  - Enable OWASP preconfigured WAF rules (scanner detection, protocol attacks).
-  - Provision Google-managed SSL certificate on custom domain.
+- [x] **Stage 2A: Cloudflare Pages & Zero Trust Deployment (Completed)**:
+  - Deployed static web application to Cloudflare Pages via OpenTofu (`infra/tofu/`).
+  - Attached custom domain `scbind.com` and configured proxied DNS CNAME.
+  - Configured Cloudflare Zero Trust Access Application and IP whitelist policy.
+  - Hardened Git security with pre-commit gates (`block-sensitive-files.sh`, `detect-private-key`, `gitleaks`).
+- [ ] **Stage 2B: Tester Email Allowlist**:
+  - Add tester/friend email addresses to `allowed_emails` in `infra/tofu/terraform.tfvars` for One-Time PIN beta access.
+  - Run `tofu apply`.
+- [ ] **Stage 3: Public Release**:
+  - Set `enable_zero_trust = false` in `infra/tofu/terraform.tfvars` and run `tofu apply`.
+  - Opens `https://scbind.com` to the world with automated edge DDoS protection and SSL/TLS.

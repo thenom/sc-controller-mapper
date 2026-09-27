@@ -43,14 +43,20 @@ resource "cloudflare_pages_project" "app" {
   deployment_configs {
     preview {
       environment_variables = {
-        NODE_VERSION           = "22"
-        VITE_MONETIZATION_MODE = "test"
+        NODE_VERSION              = "22"
+        VITE_MONETIZATION_MODE    = "test"
+        VITE_SUPPORTER_URL        = var.supporter_url
+        VITE_AFFILIATE_AMAZON_TAG = var.affiliate_amazon_tag
       }
     }
     production {
       environment_variables = {
-        NODE_VERSION           = "22"
-        VITE_MONETIZATION_MODE = var.enable_zero_trust ? "test" : "live"
+        NODE_VERSION              = "22"
+        VITE_MONETIZATION_MODE    = var.monetization_mode != "" ? var.monetization_mode : (var.enable_zero_trust ? "test" : "live")
+        VITE_SUPPORTER_URL        = var.supporter_url
+        VITE_AFFILIATE_AMAZON_TAG = var.affiliate_amazon_tag
+        VITE_ADSENSE_CLIENT_ID    = var.adsense_client_id
+        VITE_ADSENSE_SLOT_ID      = var.adsense_slot_id
       }
     }
   }
