@@ -128,4 +128,37 @@ describe('ActionMapsExporter', () => {
     expect(reParsed.customisationUIHeader?.label).toBe('TheNomV1');
     expect(reParsed.customisationUIHeader?.devices.find(d => d.type === 'joystick' && d.instance === 2)).toBeDefined();
   });
+
+  it('serializes CustomisationUIDs, keyboard options, and mouse options', () => {
+    const docWithUIDsAndPeripherals = {
+      profileName: 'peripherals_test',
+      customisationUIDs: {
+        optionUIDs: ['opt_1', 'opt_2'],
+        listUIDs: ['list_1']
+      },
+      devices: [
+        { type: 'keyboard' as const, instance: 1 },
+        { type: 'mouse' as const, instance: 1 },
+        {
+          type: 'joystick' as const,
+          instance: 1,
+          productName: 'Flight Stick',
+          inversions: {}
+        }
+      ],
+      actionMaps: {
+        general: {
+          name: 'general',
+          actions: {}
+        }
+      }
+    };
+
+    const exported = ActionMapsExporter.exportToXML(docWithUIDsAndPeripherals);
+    expect(exported).toContain('<CustomisationUIDs>');
+    expect(exported).toContain('<OptionUID text="opt_1"/>');
+    expect(exported).toContain('<ListUID text="list_1"/>');
+    expect(exported).toContain('<options type="keyboard" instance="1"/>');
+    expect(exported).toContain('<options type="mouse" instance="1"/>');
+  });
 });

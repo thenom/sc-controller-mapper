@@ -87,3 +87,118 @@ func TestGenerateCatalogFromGameData(t *testing.T) {
 		t.Errorf("generated defaultCatalog.ts file was empty")
 	}
 }
+
+func TestGenerateCatalog_ExtendedFeatures(t *testing.T) {
+	xmlData := `<?xml version="1.0" encoding="utf-8"?>
+<profile version="1">
+  <actiongroup action="v_attack">
+    <action name="v_attack_all" UILabel="@ui_attack_all" Category="combat" />
+    <action name="v_attack1_group1" />
+  </actiongroup>
+  <actionmap name="spaceship_weapons" UILabel="@map_weapons">
+    <action name="v_attack1_group1" activationMode="press" />
+  </actionmap>
+  <actionmap name="vehicle_general" UILabel="General Vehicle">
+    <action name="v_lights" UILabel="@ui_ci_v_lights" />
+  </actionmap>
+  <actionmap name="spaceship_missiles">
+    <action name="v_missile_fire" activationMode="delayed_press_double_tap" />
+  </actionmap>
+  <actionmap name="spaceship_mining">
+    <action name="v_mining_laser" />
+  </actionmap>
+  <actionmap name="spaceship_salvage">
+    <action name="v_salvage_beam" />
+  </actionmap>
+  <actionmap name="spaceship_quantum">
+    <action name="v_toggle_quantum_mode" />
+    <action name="v_master_mode_set_nav" />
+    <action name="v_master_mode_cycle_long" />
+    <action name="v_toggle_qdrive_engagement" />
+  </actionmap>
+  <actionmap name="player_onfoot">
+    <action name="v_eject_hold" UILabel="Eject (Hold)" UIDescription="Long press to eject" />
+    <action name="v_master_mode_cycle" />
+    <action name="shield_raise" />
+    <action name="target_lock" />
+    <action name="scan_ping" />
+    <action name="power_toggle" />
+    <action name="seat_exit" />
+    <action name="v_roll" />
+  </actionmap>
+  <actionmap name="ground_vehicle">
+    <action name="drive_forward" />
+  </actionmap>
+  <actionmap name="zero_gravity">
+    <action name="eva_boost" />
+  </actionmap>
+  <actionmap name="turret_aim">
+    <action name="aim" />
+  </actionmap>
+  <actionmap name="view_orbit">
+    <action name="cam" />
+  </actionmap>
+  <actionmap name="custom_map">
+    <action name="foo" />
+  </actionmap>
+</profile>`
+
+	loc := map[string]string{
+		"map_weapons,p":      "Spaceship Weapons",
+		"ui_attack_all,u":    "Attack All Targets",
+		"ui_ci_v_lights":     "Toggle Headlights",
+		"ui_ci_v_lights_desc": "Turns on headlights",
+		"token_with_comma,x": "Comma Value",
+	}
+
+	cat, err := GenerateCatalogFromGameData(xmlData, loc)
+	if err != nil {
+		t.Fatalf("GenerateCatalogFromGameData failed: %v", err)
+	}
+
+	// Verify domain mappings
+	if cat["spaceship_weapons"].Domain != "spaceship" {
+		t.Errorf("expected domain spaceship, got %s", cat["spaceship_weapons"].Domain)
+	}
+	if cat["ground_vehicle"].Domain != "ground_vehicle" {
+		t.Errorf("expected domain ground_vehicle, got %s", cat["ground_vehicle"].Domain)
+	}
+	if cat["player_onfoot"].Domain != "onfoot" {
+		t.Errorf("expected domain onfoot, got %s", cat["player_onfoot"].Domain)
+	}
+	if cat["zero_gravity"].Domain != "eva" {
+		t.Errorf("expected domain eva, got %s", cat["zero_gravity"].Domain)
+	}
+	if cat["turret_aim"].Domain != "turret" {
+		t.Errorf("expected domain turret, got %s", cat["turret_aim"].Domain)
+	}
+	if cat["view_orbit"].Domain != "spectator" {
+		t.Errorf("expected domain spectator, got %s", cat["view_orbit"].Domain)
+	}
+	if cat["custom_map"].Domain != "general" {
+		t.Errorf("expected domain general, got %s", cat["custom_map"].Domain)
+	}
+
+	// Verify actiongroup injection
+	var hasAttackAll bool
+	for _, a := range cat["spaceship_weapons"].Actions {
+		if a.Name == "v_attack_all" {
+			hasAttackAll = true
+			if a.Label != "Attack All Targets" {
+				t.Errorf("expected 'Attack All Targets', got '%s'", a.Label)
+			}
+			if a.Category != "Combat" {
+				t.Errorf("expected category 'Combat', got '%s'", a.Category)
+			}
+		}
+	}
+	if !hasAttackAll {
+		t.Errorf("v_attack_all was not injected into spaceship_weapons")
+	}
+
+	// Test invalid XML
+	_, err = GenerateCatalogFromGameData("<<<invalid xml", loc)
+	if err == nil {
+		t.Errorf("expected error for invalid xml")
+	}
+}

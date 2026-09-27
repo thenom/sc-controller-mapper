@@ -139,4 +139,65 @@ describe('ActionMapsParser', () => {
     expect(qAction.inputs[0].input).toBe('js1_button1');
     expect(qAction.inputs[1].input).toBe('js2_button1');
   });
+
+  it('should parse direct device attributes on action nodes', () => {
+    const xml = `<ActionMaps version="1">
+      <actionmap name="spaceship_movement">
+        <action name="v_pitch" keyboard="w" mouse="btn1" gamepad="gp1_thumbr" joystick="pitch"/>
+      </actionmap>
+    </ActionMaps>`;
+
+    const doc = ActionMapsParser.parseXML(xml);
+    const action = doc.actionMaps['spaceship_movement'].actions['v_pitch'];
+    expect(action).toBeDefined();
+    expect(action.inputs).toHaveLength(4);
+    expect(action.inputs[0].input).toBe('kb1_w');
+    expect(action.inputs[1].input).toBe('mo1_btn1');
+    expect(action.inputs[2].input).toBe('gp1_thumbr');
+    expect(action.inputs[3].input).toBe('js1_pitch');
+  });
+
+  it('should parse child device elements like keyboard, mouse, gamepad, and joystick tags', () => {
+    const xml = `<ActionMaps version="1">
+      <actionmap name="spaceship_movement">
+        <action name="v_roll">
+          <keyboard input="a"/>
+          <mouse input="mo1_maxis_x"/>
+          <gamepad input="shoulderl"/>
+          <joystick input="roll"/>
+        </action>
+      </actionmap>
+    </ActionMaps>`;
+
+    const doc = ActionMapsParser.parseXML(xml);
+    const action = doc.actionMaps['spaceship_movement'].actions['v_roll'];
+    expect(action).toBeDefined();
+    expect(action.inputs).toHaveLength(4);
+    expect(action.inputs[0].input).toBe('kb1_a');
+    expect(action.inputs[1].input).toBe('mo1_maxis_x');
+    expect(action.inputs[2].input).toBe('gp1_shoulderl');
+    expect(action.inputs[3].input).toBe('js1_roll');
+  });
+
+  it('should parse CustomisationUIDs and keyboard/mouse options tags', () => {
+    const xml = `<ActionMaps version="1">
+      <CustomisationUIDs>
+        <OptionUID text="sc_opt_1"/>
+        <OptionUID text="sc_opt_2"/>
+        <ListUID text="sc_list_1"/>
+      </CustomisationUIDs>
+      <options type="keyboard" instance="1"/>
+      <options type="mouse" instance="1"/>
+      <actionmap name="spaceship_general">
+        <action name="v_boost"><rebind input="js1_button1"/></action>
+      </actionmap>
+    </ActionMaps>`;
+
+    const doc = ActionMapsParser.parseXML(xml);
+    expect(doc.customisationUIDs).toBeDefined();
+    expect(doc.customisationUIDs?.optionUIDs).toEqual(['sc_opt_1', 'sc_opt_2']);
+    expect(doc.customisationUIDs?.listUIDs).toEqual(['sc_list_1']);
+    expect(doc.devices.some(d => d.type === 'keyboard')).toBe(true);
+    expect(doc.devices.some(d => d.type === 'mouse')).toBe(true);
+  });
 });

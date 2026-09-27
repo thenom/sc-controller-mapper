@@ -161,3 +161,75 @@ func TestResolveBuildMetadataFallback(t *testing.T) {
 		t.Errorf("expected build date stamp from p4k modtime, got empty")
 	}
 }
+
+func TestResolveGamePath_EnvAndLogs(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// 1. Test STARCITIZEN_PATH env var
+	gameDir := filepath.Join(tmpDir, "GameDir")
+	if err := os.Mkdir(gameDir, 0755); err != nil {
+		t.Fatalf("failed to create dir: %v", err)
+	}
+
+	t.Setenv("STARCITIZEN_PATH", gameDir)
+	resolved, err := ResolveGamePath("")
+	if err != nil || resolved != gameDir {
+		t.Fatalf("expected ResolveGamePath with STARCITIZEN_PATH to return %s, got %s (err: %v)", gameDir, resolved, err)
+	}
+
+	// 2. Clear STARCITIZEN_PATH and test RSI Launcher log discovery
+	t.Setenv("STARCITIZEN_PATH", "")
+
+	appDataDir := filepath.Join(tmpDir, "AppData")
+	t.Setenv("APPDATA", appDataDir)
+
+	scSubDir := filepath.Join(tmpDir, "RSIInstall", "StarCitizen")
+	if err := os.MkdirAll(scSubDir, 0755); err != nil {
+		t.Fatalf("failed creating scSubDir: %v", err)
+	}
+
+	logDir := filepath.Join(appDataDir, "rsilauncher", "logs")
+	if err := os.MkdirAll(logDir, 0755); err != nil {
+		t.Fatalf("failed creating logDir: %v", err)
+	}
+
+	logContent := "2026-09-24 Info: gamePath = \"" + filepath.Join(tmpDir, "RSIInstall") + "\"\n"
+	if err := os.WriteFile(filepath.Join(logDir, "log.log"), []byte(logContent), 0644); err != nil {
+		t.Fatalf("failed writing log file: %v", err)
+	}
+
+	resolvedLog, err := ResolveGamePath("")
+	if err != nil {
+		t.Fatalf("unexpected error finding game path from launcher log: %v", err)
+	}
+	if resolvedLog != scSubDir {
+		t.Errorf("expected %s, got %s", scSubDir, resolvedLog)
+	}
+
+	// 3. Test unable to locate failure
+	t.Setenv("APPDATA", filepath.Join(tmpDir, "empty_appdata"))
+	_, err = ResolveGamePath("")
+	if err == nil {
+		t.Fatalf("expected error when no path exists and cannot be located")
+	}
+}
+
+func TestResolveBuildMetadata_Patterns(t *testing.T) {
+	// PTU detection
+	mPTU := ResolveBuildMetadata("/opt/StarCitizen/PTU", "")
+	if mPTU.Data.Branch != "PTU" {
+		t.Errorf("expected branch PTU, got %s", mPTU.Data.Branch)
+	}
+
+	// EPTU detection
+	mEPTU := ResolveBuildMetadata("/opt/StarCitizen/EPTU", "")
+	if mEPTU.Data.Branch != "EPTU" {
+		t.Errorf("expected branch EPTU, got %s", mEPTU.Data.Branch)
+	}
+
+	// Build number regex extraction from path
+	mVer := ResolveBuildMetadata("/opt/StarCitizen/LIVE/build-98765432", "")
+	if mVer.Data.Version != "98765432" {
+		t.Errorf("expected version 98765432, got %s", mVer.Data.Version)
+	}
+}

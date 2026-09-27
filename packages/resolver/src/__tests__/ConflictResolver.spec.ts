@@ -7,7 +7,8 @@ function mockInput(
   input: string,
   bindType: 'rebind' | 'addbind' = 'rebind',
   activationMode?: 'press' | 'hold' | 'double_tap' | 'delayed_press' | 'smart_toggle',
-  multiTap?: number
+  multiTap?: number,
+  modifiers?: string[]
 ): BindingInput {
   const prefixMatch = input.match(/^([a-z0-9]+)_(.*)$/i);
   return {
@@ -16,7 +17,8 @@ function mockInput(
     hardwareKey: prefixMatch ? prefixMatch[2] : input,
     bindType,
     activationMode,
-    multiTap
+    multiTap,
+    modifiers
   };
 }
 
@@ -220,5 +222,262 @@ describe('ConflictResolver', () => {
 
     expect(result.severity).toBe(ConflictSeverity.None);
     expect(result.reason).toContain('Mutually exclusive');
+  });
+
+  it('should evaluate severity directly using evaluateSeverity helper', () => {
+    const actionA: ActionBinding = {
+      name: 'v_pitch',
+      inputs: [mockInput('js1_pitch', 'rebind')]
+    };
+    const actionB: ActionBinding = {
+      name: 'v_yaw',
+      inputs: [mockInput('js1_pitch', 'rebind')]
+    };
+
+    const severity = ConflictResolver.evaluateSeverity(
+      'spaceship_movement',
+      actionA,
+      'spaceship_movement',
+      actionB
+    );
+
+    expect(severity).toBe(ConflictSeverity.Fatal);
+  });
+
+  it('should return Severity 0 (None) for identical action self-comparison', () => {
+    const action: ActionBinding = {
+      name: 'v_boost',
+      inputs: [mockInput('js1_button4', 'rebind')]
+    };
+
+    const result = ConflictResolver.evaluateActions(
+      'spaceship_movement',
+      action,
+      'spaceship_movement',
+      action
+    );
+
+    expect(result.severity).toBe(ConflictSeverity.None);
+    expect(result.reason).toContain('Identical action identity');
+  });
+
+  it('should detect obsolete collisions when one action is deprecated', () => {
+    const deprecatedAction: ActionBinding = {
+      name: 'v_ifcs_toggle_cruise_control',
+      inputs: [mockInput('js1_button1', 'rebind', 'press')]
+    };
+    const modernAction: ActionBinding = {
+      name: 'v_boost',
+      inputs: [mockInput('js1_button1', 'rebind', 'press')]
+    };
+
+    // depA && !depB
+    const resA = ConflictResolver.evaluateActions(
+      'spaceship_movement',
+      deprecatedAction,
+      'spaceship_movement',
+      modernAction
+    );
+    expect(resA.conflictType).toBe('obsolete_collision');
+    expect(resA.deprecatedAction).toBe('v_ifcs_toggle_cruise_control');
+    expect(resA.reason).toContain('Collision with Obsolete Action');
+
+    // !depA && depB
+    const resB = ConflictResolver.evaluateActions(
+      'spaceship_movement',
+      modernAction,
+      'spaceship_movement',
+      deprecatedAction
+    );
+    expect(resB.conflictType).toBe('obsolete_collision');
+    expect(resB.deprecatedAction).toBe('v_ifcs_toggle_cruise_control');
+  });
+
+  it('should detect dual obsolete collision when both colliding actions are deprecated', () => {
+    const depA: ActionBinding = {
+      name: 'v_ifcs_toggle_cruise_control',
+      inputs: [mockInput('js1_button1', 'rebind', 'press')]
+    };
+    const depB: ActionBinding = {
+      name: 'v_cruise_control',
+      inputs: [mockInput('js1_button1', 'rebind', 'press')]
+    };
+
+    const res = ConflictResolver.evaluateActions(
+      'spaceship_movement',
+      depA,
+      'spaceship_movement',
+      depB
+    );
+    expect(res.conflictType).toBe('obsolete_collision');
+    expect(res.reason).toContain('Dual Obsolete Action Collision');
+    expect(res.deprecatedAction).toContain('v_ifcs_toggle_cruise_control');
+    expect(res.deprecatedAction).toContain('v_cruise_control');
+  });
+
+  it('should correctly identify unbound placeholders in isUnboundPlaceholder', () => {
+    expect(ConflictResolver.isUnboundPlaceholder(undefined)).toBe(true);
+    expect(ConflictResolver.isUnboundPlaceholder({ input: '', devicePrefix: 'js1' as any, hardwareKey: '', bindType: 'rebind' })).toBe(true);
+    expect(ConflictResolver.isUnboundPlaceholder({ input: 'none', devicePrefix: 'js1' as any, hardwareKey: '', bindType: 'rebind' })).toBe(true);
+    expect(ConflictResolver.isUnboundPlaceholder({ input: 'js1_', devicePrefix: 'js1' as any, hardwareKey: '', bindType: 'rebind' })).toBe(true);
+    expect(ConflictResolver.isUnboundPlaceholder({ input: 'js1_button1', devicePrefix: 'js1' as any, hardwareKey: '', bindType: 'rebind' })).toBe(true);
+    expect(ConflictResolver.isUnboundPlaceholder({ input: 'js1_button1', devicePrefix: 'js1' as any, hardwareKey: 'button1', bindType: 'rebind' })).toBe(false);
+  });
+
+  it('should support device filtering in auditDocument', () => {
+    const doc = {
+      profileName: 'filter_test',
+      devices: [],
+      actionMaps: {
+        spaceship_movement: {
+          name: 'spaceship_movement',
+          actions: {
+            v_pitch: {
+              name: 'v_pitch',
+              inputs: [mockInput('js1_pitch', 'rebind')]
+            },
+            v_yaw: {
+              name: 'v_yaw',
+              inputs: [mockInput('js1_pitch', 'rebind')]
+            },
+            v_forward: {
+              name: 'v_forward',
+              inputs: [mockInput('kb1_w', 'rebind')]
+            },
+            v_throttle_up: {
+              name: 'v_throttle_up',
+              inputs: [mockInput('kb1_w', 'rebind')]
+            }
+          }
+        }
+      }
+    };
+
+    // Filter by joystick
+    const jsReport = ConflictResolver.auditDocument(doc, { deviceFilter: 'js' });
+    expect(jsReport.conflicts.length).toBe(1);
+    expect(jsReport.conflicts[0].sharedInput).toBe('js1_pitch');
+
+    // Filter by keyboard
+    const kbReport = ConflictResolver.auditDocument(doc, { deviceFilter: 'kb' });
+    expect(kbReport.conflicts.length).toBe(1);
+    expect(kbReport.conflicts[0].sharedInput).toBe('kb1_w');
+
+    // Filter 'all'
+    const allReport = ConflictResolver.auditDocument(doc, { deviceFilter: 'all' });
+    expect(allReport.conflicts.length).toBe(2);
+  });
+
+  it('should audit standalone deprecated actions without collisions', () => {
+    const doc = {
+      profileName: 'deprecated_standalone',
+      devices: [],
+      actionMaps: {
+        spaceship_movement: {
+          name: 'spaceship_movement',
+          actions: {
+            v_ifcs_toggle_cruise_control: {
+              name: 'v_ifcs_toggle_cruise_control',
+              inputs: [mockInput('js1_button1', 'rebind')]
+            }
+          }
+        }
+      }
+    };
+
+    const report = ConflictResolver.auditDocument(doc);
+    expect(report.redundantCount).toBe(1);
+    const deprecatedConflict = report.conflicts.find(c => c.conflictType === 'deprecated');
+    expect(deprecatedConflict).toBeDefined();
+    expect(deprecatedConflict?.targetAction).toBe('Obsolete / Superseded');
+    expect(deprecatedConflict?.sourceAction).toBe('v_ifcs_toggle_cruise_control');
+
+    // Filter out via deviceFilter
+    const kbReport = ConflictResolver.auditDocument(doc, { deviceFilter: 'kb' });
+    expect(kbReport.conflicts.length).toBe(0);
+  });
+
+  it('should compare physical inputs taking modifiers and prefixes into account', () => {
+    // Differing modifiers: lalt vs ralt
+    const actionLAlt: ActionBinding = {
+      name: 'v_action_a',
+      inputs: [{
+        input: 'js1_lalt+button1',
+        devicePrefix: 'js1' as any,
+        hardwareKey: 'button1',
+        bindType: 'rebind',
+        activationMode: 'press',
+        modifiers: ['lalt']
+      }]
+    };
+    const actionRAlt: ActionBinding = {
+      name: 'v_action_b',
+      inputs: [{
+        input: 'js1_ralt+button1',
+        devicePrefix: 'js1' as any,
+        hardwareKey: 'button1',
+        bindType: 'rebind',
+        activationMode: 'press',
+        modifiers: ['ralt']
+      }]
+    };
+
+    const diffModResult = ConflictResolver.evaluateActions(
+      'spaceship_movement',
+      actionLAlt,
+      'spaceship_movement',
+      actionRAlt
+    );
+    expect(diffModResult.severity).toBe(ConflictSeverity.None);
+
+    // Matching modifiers in different order: ['lalt', 'lshift'] vs ['lshift', 'lalt']
+    const actionMulti1: ActionBinding = {
+      name: 'v_action_1',
+      inputs: [{
+        input: 'js1_lalt+lshift+button1',
+        devicePrefix: 'js1' as any,
+        hardwareKey: 'button1',
+        bindType: 'rebind',
+        activationMode: 'press',
+        modifiers: ['lalt', 'lshift']
+      }]
+    };
+    const actionMulti2: ActionBinding = {
+      name: 'v_action_2',
+      inputs: [{
+        input: 'js1_lshift+lalt+button1',
+        devicePrefix: 'js1' as any,
+        hardwareKey: 'button1',
+        bindType: 'rebind',
+        activationMode: 'press',
+        modifiers: ['lshift', 'lalt']
+      }]
+    };
+
+    const matchModResult = ConflictResolver.evaluateActions(
+      'spaceship_movement',
+      actionMulti1,
+      'spaceship_movement',
+      actionMulti2
+    );
+    expect(matchModResult.severity).toBe(ConflictSeverity.Fatal);
+
+    // Different device prefixes: js1 vs js2
+    const actionJs1: ActionBinding = {
+      name: 'v_action_js1',
+      inputs: [mockInput('js1_button1', 'rebind', 'press')]
+    };
+    const actionJs2: ActionBinding = {
+      name: 'v_action_js2',
+      inputs: [mockInput('js2_button1', 'rebind', 'press')]
+    };
+
+    const diffPrefixResult = ConflictResolver.evaluateActions(
+      'spaceship_movement',
+      actionJs1,
+      'spaceship_movement',
+      actionJs2
+    );
+    expect(diffPrefixResult.severity).toBe(ConflictSeverity.None);
   });
 });

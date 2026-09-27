@@ -66,7 +66,7 @@ func discoverFromLauncherLogs() (string, error) {
 		filepath.Join(appData, "RSI Launcher", "logs", "log.log"),
 	}
 
-	pathRegex := regexp.MustCompile(`(?i)(?:gamePath|Library folder|Installing [^"]* to)\s*[:=]\s*["']?([A-Z]:\\[^"'\r\n]+?)(?:\\StarCitizen)?["']?$`)
+	pathRegex := regexp.MustCompile(`(?i)(?:gamePath|Library folder|Installing [^"]* to)\s*[:=]\s*["']?([A-Za-z]:\\[^"'\r\n]+?|/[^"'\r\n]+?)(?:[/\\]StarCitizen)?["']?$`)
 
 	for _, logFile := range possibleLogs {
 		f, err := os.Open(logFile)

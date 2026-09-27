@@ -116,5 +116,41 @@ describe('CatalogManager', () => {
     // v_eject should be press
     expect(CatalogManager.getDefaultActivationMode('v_eject')).toBe('press');
     expect(CatalogManager.getDefaultMultiTap('v_eject')).toBe(1);
+    expect(manager.getDefaultMultiTap('v_eject')).toBe(1);
+    expect(manager.getMasterFlightMode('v_toggle_qdrive_engagement')).toBe('NAV');
+    expect(manager.getCatalog()).toBeDefined();
+  });
+
+  it('should support custom catalogs with instance index lookups', () => {
+    const customCatalog = {
+      custom_map: {
+        mapName: 'custom_map',
+        label: 'Custom Map',
+        domain: 'custom',
+        actions: [
+          {
+            name: 'custom_action',
+            label: 'Custom Action',
+            category: 'Testing',
+            description: 'Custom description',
+            defaultActivationMode: 'hold',
+            defaultMultiTap: 2,
+            masterFlightMode: 'SCM' as const
+          }
+        ]
+      }
+    };
+
+    const customManager = new CatalogManager(customCatalog);
+    expect(customManager.getDefaultActivationMode('custom_action')).toBe('hold');
+    expect(customManager.getDefaultMultiTap('custom_action')).toBe(2);
+    expect(customManager.getMasterFlightMode('custom_action')).toBe('SCM');
+    expect(customManager.getActionEntry('non_existent')).toBeUndefined();
+
+    // Search with mapFilter
+    const filteredSearch = customManager.search('custom', 'custom_map');
+    expect(filteredSearch).toHaveLength(1);
+    const emptySearch = customManager.search('custom', 'other_map');
+    expect(emptySearch).toHaveLength(0);
   });
 });

@@ -64,6 +64,47 @@ describe('ReferralCodeCard', () => {
     expect(screen.getByText('Copy Code')).toBeDefined();
   });
 
+  it('uses textarea fallback when navigator.clipboard is unavailable', async () => {
+    // @ts-ignore
+    const origClipboard = navigator.clipboard;
+    // @ts-ignore
+    delete navigator.clipboard;
+    // JSDOM doesn't have execCommand by default
+    document.execCommand = vi.fn().mockReturnValue(true);
+
+    render(<ReferralCodeCard initialCode={CREATOR_REFERRAL_CODE} />);
+    const copyBtn = screen.getByRole('button', { name: /Copy Code/i });
+    await act(async () => {
+      fireEvent.click(copyBtn);
+    });
+
+    expect(document.execCommand).toHaveBeenCalledWith('copy');
+    expect(screen.getByText('COPIED!')).toBeDefined();
+
+    // @ts-ignore
+    navigator.clipboard = origClipboard;
+  });
+
+
+  it('handles clipboard copy error gracefully', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: vi.fn().mockRejectedValue(new Error('Clipboard blocked'))
+      }
+    });
+
+    render(<ReferralCodeCard initialCode={CREATOR_REFERRAL_CODE} />);
+    const copyBtn = screen.getByRole('button', { name: /Copy Code/i });
+    await act(async () => {
+      fireEvent.click(copyBtn);
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
+  });
+
+
   it('opens and closes the "What\'s this?" modal with Ko-fi and GitHub instructions', async () => {
     render(<ReferralCodeCard initialCode={CREATOR_REFERRAL_CODE} />);
 
@@ -78,11 +119,33 @@ describe('ReferralCodeCard', () => {
     expect(screen.getByRole('link', { name: /Fuel on Ko-fi/i })).toBeDefined();
     expect(screen.getByRole('link', { name: /View GitHub Repo/i })).toBeDefined();
 
-    // Close modal
+    // Close modal via close X button
+    const closeXBtn = screen.getByTitle('Close modal');
+    fireEvent.click(closeXBtn);
+    expect(screen.queryByTestId('referral-help-modal')).toBeNull();
+
+    // Re-open and close with bottom Close button
+    fireEvent.click(whatIsThisBtn);
+    expect(screen.getByTestId('referral-help-modal')).toBeDefined();
     const closeBtn = screen.getByRole('button', { name: 'Close' });
     fireEvent.click(closeBtn);
-
     expect(screen.queryByTestId('referral-help-modal')).toBeNull();
+  });
+
+  it('renders badges for supporter and contributor roles', () => {
+    const supporter = REFERRAL_POOL.find(r => r.role === 'supporter');
+    if (supporter) {
+      const { unmount } = render(<ReferralCodeCard initialCode={supporter.code} />);
+      expect(screen.getByText(supporter.roleLabel)).toBeDefined();
+      unmount();
+    }
+
+    const contributor = REFERRAL_POOL.find(r => r.role === 'contributor');
+    if (contributor) {
+      const { unmount } = render(<ReferralCodeCard initialCode={contributor.code} />);
+      expect(screen.getByText(contributor.roleLabel)).toBeDefined();
+      unmount();
+    }
   });
 
   it('opens help modal when clicking "Learn how →"', () => {
@@ -93,6 +156,7 @@ describe('ReferralCodeCard', () => {
 
     expect(screen.getByTestId('referral-help-modal')).toBeDefined();
   });
+
 
   it('handles randomizer reroll button click without error', () => {
     render(<ReferralCodeCard />);
