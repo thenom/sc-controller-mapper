@@ -43,7 +43,7 @@ resource "cloudflare_pages_project" "app" {
   deployment_configs {
     preview {
       environment_variables = {
-        NODE_VERSION              = "22"
+        NODE_VERSION              = var.node_version
         VITE_MONETIZATION_MODE    = "test"
         VITE_SUPPORTER_URL        = var.supporter_url
         VITE_AFFILIATE_AMAZON_TAG = var.affiliate_amazon_tag
@@ -51,7 +51,7 @@ resource "cloudflare_pages_project" "app" {
     }
     production {
       environment_variables = {
-        NODE_VERSION              = "22"
+        NODE_VERSION              = var.node_version
         VITE_MONETIZATION_MODE    = var.monetization_mode != "" ? var.monetization_mode : (var.enable_zero_trust ? "test" : "live")
         VITE_SUPPORTER_URL        = var.supporter_url
         VITE_AFFILIATE_AMAZON_TAG = var.affiliate_amazon_tag

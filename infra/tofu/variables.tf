@@ -57,6 +57,12 @@ variable "root_directory" {
   default     = ""
 }
 
+variable "node_version" {
+  description = "Node.js version to use in Cloudflare Pages build environment."
+  type        = string
+  default     = "24"
+}
+
 variable "enable_zero_trust" {
   description = "Toggle Cloudflare Zero Trust Access gate on/off. Set to false when ready for public launch."
   type        = bool
