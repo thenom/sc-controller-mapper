@@ -1,4 +1,4 @@
-import { DOMParser } from '@xmldom/xmldom';
+import { DOMParser, type Element as XMLElement } from '@xmldom/xmldom';
 import type {
   ActionMapsDocument,
   ActionMapGroup,
@@ -22,13 +22,9 @@ export class ActionMapsParser {
    */
   public static parseXML(xmlContent: string): ActionMapsDocument {
     const parser = new DOMParser({
-      errorHandler: {
-        warning: () => {},
-        error: (msg: string) => {
-          throw new Error(`XML Parse Error: ${msg}`);
-        },
-        fatalError: (msg: string) => {
-          throw new Error(`XML Fatal Error: ${msg}`);
+      onError: (level: string, msg: string) => {
+        if (level === 'error' || level === 'fatalError') {
+          throw new Error(`XML ${level === 'fatalError' ? 'Fatal ' : ''}Parse Error: ${msg}`);
         }
       }
     });
@@ -66,7 +62,7 @@ export class ActionMapsParser {
       if (devContainers.length > 0) {
         const dNodes = devContainers[0].childNodes;
         for (let i = 0; i < dNodes.length; i++) {
-          const dChild = dNodes[i] as Element;
+          const dChild = dNodes[i] as unknown as XMLElement;
           if (dChild.nodeType !== 1) continue;
           const dType = dChild.tagName.toLowerCase() as CustomisationUIDevice['type'];
           const inst = parseInt(dChild.getAttribute('instance') || '1', 10);
@@ -134,7 +130,7 @@ export class ActionMapsParser {
 
         const inversions: Record<string, boolean> = {};
         for (let j = 0; j < opt.childNodes.length; j++) {
-          const child = opt.childNodes[j] as Element;
+          const child = opt.childNodes[j] as unknown as XMLElement;
           if (child.nodeType !== 1) continue;
           const tagName = child.tagName;
           if (tagName === 'invert') {
@@ -280,7 +276,7 @@ export class ActionMapsParser {
         // Extract <rebind>, <addbind>, and device-specific child elements
         const childNodes = actNode.childNodes;
         for (let k = 0; k < childNodes.length; k++) {
-          const child = childNodes[k] as Element;
+          const child = childNodes[k] as unknown as XMLElement;
           if (child.nodeType !== 1) continue; // Skip text and comment nodes
 
           const tagName = child.tagName;
@@ -330,7 +326,7 @@ export class ActionMapsParser {
   public static parseInputDescriptor(
     rawInput: string,
     bindType: BindType,
-    element?: Element
+    element?: { getAttribute(name: string): string | null }
   ): BindingInput {
     let devicePrefix: HardwarePrefix = 'kb1';
     let hardwareKey = rawInput;

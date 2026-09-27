@@ -6,9 +6,9 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@sc-mapping/shared-types': path.resolve(__dirname, '../../packages/shared-types/src'),
-      '@sc-mapping/parser': path.resolve(__dirname, '../../packages/parser/src'),
-      '@sc-mapping/resolver': path.resolve(__dirname, '../../packages/resolver/src')
+      '@sc-mapping/shared-types': path.resolve(import.meta.dirname, '../../packages/shared-types/src'),
+      '@sc-mapping/parser': path.resolve(import.meta.dirname, '../../packages/parser/src'),
+      '@sc-mapping/resolver': path.resolve(import.meta.dirname, '../../packages/resolver/src')
     }
   },
   server: {
