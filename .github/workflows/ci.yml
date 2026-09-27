@@ -93,3 +93,45 @@ jobs:
         uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  opentofu-validation:
+    name: OpenTofu Format & Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+
+      - name: OpenTofu Format Check
+        run: tofu fmt -check
+        working-directory: infra/tofu
+
+      - name: OpenTofu Init
+        run: tofu init -backend=false
+        working-directory: infra/tofu
+
+      - name: OpenTofu Validate
+        run: tofu validate
+        working-directory: infra/tofu
+
+  go-daemon-build:
+    name: Go Extraction Daemon (sc-daemon) Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'daemon/go.mod'
+
+      - name: Build Go Extraction Daemon
+        run: go build -v -o bin/sc-daemon main.go
+        working-directory: daemon
+
+      - name: Run Go Unit Tests
+        run: go test -v ./...
+        working-directory: daemon
