@@ -36,6 +36,11 @@ This document tracks optional items, future stage milestones, and deferred confi
 
 ## 3. Testing & Automation Enhancements
 
+- [x] **Node 22 & Node 24 Matrix CI Testing (Completed)**:
+  - Configured parallel matrix strategy in `.github/workflows/ci.yml` testing build, typecheck, and Vitest suite across both Node 22 and Node 24.
+- [x] **GitHub Dependabot Integration (Completed)**:
+  - Added `.github/dependabot.yml` with automated weekly/monthly updates for npm monorepo workspaces, GitHub Actions, OpenTofu providers, and Docker images.
+  - Follows repository commit conventions with robot emoji prefixes (`🤖 chore(...)`).
 - [ ] **Playwright Headless Browser Tests**:
   - Install `@playwright/test` for full browser automation when deeper CI coverage is desired.
   - Add end-to-end tests for XML file upload, drag-and-drop joystick re-indexing, and download flows.
