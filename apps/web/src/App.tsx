@@ -398,7 +398,7 @@ export const App: React.FC = () => {
           <div className="flex items-center gap-2.5">
             <AlertTriangle className="w-4 h-4 text-[#ffb700] shrink-0" />
             <p className="text-[11px] leading-snug">
-              <strong className="text-[#ffb700] font-semibold">Important Pilot Advisory:</strong> Always keep backup copies of your original and working keybinding XML files (<code className="text-[#00f0ff] font-mono text-[10px]">LIVE/USER/Client/0/Controls/Mappings/</code>). This suite is provided as-is without warranty; maintainers assume no liability or responsibility for any lost, corrupted, or overwritten mapping files.
+              <strong className="text-[#ffb700] font-semibold">Early Development Pilot Advisory:</strong> Conflict rules and action catalogs are in active community development and may contain heuristics or rule discrepancies across Star Citizen patches. Always retain backup copies of your working XML files (<code className="text-[#00f0ff] font-mono text-[10px]">LIVE/USER/Client/0/Controls/Mappings/</code>). Provided as-is without warranty; maintainers assume no liability for lost or altered files.
             </p>
           </div>
           <button

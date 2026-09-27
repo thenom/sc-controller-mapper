@@ -20,7 +20,7 @@ The project transitions in controlled stages from a private containerized test e
                                                 │
                                                 ▼
 +---------------------------------------------------------------------------------------------------+
-| STAGE 2: Cloudflare Pages & Zero Trust Staged Gating (Active Live on scbind.com)                  |
+| STAGE 2: Cloudflare Pages & Zero Trust Staged Gating (Completed)                                   |
 | - Managed via OpenTofu CLI (`tofu`) in `infra/tofu/` with local state (`tofu.tfstate`)            |
 | - Git-safe: sensitive account/zone IDs, IPs, and emails kept in local `terraform.tfvars`          |
 | - Automatic build & edge deployment on push to `main` via Cloudflare Pages                        |
@@ -31,10 +31,11 @@ The project transitions in controlled stages from a private containerized test e
                                                 │
                                                 ▼
 +---------------------------------------------------------------------------------------------------+
-| STAGE 3: Cloudflare Pages Public Launch (`enable_zero_trust = false`)                             |
-| - Toggle `enable_zero_trust = false` via OpenTofu to remove the Access gate                      |
+| STAGE 3: Cloudflare Pages Public Launch (Active Live on scbind.com)                                |
+| - Toggled `enable_zero_trust = false` via OpenTofu to remove the Access gate                      |
 | - Proxied DNS CNAME with automatic SSL/TLS certificate renewal and CNAME flattening on scbind.com  |
 | - Cloudflare Global Edge CDN with automated DDoS mitigation and fast worldwide asset delivery    |
+| - Unrestricted access for community pilots and Google AdSense verification crawlers               |
 | - Cost: $0.00 / month (unlimited requests and bandwidth on Cloudflare Pages free plan)            |
 +---------------------------------------------------------------------------------------------------+
                                                 │
@@ -184,4 +185,44 @@ This section tracks items that are currently optional or deferred for future sta
   2. Implement headless test specs for drag-and-drop device rack re-indexing and XML file upload/export flows.
 
 ### E. Cloudflare OpenTofu Live Deployment (Completed)
-- **Status**: **Complete**. Deployed live on `scbind.com` via Cloudflare Pages and Cloudflare Zero Trust. OpenTofu configuration tracked in `infra/tofu/`.
+- **Status**: **Complete**. Deployed live on `scbind.com` via Cloudflare Pages. OpenTofu configuration tracked in `infra/tofu/` with public open access (`enable_zero_trust = false`).
+
+---
+
+## 7. Emergency Breakglass Shutdown Playbook
+
+In the event of an operational issue, unexpected bug, or security concern, use the following tiered shutdown procedures:
+
+### Tier 1: Instant Access Lockdown (Re-enable Zero Trust) — ~15 seconds
+Instantly hide the site from the public while preserving access for the maintainer:
+1. Edit `infra/tofu/terraform.tfvars`:
+   ```hcl
+   enable_zero_trust = true
+   allowed_ips       = ["YOUR_IP/32"]
+   allowed_emails    = []
+   ```
+2. Apply changes:
+   ```bash
+   cd infra/tofu
+   tofu apply -auto-approve
+   ```
+* **Effect**: Cloudflare edge immediately restricts `https://scbind.com` to your IP address with Zero Trust gating.
+
+### Tier 2: Cloudflare Dashboard One-Click Killswitches — ~5 seconds
+If away from your development terminal:
+- **Under Attack Mode**: In Cloudflare Dashboard (`scbind.com` -> Overview), toggle **Under Attack Mode** to challenge all incoming requests via Cloudflare Turnstile.
+- **Disable Project**: In Cloudflare Dashboard (Workers & Pages -> `sc-controller-mapper` -> Settings -> General), click **Disable project**.
+
+### Tier 3: Immediate DNS Severance via OpenTofu — ~30 seconds
+Immediately withdraw the public DNS routing for `scbind.com`:
+```bash
+cd infra/tofu
+tofu destroy -target=cloudflare_record.pages_cname -auto-approve
+```
+
+### Tier 4: Total Infrastructure Teardown (Nuclear Option)
+Completely destroy all Cloudflare Pages and DNS resources:
+```bash
+cd infra/tofu
+tofu destroy -auto-approve
+```

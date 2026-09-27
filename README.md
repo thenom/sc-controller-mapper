@@ -7,12 +7,12 @@
 
 A high-performance visual keybinding management suite, conflict diagnostics engine, and device re-indexer engineered specifically for Star Citizen's CryEngine-derived XML input architecture.
 
-🚀 **Live Web Application**: **[https://scbind.com](https://scbind.com)** *(Currently in gated preview for authorized testers; public open access launching soon)*
+🚀 **Live Web Application**: **[https://scbind.com](https://scbind.com)**
 
 ![Star Citizen Keybinding Architect Dashboard](docs/images/main_dashboard.png)
 
 > [!WARNING]
-> **Pilot Advisory & Backup Disclaimer:** Always retain offline backup copies of your original and working keybinding XML files (`LIVE/USER/Client/0/Controls/Mappings/`) before editing, re-indexing, or importing profiles. This suite is provided as-is under the AGPL-3.0 license; the maintainers assume no responsibility or liability for any lost, altered, or overwritten mapping files.
+> **Pilot Advisory & Early Community Release:** Keybinding Architect is in active community development. While conflict detection algorithms and Star Citizen patch catalogs are continuously refined, diagnostic heuristics and action rules may still have edge-case discrepancies or patch mismatches. Always retain offline backup copies of your original and working keybinding XML files (`LIVE/USER/Client/0/Controls/Mappings/`) before editing, re-indexing, or importing profiles. This suite is provided as-is under the AGPL-3.0 license without warranty; maintainers assume no responsibility or liability for any lost, altered, or overwritten mapping files. If you find an incorrect conflict rule, please [open a GitHub Issue](https://github.com/thenom/sc-controller-mapper/issues) to help refine the engine!
 
 ---
 
@@ -69,7 +69,7 @@ Keybinding Architect supports all standard DirectInput devices, with tailored pr
 ## Quickstart Guide
 
 ### Option 1: Live Web App (No Installation)
-Launch directly at **[https://scbind.com](https://scbind.com)** in any modern desktop browser. *(Note: Access is currently restricted to authorized alpha/beta testers via Cloudflare Zero Trust; open public access will be enabled in the upcoming Stage 3 release).* All file processing runs 100% locally in your browser.
+Launch directly at **[https://scbind.com](https://scbind.com)** in any modern desktop browser. All file processing runs 100% locally in your browser with zero server uploads.
 
 ### Option 2: Run Locally with Node.js (Developers)
 ```bash
