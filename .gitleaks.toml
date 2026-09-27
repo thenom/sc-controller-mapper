@@ -22,7 +22,9 @@ regexes = [
   '''203\.0\.113\.\d+''',
   '''192\.0\.2\.\d+''',
   '''example\.com''',
-  '''thenom/sc-controller-mapper'''
+  '''thenom/sc-controller-mapper''',
+  '''ca-pub-\d{16}''',
+  '''pagead2\.googlesyndication\.com'''
 ]
 
 # ------------------------------------------------------------------------------

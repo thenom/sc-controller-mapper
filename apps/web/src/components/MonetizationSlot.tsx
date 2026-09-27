@@ -121,7 +121,7 @@ export const HardwareAffiliateCard: React.FC<MonetizationProps> = ({ className =
  */
 export const AdSenseSlot: React.FC<MonetizationProps> = ({ className = '' }) => {
   const mode = (import.meta.env.VITE_MONETIZATION_MODE as MonetizationMode) || 'mock';
-  const clientId = import.meta.env.VITE_ADSENSE_CLIENT_ID || 'ca-pub-0000000000000000';
+  const clientId = import.meta.env.VITE_ADSENSE_CLIENT_ID || 'ca-pub-4414971156573564';
   const slotId = import.meta.env.VITE_ADSENSE_SLOT_ID || '0000000000';
 
   const [adBlocked, setAdBlocked] = useState<boolean>(false);
