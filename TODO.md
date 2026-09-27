@@ -16,6 +16,10 @@ This document tracks optional items, future stage milestones, and deferred confi
 
 ## 2. Monetization & Partner Programs (Deferred to Public Launch)
 
+- [x] **Star Citizen Recruit Referral Code Randomizer**:
+  - Implemented interactive Star Citizen Referral Code box with creator code `STAR-7TZ5-ZNDC` as permanent anchor.
+  - Community Randomizer pool supporting Ko-fi supporters and GitHub PR code contributors (`apps/web/src/data/referralCodes.ts`).
+  - One-click copy with feedback, direct RSI enlist link (+5,000 UEC bonus callout), pilot attribution, and comprehensive "What's this?" help modal.
 - [ ] **Active Ko-fi Page**:
   - Linked to `https://ko-fi.com/thenom` (Configured in `apps/web/.env` and `MonetizationSlot.tsx`).
 - [ ] **Amazon Associates**:

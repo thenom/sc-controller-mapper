@@ -26,6 +26,7 @@ import {
   HardwareAffiliateCard,
   AdSenseSlot
 } from './components/MonetizationSlot';
+import { ReferralCodeCard } from './components/ReferralCodeCard';
 import { useGamepadListener } from './hooks/useGamepadListener';
 import {
   Upload,
@@ -670,6 +671,7 @@ export const App: React.FC = () => {
 
       {/* Monetization & Community Telemetry */}
       <section className="mt-8 space-y-4">
+        <ReferralCodeCard />
         <AdSenseSlot />
         <HardwareAffiliateCard />
       </section>
@@ -847,6 +849,9 @@ git commit -am "chore(catalog): update actions & tokens for Star Citizen 4.x"`}
                 </pre>
                 <p className="text-[10px] text-[#64748b]">
                   Running with <code className="text-[#00f0ff]">-u</code> updates <code className="text-[#94a3b8]">sc_action_catalog.json</code> and <code className="text-[#94a3b8]">game-data.json</code> directly in the codebase for git tracking.
+                </p>
+                <p className="text-[10px] text-[#00ff88]/90">
+                  ★ <strong>Community Perk:</strong> PR contributors and Ko-fi supporters can add their Star Citizen referral code to the community randomizer pool in <code className="text-[#00f0ff]">apps/web/src/data/referralCodes.ts</code>!
                 </p>
               </div>
 

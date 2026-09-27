@@ -119,11 +119,16 @@ npm run build
 
 ---
 
-## Fuel the Server
+## Fuel the Server & Community Referral Randomizer
 
 Keybinding Architect is an open-source tool built for the Star Citizen community. If this application saved your bindings or simplified your sim-rig setup, consider contributing a coffee or quantum fuel canister to help support continued maintenance and development:
 
 [![Fuel the Server on Ko-fi](https://img.shields.io/badge/Ko--fi-Fuel%20the%20Server-ff5e5b.svg?style=for-the-badge&logo=kofi)](https://ko-fi.com/thenom)
+
+### 🎁 Star Citizen Recruit Referral Code Randomizer
+The web suite includes a built-in Star Citizen referral code hub:
+- **For New Recruits**: Enlisting with a referral code grants your new RSI account **5,000 free UEC** ($5 USD in-game currency) + active promotional bonus rewards (such as free fly ships or armor sets) during major events.
+- **For Supporters & Contributors**: The creator's code (`STAR-7TZ5-ZNDC`) is always permanently in rotation, but anyone who **fuels server hosting on Ko-fi** or **contributes to the project on GitHub** (code, bug fixes, controller presets, or patch updates) can have their referral code added to the community randomizer pool (`apps/web/src/data/referralCodes.ts`)!
 
 ---
 

@@ -145,9 +145,10 @@ infra/tofu/
 
 ### Recouping Strategy & Revenue
 Because the hosting cost is $0.00:
-1. **Voluntary Backers ("Quantum Fuel")**: 100% of community contributions via Ko-fi / Patreon go toward developer time and hardware testbeds.
-2. **Contextual Affiliates**: Hardware referral links on VKB, VIRPIL, and Amazon provide pure upside.
-3. **Ad Units**: Optional AdSense / Carbon Ads can be enabled in Stage 4 by setting `monetization_mode = "live"`.
+1. **Voluntary Backers ("Quantum Fuel")**: 100% of community contributions via Ko-fi go toward developer time and hardware testbeds.
+2. **Community Referral Code Randomizer**: Features the creator's code (`STAR-7TZ5-ZNDC`) alongside a community pool where Ko-fi supporters and GitHub code contributors have their referral codes rotated to new pilots (+5,000 UEC enlistment bonus).
+3. **Contextual Affiliates**: Hardware referral links on VKB, VIRPIL, and Amazon provide pure upside.
+4. **Ad Units**: Optional AdSense / Carbon Ads can be enabled in Stage 4 by setting `monetization_mode = "live"`.
 
 ---
 

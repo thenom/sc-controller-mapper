@@ -200,3 +200,24 @@ npm run build
 4. **AI / LLM Disclosure**: If the changes were developed, generated, or co-authored by an AI agent or LLM, the PR title **must** be prefixed with `🤖` (e.g. `🤖 chore(catalog): ...`) and explicitly declared in the PR description.
 5. Push to your fork and submit a Pull Request to `main`.
 6. GitHub Actions CI will automatically run linting, tests, OpenTofu validation, and container smoke tests.
+
+---
+
+## 8. Community Contributor & Supporter Referral Pool
+
+As a token of appreciation to everyone who helps make Star Citizen Keybinding Architect better, active contributors and project supporters are eligible to have their **Star Citizen Referral Code** added to the web suite's community randomizer pool!
+
+### How to Add Your Referral Code:
+1. When submitting a Pull Request for a feature, bug fix, Hardware Studio preset, conflict detection rule, or `sc-daemon` game patch extraction, you can append your referral entry directly to `REFERRAL_POOL` in [`apps/web/src/data/referralCodes.ts`](apps/web/src/data/referralCodes.ts):
+   ```typescript
+   {
+     code: 'STAR-XXXX-XXXX',
+     pilotName: 'YourRSIHandle',
+     role: 'contributor',
+     roleLabel: 'Code Contributor',
+     addedDate: 'YYYY-MM-DD',
+     note: 'Your contribution or ship specialization'
+   }
+   ```
+2. Or simply mention your Star Citizen referral code in your PR description, and a maintainer will merge it into the pool.
+3. If you supported server hosting via [Ko-fi](https://ko-fi.com/thenom), your code will be added with the `Ko-fi Supporter` role badge!

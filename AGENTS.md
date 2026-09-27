@@ -44,7 +44,8 @@ sc-mapping/
 ├── apps/
 │   └── web/                      # React 18 / Vite Web Application
 │       └── src/
-│           ├── components/       # DeviceRack.tsx, MonetizationSlot.tsx, etc.
+│           ├── components/       # DeviceRack.tsx, ReferralCodeCard.tsx, MonetizationSlot.tsx, etc.
+│           ├── data/             # referralCodes.ts (community supporter referral pool)
 │           ├── hooks/            # useGamepadListener.ts (HTML5 Gamepad API hook)
 │           └── App.tsx           # Main workspace UI
 ├── infra/                        # OpenTofu infrastructure as code
@@ -114,12 +115,12 @@ Conflicts are rated across a 4-tier severity spectrum:
 
 ### G. Documentation Synchronization & Maintenance Invariant
 - **Continuous Documentation Integrity**: Whenever changes are made to codebase architecture, cloud infrastructure, deployment configurations, security hooks, monetization models, or workflows, agents and contributors **MUST proactively update all relevant documentation**:
-  - [AGENTS.md](file:///home/simon.thorley/workspace/sc-controller-mapper/AGENTS.md): Agent context, invariants, monorepo directory tree, and commands.
-  - [README.md](file:///home/simon.thorley/workspace/sc-controller-mapper/README.md): Public feature showcases, live deployment domain (`scbind.com`), and quickstart.
-  - [CONTRIBUTING.md](file:///home/simon.thorley/workspace/sc-controller-mapper/CONTRIBUTING.md): Verification test sequences, OpenTofu validation steps, and PR guidelines.
-  - [TODO.md](file:///home/simon.thorley/workspace/sc-controller-mapper/TODO.md): Backlog tasks, completed stage milestones, and deferred enhancements.
-  - [docs/ARCHITECTURE_BLUEPRINT.md](file:///home/simon.thorley/workspace/sc-controller-mapper/docs/ARCHITECTURE_BLUEPRINT.md): Structural directories, schemas, and system specs.
-  - [docs/STAGED_ROLLOUT_PLAN.md](file:///home/simon.thorley/workspace/sc-controller-mapper/docs/STAGED_ROLLOUT_PLAN.md): Cloud rollout stages, Zero Trust stages, and monetization progression.
+  - [AGENTS.md](AGENTS.md): Agent context, invariants, monorepo directory tree, and commands.
+  - [README.md](README.md): Public feature showcases, live deployment domain (`scbind.com`), and quickstart.
+  - [CONTRIBUTING.md](CONTRIBUTING.md): Verification test sequences, OpenTofu validation steps, and PR guidelines.
+  - [TODO.md](TODO.md): Backlog tasks, completed stage milestones, and deferred enhancements.
+  - [docs/ARCHITECTURE_BLUEPRINT.md](docs/ARCHITECTURE_BLUEPRINT.md): Structural directories, schemas, and system specs.
+  - [docs/STAGED_ROLLOUT_PLAN.md](docs/STAGED_ROLLOUT_PLAN.md): Cloud rollout stages, Zero Trust stages, and monetization progression.
 - **No Stale Documentation**: Documentation must strictly reflect the active, running architecture of the repository. Obsolete designs, theoretical architectures, stale paths, or replaced technologies must be cleaned up and kept in sync with the codebase.
 
 ### H. Public Repository Secret Safety & Sanitization Protocol
