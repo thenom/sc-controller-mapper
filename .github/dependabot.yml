@@ -1,0 +1,69 @@
+# ==============================================================================
+# Dependabot Configuration: Automated Dependency Updates
+# ==============================================================================
+version: 2
+updates:
+  # ----------------------------------------------------------------------------
+  # NPM Workspace Monorepo (Packages & Web App)
+  # ----------------------------------------------------------------------------
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 10
+    groups:
+      dev-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+        dependency-type: "development"
+      type-definitions:
+        patterns:
+          - "@types/*"
+      production-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+        dependency-type: "production"
+    commit-message:
+      prefix: "🤖 chore(deps)"
+
+  # ----------------------------------------------------------------------------
+  # GitHub Actions Workflows
+  # ----------------------------------------------------------------------------
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "🤖 chore(actions)"
+
+  # ----------------------------------------------------------------------------
+  # OpenTofu / Terraform Providers (Cloudflare Provider)
+  # ----------------------------------------------------------------------------
+  - package-ecosystem: "terraform"
+    directory: "/infra/tofu"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "🤖 chore(tofu)"
+
+  # ----------------------------------------------------------------------------
+  # Docker Container Base Images
+  # ----------------------------------------------------------------------------
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "🤖 chore(docker)"
