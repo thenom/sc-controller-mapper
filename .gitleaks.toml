@@ -13,7 +13,8 @@ paths = [
   '''(?i)\.sample$''',
   '''(?i)sample-data/''',
   '''(?i)docs/''',
-  '''(?i)README\.md$'''
+  '''(?i)README\.md$''',
+  '''(?i)ads\.txt$'''
 ]
 
 regexes = [
@@ -24,6 +25,8 @@ regexes = [
   '''example\.com''',
   '''thenom/sc-controller-mapper''',
   '''ca-pub-\d{16}''',
+  '''pub-\d{16}''',
+  '''f08c47fec0942fa0''',
   '''pagead2\.googlesyndication\.com'''
 ]
 
