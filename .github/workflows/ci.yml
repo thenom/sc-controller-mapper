@@ -102,7 +102,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Setup OpenTofu
-        uses: opentofu/setup-opentofu@v1
+        uses: opentofu/setup-opentofu@v2
 
       - name: OpenTofu Format Check
         run: tofu fmt -check
@@ -124,7 +124,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: 'daemon/go.mod'
 
