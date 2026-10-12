@@ -161,4 +161,52 @@ describe('ActionMapsExporter', () => {
     expect(exported).toContain('<options type="keyboard" instance="1"/>');
     expect(exported).toContain('<options type="mouse" instance="1"/>');
   });
+
+  it('serializes deadzone and sensitivity attributes on joystick options axes', () => {
+    const doc = {
+      profileName: 'options_tuning_test',
+      devices: [
+        {
+          type: 'joystick' as const,
+          instance: 1,
+          productName: 'Tuned Stick',
+          inversions: { flight_move_pitch: true },
+          deadzones: { flight_move_pitch: 0.05, flight_move_yaw: 0.1 },
+          sensitivities: { flight_move_pitch: 1.5 }
+        }
+      ],
+      actionMaps: {
+        spaceship_movement: {
+          name: 'spaceship_movement',
+          actions: {}
+        }
+      }
+    };
+
+    const exported = ActionMapsExporter.exportToXML(doc);
+    expect(exported).toContain('<flight_move_pitch invert="1" deadzone="0.05" sensitivity="1.5"/>');
+    expect(exported).toContain('<flight_move_yaw deadzone="0.1"/>');
+  });
+
+  it('serializes <rebind input=""/> for actions with no inputs to prevent default fallback', () => {
+    const doc = {
+      profileName: 'cleared_binding_test',
+      devices: [],
+      actionMaps: {
+        spaceship_movement: {
+          name: 'spaceship_movement',
+          actions: {
+            v_pitch: {
+              name: 'v_pitch',
+              inputs: []
+            }
+          }
+        }
+      }
+    };
+
+    const exported = ActionMapsExporter.exportToXML(doc);
+    expect(exported).toContain('<action name="v_pitch">');
+    expect(exported).toContain('<rebind input=""/>');
+  });
 });

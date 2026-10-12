@@ -200,4 +200,61 @@ describe('ActionMapsParser', () => {
     expect(doc.devices.some(d => d.type === 'keyboard')).toBe(true);
     expect(doc.devices.some(d => d.type === 'mouse')).toBe(true);
   });
+
+  it('should correctly parse chorded modifiers on joystick and keyboard inputs', () => {
+    const joyChord = ActionMapsParser.parseInputDescriptor('lalt+js1_button5', 'rebind');
+    expect(joyChord.devicePrefix).toBe('js1');
+    expect(joyChord.hardwareKey).toBe('button5');
+    expect(joyChord.modifiers).toEqual(['lalt']);
+    expect(joyChord.input).toBe('lalt+js1_button5');
+
+    const multiModifierChord = ActionMapsParser.parseInputDescriptor('lctrl+lalt+js2_button3', 'rebind');
+    expect(multiModifierChord.devicePrefix).toBe('js2');
+    expect(multiModifierChord.hardwareKey).toBe('button3');
+    expect(multiModifierChord.modifiers).toEqual(['lctrl', 'lalt']);
+
+    const kbPrefixedChord = ActionMapsParser.parseInputDescriptor('kb1_lalt+c', 'rebind');
+    expect(kbPrefixedChord.devicePrefix).toBe('kb1');
+    expect(kbPrefixedChord.hardwareKey).toBe('c');
+    expect(kbPrefixedChord.modifiers).toEqual(['lalt']);
+
+    const kbPlainChord = ActionMapsParser.parseInputDescriptor('lalt+c', 'rebind');
+    expect(kbPlainChord.devicePrefix).toBe('kb1');
+    expect(kbPlainChord.hardwareKey).toBe('c');
+    expect(kbPlainChord.modifiers).toEqual(['lalt']);
+  });
+
+  it('should parse options deadzones and sensitivities accurately', () => {
+    const xml = `<ActionMaps version="1">
+      <options type="joystick" instance="1" Product="VKB Stick">
+        <flight_move_pitch invert="1" deadzone="0.05" sensitivity="1.25"/>
+        <flight_move_yaw deadzone="0.08"/>
+      </options>
+    </ActionMaps>`;
+
+    const doc = ActionMapsParser.parseXML(xml);
+    const dev = doc.devices[0] as JoystickDeviceOption;
+    expect(dev).toBeDefined();
+    expect(dev.inversions['flight_move_pitch']).toBe(true);
+    expect(dev.deadzones?.['flight_move_pitch']).toBe(0.05);
+    expect(dev.sensitivities?.['flight_move_pitch']).toBe(1.25);
+    expect(dev.deadzones?.['flight_move_yaw']).toBe(0.08);
+  });
+
+  it('should preserve explicit empty rebind inputs to prevent default fallback', () => {
+    const xml = `<ActionMaps version="1">
+      <actionmap name="spaceship_movement">
+        <action name="v_pitch">
+          <rebind input=""/>
+        </action>
+      </actionmap>
+    </ActionMaps>`;
+
+    const doc = ActionMapsParser.parseXML(xml);
+    const action = doc.actionMaps['spaceship_movement'].actions['v_pitch'];
+    expect(action).toBeDefined();
+    expect(action.inputs).toHaveLength(1);
+    expect(action.inputs[0].input).toBe('');
+    expect(action.inputs[0].hardwareKey).toBe('');
+  });
 });

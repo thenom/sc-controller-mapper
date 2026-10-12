@@ -102,10 +102,12 @@ export class ConflictResolver {
     for (const inputA of actionA.inputs) {
       for (const inputB of actionB.inputs) {
         if (this.arePhysicalInputsEqual(inputA, inputB)) {
+          let currentConflict: ConflictDetails | null = null;
+
           // Rule R1: Check Subsumed Action Redundancy (e.g. v_flightready + v_power_set_on)
           const subsumed = RedundancyEvaluator.checkSubsumedPair(actionA.name, actionB.name);
           if (subsumed.isRedundant) {
-            return {
+            currentConflict = {
               severity: ConflictSeverity.Redundant,
               conflictType: 'redundancy',
               sourceContext: mapA,
@@ -116,54 +118,56 @@ export class ConflictResolver {
               reason: subsumed.reason || 'Subsumed action redundancy',
               recommendation: subsumed.recommendation
             };
+          } else {
+            const temporal = TemporalEvaluator.evaluate(actionA, inputA, actionB, inputB);
+            if (temporal.severity !== ConflictSeverity.None) {
+              let conflictType: ConflictType = temporal.severity === ConflictSeverity.Fatal ? 'collision' : 'latency';
+              let reason = temporal.reason;
+              let recommendation = temporal.recommendation;
+              let deprecatedAction: string | undefined;
+              let rootCauseAction: string | undefined;
+
+              // Check if either colliding action is deprecated in modern Star Citizen (Rule R2)
+              const depA = RedundancyEvaluator.isActionDeprecated(actionA.name);
+              const depB = RedundancyEvaluator.isActionDeprecated(actionB.name);
+
+              if (depA && !depB) {
+                conflictType = 'obsolete_collision';
+                deprecatedAction = actionA.name;
+                rootCauseAction = actionA.name;
+                reason = `Collision with Obsolete Action: '${actionA.name}' (${depA.deprecatedSince}) shares a physical trigger with modern action '${actionB.name}'.`;
+                recommendation = `Remove '${actionA.name}' from your profile (${depA.reason}). It is obsolete in modern Star Citizen and clearing it eliminates this collision without changing '${actionB.name}'.`;
+              } else if (!depA && depB) {
+                conflictType = 'obsolete_collision';
+                deprecatedAction = actionB.name;
+                rootCauseAction = actionB.name;
+                reason = `Collision with Obsolete Action: '${actionB.name}' (${depB.deprecatedSince}) shares a physical trigger with modern action '${actionA.name}'.`;
+                recommendation = `Remove '${actionB.name}' from your profile (${depB.reason}). It is obsolete in modern Star Citizen and clearing it eliminates this collision without changing '${actionA.name}'.`;
+              } else if (depA && depB) {
+                conflictType = 'obsolete_collision';
+                deprecatedAction = `${actionA.name}, ${actionB.name}`;
+                reason = `Dual Obsolete Action Collision: Both '${actionA.name}' (${depA.deprecatedSince}) and '${actionB.name}' (${depB.deprecatedSince}) are legacy actions sharing an input.`;
+                recommendation = `Remove both '${actionA.name}' and '${actionB.name}' from your profile. Both commands were removed or superseded in modern Star Citizen builds.`;
+              }
+
+              currentConflict = {
+                severity: temporal.severity,
+                conflictType,
+                sourceContext: mapA,
+                sourceAction: actionA.name,
+                targetContext: mapB,
+                targetAction: actionB.name,
+                sharedInput: inputA.input,
+                reason,
+                recommendation,
+                deprecatedAction,
+                rootCauseAction
+              };
+            }
           }
 
-          const temporal = TemporalEvaluator.evaluate(actionA, inputA, actionB, inputB);
-
-          if (temporal.severity > highestConflict.severity) {
-            let conflictType: ConflictType = temporal.severity === ConflictSeverity.Fatal ? 'collision' : 'latency';
-            let reason = temporal.reason;
-            let recommendation = temporal.recommendation;
-            let deprecatedAction: string | undefined;
-            let rootCauseAction: string | undefined;
-
-            // Check if either colliding action is deprecated in modern Star Citizen (Rule R2)
-            const depA = RedundancyEvaluator.isActionDeprecated(actionA.name);
-            const depB = RedundancyEvaluator.isActionDeprecated(actionB.name);
-
-            if (depA && !depB) {
-              conflictType = 'obsolete_collision';
-              deprecatedAction = actionA.name;
-              rootCauseAction = actionA.name;
-              reason = `Collision with Obsolete Action: '${actionA.name}' (${depA.deprecatedSince}) shares a physical trigger with modern action '${actionB.name}'.`;
-              recommendation = `Remove '${actionA.name}' from your profile (${depA.reason}). It is obsolete in modern Star Citizen and clearing it eliminates this collision without changing '${actionB.name}'.`;
-            } else if (!depA && depB) {
-              conflictType = 'obsolete_collision';
-              deprecatedAction = actionB.name;
-              rootCauseAction = actionB.name;
-              reason = `Collision with Obsolete Action: '${actionB.name}' (${depB.deprecatedSince}) shares a physical trigger with modern action '${actionA.name}'.`;
-              recommendation = `Remove '${actionB.name}' from your profile (${depB.reason}). It is obsolete in modern Star Citizen and clearing it eliminates this collision without changing '${actionA.name}'.`;
-            } else if (depA && depB) {
-              conflictType = 'obsolete_collision';
-              deprecatedAction = `${actionA.name}, ${actionB.name}`;
-              reason = `Dual Obsolete Action Collision: Both '${actionA.name}' (${depA.deprecatedSince}) and '${actionB.name}' (${depB.deprecatedSince}) are legacy actions sharing an input.`;
-              recommendation = `Remove both '${actionA.name}' and '${actionB.name}' from your profile. Both commands were removed or superseded in modern Star Citizen builds.`;
-            }
-
-            highestConflict = {
-              severity: temporal.severity,
-              conflictType,
-              sourceContext: mapA,
-              sourceAction: actionA.name,
-              targetContext: mapB,
-              targetAction: actionB.name,
-              sharedInput: inputA.input,
-              reason,
-              recommendation,
-              deprecatedAction,
-              rootCauseAction
-            };
-
+          if (currentConflict && ConflictResolver.getSeverityPriority(currentConflict.severity) > ConflictResolver.getSeverityPriority(highestConflict.severity)) {
+            highestConflict = currentConflict;
             // If we found a Fatal conflict, no need to check further on this pair
             if (highestConflict.severity === ConflictSeverity.Fatal) {
               return highestConflict;
@@ -319,15 +323,28 @@ export class ConflictResolver {
       if (aIsObsCol && !bIsObsCol) return -1;
       if (!aIsObsCol && bIsObsCol) return 1;
 
-      const rank = (s: ConflictSeverity) => {
-        if (s === ConflictSeverity.Fatal) return 0;
-        if (s === ConflictSeverity.Warning) return 1;
-        return 2;
-      };
-      return rank(a.severity) - rank(b.severity);
+      return ConflictResolver.getSeverityPriority(b.severity) - ConflictResolver.getSeverityPriority(a.severity);
     });
 
     return report;
+  }
+
+  /**
+   * Numeric priority for conflict severity (higher = more critical).
+   * Fatal (3) > Warning (2) > Redundant (1) > None (0)
+   */
+  public static getSeverityPriority(s: ConflictSeverity): number {
+    switch (s) {
+      case ConflictSeverity.Fatal:
+        return 3;
+      case ConflictSeverity.Warning:
+        return 2;
+      case ConflictSeverity.Redundant:
+        return 1;
+      case ConflictSeverity.None:
+      default:
+        return 0;
+    }
   }
 
   /**

@@ -299,7 +299,7 @@ ${generatedOptionsXML}
     <action name="v_boost">
       <rebind input="js${instance}_button4" activationMode="press"/>
     </action>
-    <action name="v_spacebreak">
+    <action name="v_space_brake">
       <rebind input="js${instance}_button4" activationMode="double_tap"/>
     </action>
   </actionmap>
