@@ -129,6 +129,9 @@ export class ActionMapsParser {
         const guid = opt.getAttribute('ProductGUID') || undefined;
 
         const inversions: Record<string, boolean> = {};
+        const deadzones: Record<string, number> = {};
+        const sensitivities: Record<string, number> = {};
+
         for (let j = 0; j < opt.childNodes.length; j++) {
           const child = opt.childNodes[j] as unknown as XMLElement;
           if (child.nodeType !== 1) continue;
@@ -139,10 +142,24 @@ export class ActionMapsParser {
             if (axis) {
               inversions[axis] = val === '1' || val === 'true';
             }
-          } else if (child.hasAttribute('invert')) {
-            // Star Citizen format: <flight_move_yaw invert="1"/>
-            const val = child.getAttribute('invert');
-            inversions[tagName] = val === '1' || val === 'true';
+          } else {
+            if (child.hasAttribute('invert')) {
+              // Star Citizen format: <flight_move_yaw invert="1"/>
+              const val = child.getAttribute('invert');
+              inversions[tagName] = val === '1' || val === 'true';
+            }
+            if (child.hasAttribute('deadzone')) {
+              const dz = parseFloat(child.getAttribute('deadzone')!);
+              if (!isNaN(dz)) {
+                deadzones[tagName] = dz;
+              }
+            }
+            if (child.hasAttribute('sensitivity')) {
+              const sens = parseFloat(child.getAttribute('sensitivity')!);
+              if (!isNaN(sens)) {
+                sensitivities[tagName] = sens;
+              }
+            }
           }
         }
 
@@ -151,7 +168,9 @@ export class ActionMapsParser {
           instance,
           productName: product,
           productGuid: guid,
-          inversions
+          inversions,
+          deadzones: Object.keys(deadzones).length > 0 ? deadzones : undefined,
+          sensitivities: Object.keys(sensitivities).length > 0 ? sensitivities : undefined
         };
         result.devices.push(joyDevice);
       } else if (type === 'keyboard') {
@@ -281,8 +300,8 @@ export class ActionMapsParser {
 
           const tagName = child.tagName;
           if (tagName === 'rebind' || tagName === 'addbind') {
-            const rawInput = child.getAttribute('input')?.trim();
-            if (!rawInput) continue;
+            if (!child.hasAttribute('input')) continue;
+            const rawInput = child.getAttribute('input')?.trim() ?? '';
 
             const parsedInput = this.parseInputDescriptor(
               rawInput,
@@ -332,18 +351,45 @@ export class ActionMapsParser {
     let hardwareKey = rawInput;
     let modifiers: string[] | undefined = undefined;
 
-    // Detect hardware prefix (e.g. js1_, kb1_, mo1_, gp1_)
-    const prefixMatch = rawInput.match(/^([a-z0-9]+)_(.*)$/i);
-    if (prefixMatch) {
-      devicePrefix = prefixMatch[1].toLowerCase() as HardwarePrefix;
-      hardwareKey = prefixMatch[2];
-    }
+    // Detect chorded modifiers and hardware prefixes
+    // Star Citizen formats:
+    // 1. "lalt+js1_button5" or "lctrl+lalt+js1_button5" (modifiers + devicePrefix_hardwareKey)
+    // 2. "kb1_lalt+c" (devicePrefix_modifier + hardwareKey)
+    // 3. "js1_button1" or "kb1_space" (devicePrefix_hardwareKey)
+    // 4. "lalt+c" (modifier + keyboard key, implicit kb1)
+    if (rawInput.includes('+')) {
+      const parts = rawInput.split('+');
+      const lastPart = parts[parts.length - 1];
 
-    // Detect chorded modifiers (e.g. lalt+space, rctrl+x)
-    if (hardwareKey.includes('+')) {
-      const parts = hardwareKey.split('+');
-      modifiers = parts.slice(0, -1);
-      hardwareKey = parts[parts.length - 1];
+      // Check if last part contains a device prefix (e.g. "js1_button5")
+      const lastMatch = lastPart.match(/^([a-z0-9]+)_(.*)$/i);
+      if (lastMatch) {
+        devicePrefix = lastMatch[1].toLowerCase() as HardwarePrefix;
+        hardwareKey = lastMatch[2];
+        modifiers = parts.slice(0, -1);
+      } else {
+        // Check if first part contains a device prefix (e.g. "kb1_lalt+c")
+        const firstMatch = parts[0].match(/^([a-z0-9]+)_(.*)$/i);
+        if (firstMatch) {
+          devicePrefix = firstMatch[1].toLowerCase() as HardwarePrefix;
+          modifiers = [firstMatch[2], ...parts.slice(1, -1)];
+          hardwareKey = lastPart;
+        } else {
+          devicePrefix = 'kb1';
+          modifiers = parts.slice(0, -1);
+          hardwareKey = lastPart;
+        }
+      }
+    } else {
+      // No chorded modifiers: detect prefix directly (e.g. "js1_button1", "kb1_space", "js1_")
+      const prefixMatch = rawInput.match(/^([a-z0-9]+)_(.*)$/i);
+      if (prefixMatch) {
+        devicePrefix = prefixMatch[1].toLowerCase() as HardwarePrefix;
+        hardwareKey = prefixMatch[2];
+      } else {
+        devicePrefix = 'kb1';
+        hardwareKey = rawInput;
+      }
     }
 
     let activationMode: ActivationMode | undefined = undefined;

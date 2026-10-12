@@ -107,9 +107,24 @@ export class ActionMapsExporter {
           `Product="${this.escapeXml(joy.productName)}"${guidAttr}>`
         );
 
-        if (joy.inversions && Object.keys(joy.inversions).length > 0) {
-          for (const [axis, inverted] of Object.entries(joy.inversions)) {
-            lines.push(`   <${this.escapeXml(axis)} invert="${inverted ? '1' : '0'}"/>`);
+        const axes = new Set([
+          ...Object.keys(joy.inversions || {}),
+          ...Object.keys(joy.deadzones || {}),
+          ...Object.keys(joy.sensitivities || {})
+        ]);
+
+        if (axes.size > 0) {
+          for (const axis of axes) {
+            const invAttr = joy.inversions && joy.inversions[axis] !== undefined
+              ? ` invert="${joy.inversions[axis] ? '1' : '0'}"`
+              : '';
+            const dzAttr = joy.deadzones && joy.deadzones[axis] !== undefined
+              ? ` deadzone="${joy.deadzones[axis]}"`
+              : '';
+            const sensAttr = joy.sensitivities && joy.sensitivities[axis] !== undefined
+              ? ` sensitivity="${joy.sensitivities[axis]}"`
+              : '';
+            lines.push(`   <${this.escapeXml(axis)}${invAttr}${dzAttr}${sensAttr}/>`);
           }
         }
         lines.push('  </options>');
@@ -130,7 +145,14 @@ export class ActionMapsExporter {
       lines.push(`  <actionmap name="${this.escapeXml(mapName)}">`);
 
       for (const [actionName, action] of Object.entries(group.actions)) {
-        if (!action.inputs || action.inputs.length === 0) continue;
+        if (!action.inputs) continue;
+
+        if (action.inputs.length === 0) {
+          lines.push(`    <action name="${this.escapeXml(actionName)}">`);
+          lines.push(`      <rebind input=""/>`);
+          lines.push('    </action>');
+          continue;
+        }
 
         lines.push(`    <action name="${this.escapeXml(actionName)}">`);
 

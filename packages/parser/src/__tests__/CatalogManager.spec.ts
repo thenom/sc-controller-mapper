@@ -153,4 +153,18 @@ describe('CatalogManager', () => {
     const emptySearch = customManager.search('custom', 'other_map');
     expect(emptySearch).toHaveLength(0);
   });
+
+  it('should support case-insensitive action map name lookups', () => {
+    // default catalog has 'spaceship_movement', check uppercase and mixed case
+    expect(manager.getActionMap('spaceship_movement')).toBeDefined();
+    expect(manager.getActionMap('SPACESHIP_MOVEMENT')).toBeDefined();
+    expect(manager.getActionMap('SpaceShip_Movement')).toBeDefined();
+
+    // Verify getUnboundActions works with case-insensitive mapName filter
+    const doc = ActionMapsParser.parseXML('<ActionMaps version="1"/>');
+    const lowerUnbound = manager.getUnboundActions(doc, 'spaceship_movement');
+    const upperUnbound = manager.getUnboundActions(doc, 'SPACESHIP_MOVEMENT');
+    expect(lowerUnbound.length).toBeGreaterThan(0);
+    expect(upperUnbound.length).toBe(lowerUnbound.length);
+  });
 });

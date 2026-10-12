@@ -63,17 +63,21 @@ sc-mapping/
 
 When modifying or extending this codebase, adhere to these domain invariants:
 
-### A. `<rebind>` vs. `<addbind>`
+### A. `<rebind>` vs. `<addbind>` & Unbind Invariants
 - Star Citizen XML distinguishes between `<rebind>` (which replaces an engine default) and `<addbind>` (which binds an additional concurrent input).
 - Actions store inputs in an array `BindingInput[]` where each entry has `bindType: 'rebind' | 'addbind'`.
 - Never collapse or discard `addbind` nodes during parsing or serialization.
+- **Unbind & Default Fallback Invariant**: In CryEngine's input architecture, an action omitted from `actionmaps.xml` inherits its default binding from `defaultProfile.xml`. When an action's inputs are cleared (`inputs: []`), the exporter **must emit an explicit `<rebind input=""/>`** node rather than omitting the action, ensuring Star Citizen does not revert to the default. The parser must preserve `<rebind input=""/>` as an intentional unbind and not drop it.
 
-### B. Hardware Prefix Fidelity
+### B. Hardware Prefix Fidelity & Chord Syntax
 - Device inputs are prefixed (e.g. `kb1_`, `mo1_`, `gp1_`, `js1_`, `js2_`...).
-- Joy inputs can have chorded modifiers (e.g. `lalt+js1_button1`).
 - Device instance numbers are 1-based (`js1`, `js2`, etc.).
+- **Chorded Modifiers**: Star Citizen XML formats chorded inputs with modifiers:
+  - Joystick chords place modifiers before the device prefix: e.g. `lalt+js1_button5` or `lctrl+lalt+js2_button3`.
+  - Keyboard chords can appear as `kb1_lalt+c` or `lalt+c`.
+  - Input parsing (`ActionMapsParser.parseInputDescriptor`) must isolate chord modifiers (`['lalt']`), physical device prefix (`js1`), and physical key (`button5`), ensuring that UI binding editors (`BindingEditorModal`), conflict resolution, and device re-indexing accurately detect physical devices and keys.
 
-### C. Conflict Evaluation Pipeline
+### C. Conflict Evaluation Pipeline & Priority Hierarchy
 Conflicts are rated across a 4-tier severity spectrum:
 - `Severity 0 (None)`: Non-overlapping operational contexts (e.g. `spaceship_movement` vs `player_input_onfoot`), mutually exclusive cockpit **Operator Modes** (`spaceship_weapons`, `spaceship_missiles`, `spaceship_mining`, `spaceship_salvage`, `spaceship_scanning`), mode toggles (`v_toggle_mining_mode` vs `v_toggle_salvage_mode`), or isolated Master Modes (`SCM` weapons vs `NAV` quantum spool).
 - `Severity 1 (Warning)`: Contextual overlap or latency penalty:
@@ -86,9 +90,19 @@ Conflicts are rated across a 4-tier severity spectrum:
 - `Severity 3 (Redundant / Obsolete)`: Subsumed functionality or legacy version deprecation:
   - *Rule R1 (Subsumed Action Redundancy)*: Sharing an input where one command functionally encompasses the other (e.g. `v_flightready` + `v_power_set_on`, `v_open_all_doors` + `v_unlock_all_doors`).
   - *Rule R2 (Current Version Deprecation)*: Mappings for flight or combat systems that were removed or superseded in modern Star Citizen builds (e.g. legacy cruise control `v_ifcs_toggle_cruise_control`, legacy speed limiter reset, legacy quantum mode toggles, legacy PIP toggles).
+- **Severity Ranking & Audit Sorting Hierarchy**:
+  - The enum numeric values (`Redundant = 3`, `Fatal = 2`) do **not** reflect conflict severity precedence.
+  - Conflict precedence is strictly: **Fatal (Severity 2) > Warning (Severity 1) > Redundant (Severity 3) > None (Severity 0)** via `ConflictResolver.getSeverityPriority()`.
+  - Pairwise action evaluation (`evaluateActions`) on multi-input actions must not abort early on Redundant before checking all input pairs for higher-priority Fatal collisions.
+  - Conflict reports (`auditDocument`) must sort Fatal collisions before Warnings, and Warnings before Redundancies.
 
-### D. Device Re-Indexing
+### D. Device Re-Indexing & Options Fidelity
 - Swapping device numbers in `DeviceRack` must update `<options>` instance attributes AND rewrite all matching `jsX_` prefixes across all actions during export.
+- **Lossless Options Round-Tripping**: `<options type="joystick">` elements configure hardware devices. Parsers and exporters must preserve and round-trip:
+  - Axis inversions: `<flight_move_pitch invert="1"/>` or `<invert axis="pitch" val="1"/>`
+  - Axis deadzones: `deadzone="0.05"`
+  - Axis sensitivities: `sensitivity="1.25"`
+  - Product GUIDs (`ProductGUID`) and device names (`Product`)
 
 ### E. OpenTofu Compliance & Secret Safety
 - When working with `.tf` files, **always** use the `tofu` CLI binary (OpenTofu).
@@ -97,10 +111,13 @@ Conflicts are rated across a 4-tier severity spectrum:
 - Pass secrets (such as `CLOUDFLARE_API_TOKEN`) via environment variables, and mark sensitive variables (`cloudflare_account_id`, `cloudflare_zone_id`, `allowed_ips`, `allowed_emails`) with `sensitive = true` to mask outputs in logs and terminals.
 - Pre-commit enforcement (`scripts/block-sensitive-files.sh` and `gitleaks`) actively prevents committing sensitive files even when force-added.
 
-### F. Daemon-Managed Catalog & Game Metadata Extraction
+### F. Daemon-Managed Catalog, Case-Sensitivity & Game Metadata Extraction
 - **Rule of Dynamic Sourcing (No Hardcoded Game Action Lists)**:
   - Game properties that can change across Star Citizen patches—including `defaultActivationMode` (`delayed_press`, `tap`, `press`, `hold`), `defaultMultiTap` (1 or 2), and `masterFlightMode` (`SCM` vs `NAV`)—**must be managed dynamically by the Go extraction daemon (`sc-daemon`)** and sourced from `defaultProfile.xml` and `global.ini`.
   - **NEVER** hardcode lists of action names in resolver heuristics or parser logic (e.g. do not maintain static sets like `INHERENT_HOLD_ACTIONS` or static lists of SCM/NAV action names in TypeScript code).
+- **CryEngine Map Name Case-Insensitivity**:
+  - In `defaultProfile.xml`, action map names use mixed casing (e.g. `IFCS_controls`, `RemoteRigidEntityController`).
+  - Catalog lookups (`CatalogManager.getActionMap()`, `getUnboundActions()`) must be **strictly case-insensitive** so actions are never missed or duplicated.
 - **CryEngine XML Omission & Fallback Contract**:
   - Star Citizen's XML profile exporter omits the `activationMode` and `multiTap` attributes when a custom keybinding uses the engine's default mode.
   - When resolving input conflicts in `TemporalEvaluator` and `ExclusionMatrix`, code **MUST** query `CatalogManager.getDefaultActivationMode(actionName)` and `CatalogManager.getMasterFlightMode(actionName)` before falling back to textual cues (`(Hold)`, `long press`) or naming suffixes (`_hold`, `_tap`). Missing attributes must NOT simply default to `'press'` without consulting the catalog.
@@ -139,6 +156,9 @@ Conflicts are rated across a 4-tier severity spectrum:
   - `scripts/block-sensitive-files.sh` blocks sensitive files from git even if force-staged (`git add -f`).
   - Gitleaks (`.gitleaks.toml`) scans every commit diff and CI run for token signatures.
   - OpenTofu variables for accounts, zones, IPs, and emails are marked `sensitive = true` to mask output values in terminal recordings and CI logs.
+
+### I. Daemon Resource Management & Descriptor Leak Prevention
+- In `sc-daemon` (Go), file handles opened during discovery loops (such as launcher log file scanning or candidate archive inspection) **must be closed immediately per iteration** (`f.Close()`), rather than relying on `defer f.Close()` inside loop bodies. Deferred function calls execute only upon function exit, which causes file descriptor leaks on systems with multiple launcher logs or archive candidates.
 
 ---
 

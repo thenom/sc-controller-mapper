@@ -480,4 +480,86 @@ describe('ConflictResolver', () => {
     );
     expect(diffPrefixResult.severity).toBe(ConflictSeverity.None);
   });
+
+  it('should prioritize Severity 2 (Fatal) over Severity 1 (Warning) on multi-input actions', () => {
+    // Action A and Action B share input 1 as double_tap vs press (Warning)
+    // and share input 2 as press vs press (Fatal)
+    const actionA: ActionBinding = {
+      name: 'v_yaw',
+      inputs: [
+        mockInput('js1_button3', 'rebind', 'double_tap'),
+        mockInput('js1_button4', 'addbind', 'press')
+      ]
+    };
+    const actionB: ActionBinding = {
+      name: 'v_pitch',
+      inputs: [
+        mockInput('js1_button3', 'rebind', 'press'),
+        mockInput('js1_button4', 'addbind', 'press')
+      ]
+    };
+
+    const result = ConflictResolver.evaluateActions(
+      'spaceship_movement',
+      actionA,
+      'spaceship_movement',
+      actionB
+    );
+
+    expect(result.severity).toBe(ConflictSeverity.Fatal);
+    expect(result.reason).toContain('Direct Action Collision');
+  });
+
+  it('should rank Fatal higher than Warning and Redundant in getSeverityPriority and report sorting', () => {
+    expect(ConflictResolver.getSeverityPriority(ConflictSeverity.Fatal)).toBeGreaterThan(
+      ConflictResolver.getSeverityPriority(ConflictSeverity.Warning)
+    );
+    expect(ConflictResolver.getSeverityPriority(ConflictSeverity.Warning)).toBeGreaterThan(
+      ConflictResolver.getSeverityPriority(ConflictSeverity.Redundant)
+    );
+    expect(ConflictResolver.getSeverityPriority(ConflictSeverity.Redundant)).toBeGreaterThan(
+      ConflictResolver.getSeverityPriority(ConflictSeverity.None)
+    );
+
+    // Profile report sorting check
+    const doc = {
+      profileName: 'sorting_test',
+      devices: [],
+      actionMaps: {
+        spaceship_movement: {
+          name: 'spaceship_movement',
+          actions: {
+            v_pitch: {
+              name: 'v_pitch',
+              inputs: [mockInput('js1_button1', 'rebind', 'press')]
+            },
+            v_yaw: {
+              name: 'v_yaw',
+              inputs: [mockInput('js1_button1', 'rebind', 'press')]
+            }
+          }
+        },
+        spaceship_general: {
+          name: 'spaceship_general',
+          actions: {
+            v_flightready: {
+              name: 'v_flightready',
+              inputs: [mockInput('js1_button2', 'rebind', 'press')]
+            },
+            v_power_set_on: {
+              name: 'v_power_set_on',
+              inputs: [mockInput('js1_button2', 'rebind', 'press')]
+            }
+          }
+        }
+      }
+    };
+
+    const report = ConflictResolver.auditDocument(doc);
+    expect(report.fatalCount).toBe(1);
+    expect(report.redundantCount).toBe(1);
+    // Fatal must sort before Redundant
+    expect(report.conflicts[0].severity).toBe(ConflictSeverity.Fatal);
+    expect(report.conflicts[1].severity).toBe(ConflictSeverity.Redundant);
+  });
 });

@@ -73,8 +73,6 @@ func discoverFromLauncherLogs() (string, error) {
 		if err != nil {
 			continue
 		}
-		defer f.Close()
-
 		var matched string
 		scanner := bufio.NewScanner(f)
 		for scanner.Scan() {
@@ -84,6 +82,7 @@ func discoverFromLauncherLogs() (string, error) {
 				matched = strings.TrimSpace(matches[1])
 			}
 		}
+		_ = f.Close()
 
 		if matched != "" {
 			// If path doesn't end with StarCitizen, check if subfolder exists
@@ -238,8 +237,6 @@ func parseManifestFromGameLog(baseDir string) (*BuildManifest, error) {
 		if err != nil {
 			continue
 		}
-		defer f.Close()
-
 		var manifest BuildManifest
 		scanner := bufio.NewScanner(f)
 		lineCount := 0
@@ -257,6 +254,7 @@ func parseManifestFromGameLog(baseDir string) (*BuildManifest, error) {
 				manifest.Data.BuildDateStamp = strings.TrimSpace(m[1])
 			}
 		}
+		_ = f.Close()
 
 		if manifest.Data.BuildDateStamp == "" {
 			manifest.Data.BuildDateStamp = fi.ModTime().Format("Mon Jan 2 2006")

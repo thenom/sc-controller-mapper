@@ -6,6 +6,7 @@ import type {
   ActivationMode,
   HardwarePrefix
 } from '@sc-mapping/shared-types';
+import { ActionMapsParser } from '@sc-mapping/parser';
 import {
   X,
   Radio,
@@ -58,15 +59,13 @@ export const BindingEditorModal: React.FC<BindingEditorModalProps> = ({
 
   const handleUpdateInputString = (idx: number, rawInput: string) => {
     const updated = [...inputs];
-    const match = rawInput.match(/^([a-z0-9]+)_(.+)$/i);
-    const prefix = (match ? match[1].toLowerCase() : 'kb1') as HardwarePrefix;
-    const hardwareKey = match ? match[2] : rawInput;
-
+    const parsed = ActionMapsParser.parseInputDescriptor(rawInput, updated[idx].bindType);
     updated[idx] = {
       ...updated[idx],
-      input: rawInput,
-      devicePrefix: prefix,
-      hardwareKey: hardwareKey
+      input: parsed.input,
+      devicePrefix: parsed.devicePrefix,
+      hardwareKey: parsed.hardwareKey,
+      modifiers: parsed.modifiers
     };
     setInputs(updated);
   };

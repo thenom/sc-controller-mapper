@@ -45,7 +45,7 @@ sc-mapping/
 │           ├── ExclusionMatrix.ts   # Operational context matrix & Master Modes
 │           └── TemporalEvaluator.ts # activationMode & multiTap temporal analyzer
 ├── apps/
-│   └── web/                         # React 19 Frontend Application
+│   └── web/                         # React 18 Frontend Application
 │       ├── package.json
 │       ├── tsconfig.json
 │       ├── vite.config.ts
@@ -399,8 +399,9 @@ Star Citizen bindings must not throw false positives if two actions share an inp
 ```typescript
 export enum ConflictSeverity {
   None = 0,
-  Warning = 1, // Latency penalty (e.g., double tap vs single tap) or soft overlap
-  Fatal = 2    // Concurrent execution on same tick / hard lock
+  Warning = 1,  // Latency penalty (e.g., double tap vs single tap) or soft overlap
+  Fatal = 2,    // Concurrent execution on same tick / hard lock / destructive command
+  Redundant = 3 // Subsumed functionality or obsolete game version command
 }
 
 export interface ConflictDetails {

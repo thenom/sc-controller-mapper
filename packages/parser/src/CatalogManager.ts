@@ -99,7 +99,16 @@ export class CatalogManager {
    * Get an ActionMap by programmatic name (e.g. 'spaceship_movement').
    */
   public getActionMap(mapName: string): ActionMapCatalog | undefined {
-    return this.catalog[mapName.toLowerCase()];
+    if (this.catalog[mapName]) {
+      return this.catalog[mapName];
+    }
+    const lower = mapName.toLowerCase();
+    if (this.catalog[lower]) {
+      return this.catalog[lower];
+    }
+    return Object.values(this.catalog).find(
+      m => m.mapName.toLowerCase() === lower
+    );
   }
 
   /**
@@ -199,7 +208,10 @@ export class CatalogManager {
         continue;
       }
 
-      const activeGroup = doc.actionMaps[group.mapName];
+      const activeGroup = doc.actionMaps[group.mapName] ||
+        Object.values(doc.actionMaps).find(
+          m => m.name.toLowerCase() === group.mapName.toLowerCase()
+        );
 
       for (const action of group.actions) {
         const boundAction = activeGroup?.actions[action.name];
