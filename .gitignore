@@ -4,6 +4,8 @@ dist/
 build/
 .cache/
 coverage/
+test-results/
+playwright-report/
 *.tsbuildinfo
 
 # Binary builds

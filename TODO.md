@@ -41,9 +41,10 @@ This document tracks optional items, future stage milestones, and deferred confi
 - [x] **GitHub Dependabot Integration (Completed)**:
   - Added `.github/dependabot.yml` with automated weekly/monthly updates for npm monorepo workspaces, GitHub Actions, OpenTofu providers, and Docker images.
   - Follows repository commit conventions with robot emoji prefixes (`🤖 chore(...)`).
-- [ ] **Playwright Headless Browser Tests**:
-  - Install `@playwright/test` for full browser automation when deeper CI coverage is desired.
-  - Add end-to-end tests for XML file upload, drag-and-drop joystick re-indexing, and download flows.
+- [x] **Playwright Headless Browser & E2E UX Gate (Completed)**:
+  - Installed `@playwright/test` and configured local Vite preview server integration (`playwright.config.ts`) with optional Cloudflare live preview URL support.
+  - Implemented end-to-end user journey tests in `e2e/app-workflow.spec.ts` (Cockpit HUD telemetry, starter presets, tab navigation, search filtering, Binding Editor modal, Hardware Studio, and lossless XML export downloads).
+  - Configured GitHub Actions workflow `.github/workflows/e2e.yml` with the **`run-e2e`** label gate to prevent wasting runner minutes on intermediate commits while strictly blocking PR merges on UX failures.
 - [ ] **Tailwind CSS v4 Architectural Migration**:
   - Migrate from Tailwind v3 (`tailwind.config.js` + PostCSS) to Tailwind v4 CSS-first architecture (`@tailwindcss/vite` + `@theme` directive in `index.css`).
   - Migrate custom cockpit sci-fi colors (`#00f0ff`, `#ffb700`, `#0b111e`) and fonts into CSS `@theme` tokens.

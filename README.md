@@ -107,6 +107,9 @@ Keybinding Architect is backed by an automated test suite, OpenTofu validation, 
 # Run the automated Vitest test suite across all packages (<1s execution)
 npm test
 
+# Run Playwright End-to-End browser tests (headless Chromium)
+npm run test:e2e
+
 # Run pre-commit checks and Gitleaks secret scans
 pre-commit run --all-files
 
