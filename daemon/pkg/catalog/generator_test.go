@@ -3,6 +3,7 @@ package catalog
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -59,9 +60,14 @@ func TestGenerateCatalogFromGameData(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	meta := CatalogMetadata{
+		GameVersion:   "4.10.196.36804",
+		GameBranch:    "sc-alpha-4.10.2",
+		GameBuildDate: "Wed Oct 07 2026",
+		ExtractedAt:   "2026-10-12T16:43:02Z",
+	}
 
-	written, err := UpdateProjectCatalogFiles(tmpDir, cat)
+	written, err := UpdateProjectCatalogFiles(tmpDir, cat, meta)
 	if err != nil {
 		t.Fatalf("UpdateProjectCatalogFiles failed: %v", err)
 	}
@@ -85,6 +91,27 @@ func TestGenerateCatalogFromGameData(t *testing.T) {
 	tsContent, _ := os.ReadFile(filepath.Join(tmpDir, "packages", "parser", "src", "catalog", "defaultCatalog.ts"))
 	if len(tsContent) == 0 {
 		t.Errorf("generated defaultCatalog.ts file was empty")
+	}
+	if !strings.Contains(string(tsContent), "export const GAME_METADATA") {
+		t.Errorf("expected defaultCatalog.ts to contain GAME_METADATA export")
+	}
+	if !strings.Contains(string(tsContent), "4.10.196.36804") {
+		t.Errorf("expected defaultCatalog.ts to contain GameVersion 4.10.196.36804")
+	}
+
+	// Test failure when GameVersion is missing/empty
+	if _, err := UpdateProjectCatalogFiles(tmpDir, cat, CatalogMetadata{GameBranch: "sc-alpha-4.10.2", GameBuildDate: "Wed Oct 07 2026"}); err == nil {
+		t.Errorf("expected error when GameVersion is empty, got nil")
+	}
+
+	// Test failure when GameBranch is missing/empty
+	if _, err := UpdateProjectCatalogFiles(tmpDir, cat, CatalogMetadata{GameVersion: "4.10.196.36804", GameBuildDate: "Wed Oct 07 2026"}); err == nil {
+		t.Errorf("expected error when GameBranch is empty, got nil")
+	}
+
+	// Test failure when GameBuildDate is missing/empty
+	if _, err := UpdateProjectCatalogFiles(tmpDir, cat, CatalogMetadata{GameVersion: "4.10.196.36804", GameBranch: "sc-alpha-4.10.2"}); err == nil {
+		t.Errorf("expected error when GameBuildDate is empty, got nil")
 	}
 }
 

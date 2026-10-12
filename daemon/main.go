@@ -101,6 +101,19 @@ func main() {
 		return
 	}
 
+	outputExplicit := false
+	fs.Visit(func(f *flag.Flag) {
+		if f.Name == "output" || f.Name == "o" {
+			outputExplicit = true
+		}
+	})
+
+	// When --update-project is enabled without an explicitly supplied -o flag, target the web static asset directly
+	// to avoid creating redundant, untracked ./game-data.json files in the repository root.
+	if updateProjectFlag && !outputExplicit {
+		outputFlag = filepath.Join(projectRootFlag, "apps", "web", "public", "game-data.json")
+	}
+
 	fmt.Println("==========================================================")
 	fmt.Printf("  Star Citizen Local Extraction Daemon v%s\n", Version)
 	fmt.Println("==========================================================")
@@ -157,26 +170,31 @@ func main() {
 		fmt.Printf("[daemon] Generating master action catalog for project at '%s'...\n", projectRootFlag)
 		cat, err := catalog.GenerateCatalogFromGameData(gameData.DefaultProfileXML, gameData.Localization)
 		if err != nil {
-			log.Printf("[daemon] Error generating action catalog: %v\n", err)
-		} else {
-			written, err := catalog.UpdateProjectCatalogFiles(projectRootFlag, cat)
-			if err != nil {
-				log.Printf("[daemon] Error updating project catalog files: %v\n", err)
-			} else {
-				totalActions := 0
-				for _, m := range cat {
-					totalActions += len(m.Actions)
-				}
-				fmt.Printf("[daemon] ✓ Successfully updated project catalog (%d action maps, %d actions):\n", len(cat), totalActions)
-				for _, w := range written {
-					fmt.Printf("         - %s\n", w)
-				}
-			}
+			log.Fatalf("[daemon] Fatal error generating action catalog: %v\n", err)
 		}
 
-		// Also update apps/web/public/game-data.json so the web app has the latest base profile & localization
+		meta := catalog.CatalogMetadata{
+			GameVersion:   gameData.GameVersion,
+			GameBranch:    gameData.GameBranch,
+			GameBuildDate: gameData.GameBuildDate,
+			ExtractedAt:   gameData.ExtractedAt.Format(time.RFC3339),
+		}
+		written, err := catalog.UpdateProjectCatalogFiles(projectRootFlag, cat, meta)
+		if err != nil {
+			log.Fatalf("[daemon] Fatal error updating project catalog files: %v\n", err)
+		}
+		totalActions := 0
+		for _, m := range cat {
+			totalActions += len(m.Actions)
+		}
+		fmt.Printf("[daemon] ✓ Successfully updated project catalog (%d action maps, %d actions):\n", len(cat), totalActions)
+		for _, w := range written {
+			fmt.Printf("         - %s\n", w)
+		}
+
+		// Also update apps/web/public/game-data.json if not already written by processGameData
 		webGameDataPath := filepath.Join(projectRootFlag, "apps", "web", "public", "game-data.json")
-		if outputFlag == "game-data.json" || outputFlag != webGameDataPath {
+		if outputFlag != webGameDataPath {
 			if err := writeOutputFile(webGameDataPath, gameData); err != nil {
 				log.Printf("[daemon] Warning: failed updating web app game data at %s: %v\n", webGameDataPath, err)
 			} else {

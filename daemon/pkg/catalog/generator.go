@@ -203,8 +203,27 @@ func resolveActivationMode(actName string, xmlMode string, label string, desc st
 	return "press", 1
 }
 
-// UpdateProjectCatalogFiles writes the serialized catalog into monorepo target files
-func UpdateProjectCatalogFiles(projectRoot string, catalog MasterActionCatalog) ([]string, error) {
+// CatalogMetadata carries game version, branch, and build date information to export into defaultCatalog.ts
+type CatalogMetadata struct {
+	GameVersion   string `json:"gameVersion"`
+	GameBranch    string `json:"gameBranch"`
+	GameBuildDate string `json:"gameBuildDate"`
+	ExtractedAt   string `json:"extractedAt,omitempty"`
+}
+
+// UpdateProjectCatalogFiles writes the serialized catalog and game metadata into monorepo target files.
+// GameVersion, GameBranch, and GameBuildDate must all be non-empty; if any are missing, it returns an explicit error.
+func UpdateProjectCatalogFiles(projectRoot string, catalog MasterActionCatalog, meta CatalogMetadata) ([]string, error) {
+	if strings.TrimSpace(meta.GameVersion) == "" {
+		return nil, fmt.Errorf("cannot update project catalog: GameVersion is empty (build metadata must be present in build_manifest.id or CLI overrides)")
+	}
+	if strings.TrimSpace(meta.GameBranch) == "" {
+		return nil, fmt.Errorf("cannot update project catalog: GameBranch is empty (branch metadata must be present in build_manifest.id or CLI overrides)")
+	}
+	if strings.TrimSpace(meta.GameBuildDate) == "" {
+		return nil, fmt.Errorf("cannot update project catalog: GameBuildDate is empty (build date must be present in build_manifest.id or CLI overrides)")
+	}
+
 	paths := []string{
 		filepath.Join(projectRoot, "packages", "parser", "src", "catalog", "sc_action_catalog.json"),
 		filepath.Join(projectRoot, "apps", "web", "public", "data", "sc_action_catalog.json"),
@@ -229,12 +248,19 @@ func UpdateProjectCatalogFiles(projectRoot string, catalog MasterActionCatalog) 
 	}
 
 	// Also sync packages/parser/src/catalog/defaultCatalog.ts directly so TypeScript modules are always synced
-	defaultCatalogTsPath := filepath.Join(projectRoot, "packages", "parser", "src", "catalog", "defaultCatalog.ts")
-	tsContent := "import type { MasterActionCatalog } from \"@sc-mapping/shared-types\";\n\n" +
-		"export const MASTER_ACTION_CATALOG: MasterActionCatalog = " + string(data) + ";\n"
-	if err := os.WriteFile(defaultCatalogTsPath, []byte(tsContent), 0644); err == nil {
-		written = append(written, defaultCatalogTsPath)
+	metaBytes, err := json.MarshalIndent(meta, "", "  ")
+	if err != nil {
+		return written, fmt.Errorf("failed to marshal catalog metadata: %w", err)
 	}
+
+	defaultCatalogTsPath := filepath.Join(projectRoot, "packages", "parser", "src", "catalog", "defaultCatalog.ts")
+	tsContent := "import type { MasterActionCatalog, GameMetadata } from \"@sc-mapping/shared-types\";\n\n" +
+		"export const GAME_METADATA: GameMetadata = " + string(metaBytes) + ";\n\n" +
+		"export const MASTER_ACTION_CATALOG: MasterActionCatalog = " + string(data) + ";\n"
+	if err := os.WriteFile(defaultCatalogTsPath, []byte(tsContent), 0644); err != nil {
+		return written, fmt.Errorf("failed to write defaultCatalog.ts: %w", err)
+	}
+	written = append(written, defaultCatalogTsPath)
 
 	return written, nil
 }

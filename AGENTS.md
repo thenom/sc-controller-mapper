@@ -109,7 +109,7 @@ Conflicts are rated across a 4-tier severity spectrum:
   - Running `npm run daemon:extract` (or `./daemon/bin/sc-daemon --update-project`) automatically updates:
     1. `packages/parser/src/catalog/sc_action_catalog.json` (canonical parser catalog)
     2. `apps/web/public/data/sc_action_catalog.json` (web app client catalog)
-    3. `packages/parser/src/catalog/defaultCatalog.ts` (TypeScript AST constant)
+    3. `packages/parser/src/catalog/defaultCatalog.ts` (TypeScript AST constant & typed `GAME_METADATA`)
     4. `apps/web/public/game-data.json` (web app live extraction cache)
   - Whenever game files are updated or patch data changes, agents and contributors must run `npm run daemon:extract` to ensure resolver heuristics and action catalogs reflect the latest patch data.
 

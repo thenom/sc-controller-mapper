@@ -2,7 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import {
   ActionMapsParser,
   ActionMapsExporter,
-  LocalizationMerger
+  LocalizationMerger,
+  GAME_METADATA
 } from '@sc-mapping/parser';
 import {
   ConflictResolver,
@@ -135,10 +136,10 @@ export const App: React.FC = () => {
   const [inspectorDeviceIndex, setInspectorDeviceIndex] = useState<number>(0);
   const [inspectorSelectedInput, setInspectorSelectedInput] = useState<string | null>(null);
 
-  // Game Version & Suite Versioning State
-  const [gameVersion, setGameVersion] = useState<string>('4.10.196.36804');
-  const [gameBranch, setGameBranch] = useState<string>('sc-alpha-4.10.2');
-  const [gameBuildDate, setGameBuildDate] = useState<string>('Wed Oct 07 2026');
+  // Game Version & Suite Versioning State (automatically sourced from daemon-extracted GAME_METADATA)
+  const [gameVersion, setGameVersion] = useState<string>(GAME_METADATA.gameVersion);
+  const [gameBranch, setGameBranch] = useState<string>(GAME_METADATA.gameBranch);
+  const [gameBuildDate, setGameBuildDate] = useState<string>(GAME_METADATA.gameBuildDate);
   const suiteVersion = '1.0.0';
   const [isVersionInfoOpen, setIsVersionInfoOpen] = useState(false);
 

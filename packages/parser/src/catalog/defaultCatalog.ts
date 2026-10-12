@@ -1,4 +1,11 @@
-import type { MasterActionCatalog } from "@sc-mapping/shared-types";
+import type { MasterActionCatalog, GameMetadata } from "@sc-mapping/shared-types";
+
+export const GAME_METADATA: GameMetadata = {
+  "gameVersion": "4.10.196.36804",
+  "gameBranch": "sc-alpha-4.10.2",
+  "gameBuildDate": "Wed Oct 07 2026",
+  "extractedAt": "2026-10-12T17:15:13+01:00"
+};
 
 export const MASTER_ACTION_CATALOG: MasterActionCatalog = {
   "IFCS_controls": {
