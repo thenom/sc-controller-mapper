@@ -136,9 +136,9 @@ export const App: React.FC = () => {
   const [inspectorSelectedInput, setInspectorSelectedInput] = useState<string | null>(null);
 
   // Game Version & Suite Versioning State
-  const [gameVersion, setGameVersion] = useState<string>('12660092');
-  const [gameBranch, setGameBranch] = useState<string>('sc-alpha-4.10.1');
-  const [gameBuildDate, setGameBuildDate] = useState<string>('Thu Sep 24 2026');
+  const [gameVersion, setGameVersion] = useState<string>('4.10.196.36804');
+  const [gameBranch, setGameBranch] = useState<string>('sc-alpha-4.10.2');
+  const [gameBuildDate, setGameBuildDate] = useState<string>('Wed Oct 07 2026');
   const suiteVersion = '1.0.0';
   const [isVersionInfoOpen, setIsVersionInfoOpen] = useState(false);
 
@@ -774,7 +774,7 @@ export const App: React.FC = () => {
               <div className="p-3 rounded bg-[rgba(255,183,0,0.08)] border border-[#ffb700]/30 space-y-1.5">
                 <div className="text-[#ffb700] font-semibold flex items-center gap-1.5">
                   <AlertTriangle className="w-4 h-4" />
-                  What happens when Star Citizen updates? (e.g. 4.10.2)
+                  What happens when Star Citizen updates? (e.g. 4.10.3)
                 </div>
                 <p className="text-[11px] text-[#e2e8f0]">
                   If a new patch introduces new flight actions, targeting modes, or changes action names, your existing profiles will continue to function safely. However, newly added game features won't appear in the binding catalog until the game data is refreshed.
