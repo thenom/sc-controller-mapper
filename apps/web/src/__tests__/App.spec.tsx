@@ -22,9 +22,9 @@ describe('App Main Component', () => {
           ok: true,
           json: () =>
             Promise.resolve({
-              game_version: '12660092',
-              game_branch: 'sc-alpha-4.10.1',
-              game_build_date: 'Thu Sep 24 2026'
+              game_version: '4.10.196.36804',
+              game_branch: 'sc-alpha-4.10.2',
+              game_build_date: 'Wed Oct 07 2026'
             })
         });
       }
@@ -228,7 +228,7 @@ describe('App Main Component', () => {
 
     global.fetch = vi.fn().mockImplementation((url: string) => {
       if (url === '/game-data.json') {
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({ game_version: '12660092', game_branch: 'sc-alpha-4.10.1' }) });
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ game_version: '4.10.196.36804', game_branch: 'sc-alpha-4.10.2' }) });
       }
       if (url.includes('/samples/')) {
         return Promise.resolve({ ok: true, text: () => Promise.resolve(sampleXml) });
@@ -307,7 +307,7 @@ describe('App Main Component', () => {
       if (url === '/game-data.json') {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ game_version: '12660092', game_branch: 'sc-alpha-4.10.1' })
+          json: () => Promise.resolve({ game_version: '4.10.196.36804', game_branch: 'sc-alpha-4.10.2' })
         });
       }
       return Promise.reject(new Error('Unknown'));

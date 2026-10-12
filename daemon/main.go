@@ -50,11 +50,11 @@ func main() {
 	fs.BoolVar(&updateProjectFlag, "update-project", false, "Update project action catalog and web data files (packages/parser and apps/web/public)")
 	fs.BoolVar(&updateProjectFlag, "u", false, "Shorthand for --update-project")
 	fs.StringVar(&projectRootFlag, "project-root", ".", "Path to project root monorepo directory (default: current directory)")
-	fs.StringVar(&gameVersionFlag, "game-version", "", "Override or explicitly specify Star Citizen build version (e.g. 12660092)")
+	fs.StringVar(&gameVersionFlag, "game-version", "", "Override or explicitly specify Star Citizen build version (e.g. 4.10.196.36804 or 12881860)")
 	fs.StringVar(&gameVersionFlag, "gv", "", "Shorthand for --game-version")
-	fs.StringVar(&gameBranchFlag, "game-branch", "", "Override or explicitly specify Star Citizen branch (e.g. sc-alpha-4.10.1 or LIVE)")
+	fs.StringVar(&gameBranchFlag, "game-branch", "", "Override or explicitly specify Star Citizen branch (e.g. sc-alpha-4.10.2 or LIVE)")
 	fs.StringVar(&gameBranchFlag, "gb", "", "Shorthand for --game-branch")
-	fs.StringVar(&gameBuildDateFlag, "game-build-date", "", "Override or explicitly specify Star Citizen build date (e.g. Wed Sep 23 2026)")
+	fs.StringVar(&gameBuildDateFlag, "game-build-date", "", "Override or explicitly specify Star Citizen build date (e.g. Wed Oct 07 2026)")
 	fs.StringVar(&gameBuildDateFlag, "gd", "", "Shorthand for --game-build-date")
 
 	fs.Usage = func() {
