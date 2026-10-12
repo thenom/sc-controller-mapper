@@ -43,3 +43,14 @@ export interface UnboundActionItem {
   description?: string;
   isBound: boolean;
 }
+
+/**
+ * Game Metadata Interface
+ * Represents Star Citizen engine and build information extracted by sc-daemon.
+ */
+export interface GameMetadata {
+  gameVersion: string;
+  gameBranch: string;
+  gameBuildDate: string;
+  extractedAt?: string;
+}
