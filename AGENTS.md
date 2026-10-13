@@ -178,6 +178,8 @@ npm test
 npm run test:e2e
 # Run Playwright with interactive UI mode
 npm run test:e2e:ui
+# View Playwright HTML test report
+npm run test:e2e:report
 
 # Run pre-commit checks and secret scans across all files
 pre-commit run --all-files

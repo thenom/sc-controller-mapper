@@ -1,8 +1,9 @@
 name: Playwright E2E UX Gate
 
 on:
+  push:
+    branches: [main, master]
   pull_request:
-    types: [labeled, synchronize]
     branches: [main, master]
   workflow_dispatch:
     inputs:
@@ -18,8 +19,6 @@ concurrency:
 jobs:
   e2e-ux-gate:
     name: Playwright UX Validation
-    # Only run if triggered manually OR if the PR carries the 'run-e2e' label
-    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run-e2e') }}
     runs-on: ubuntu-latest
 
     steps:

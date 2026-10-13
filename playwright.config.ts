@@ -13,6 +13,7 @@ export default defineConfig({
     baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    permissions: ['clipboard-read', 'clipboard-write'],
   },
   projects: [
     {
@@ -25,7 +26,7 @@ export default defineConfig({
     ? {}
     : {
         webServer: {
-          command: 'npm run --workspace=@sc-mapping/web preview -- --port 4173 --host 127.0.0.1',
+          command: 'npm run build && npm run --workspace=@sc-mapping/web preview -- --port 4173 --host 127.0.0.1',
           url: 'http://127.0.0.1:4173',
           reuseExistingServer: !process.env.CI,
           timeout: 60_000,
