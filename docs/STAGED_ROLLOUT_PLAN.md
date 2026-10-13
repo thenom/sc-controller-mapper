@@ -178,11 +178,12 @@ This section tracks items that are currently optional or deferred for future sta
   2. Create responsive ad units in AdSense dashboard and retrieve your live Publisher ID (`ca-pub-...`) and Slot ID.
   3. Update `adsense_client_id` and `adsense_slot_id` in `infra/tofu/terraform.tfvars`, and switch `monetization_mode = "live"`.
 
-### D. End-to-End (E2E) Browser Automation
-- **Purpose**: Comprehensive browser-level testing for complex UI interactions.
-- **Tasks**:
-  1. Install `@playwright/test` when expanded CI automation is desired.
-  2. Implement headless test specs for drag-and-drop device rack re-indexing and XML file upload/export flows.
+### D. End-to-End (E2E) Browser Automation (Completed)
+- **Status**: **Complete**. Configured Playwright browser suite in `playwright.config.ts` and `e2e/app-workflow.spec.ts`.
+- **Delivered**:
+  1. Installed `@playwright/test` and wired into monorepo root scripts (`test:e2e`, `test:e2e:ui`, `test:e2e:report`).
+  2. Implemented headless E2E test specs for drag-and-drop device rack re-indexing, custom XML profile import/export, interactive binding editing & additive addbind creation, conflict diagnostics filtering & auto-fix, and referral code interactions.
+  3. Configured `.github/workflows/e2e.yml` running automatically on pushes and PRs to `main`/`master` to strictly block merges on UX failures.
 
 ### E. Cloudflare OpenTofu Live Deployment (Completed)
 - **Status**: **Complete**. Deployed live on `scbind.com` via Cloudflare Pages. OpenTofu configuration tracked in `infra/tofu/` with public open access (`enable_zero_trust = false`).

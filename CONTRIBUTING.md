@@ -78,7 +78,10 @@ Always run the full verification suite before submitting a pull request:
 # 1. Run all unit and component tests (Vitest)
 npm test
 
-# 2. Compile TypeScript across all packages and the web application
+# 2. Run Playwright end-to-end browser tests
+npm run test:e2e
+
+# 3. Compile TypeScript across all packages and the web application
 npm run build
 
 # 3. Validate OpenTofu infrastructure code
@@ -200,6 +203,7 @@ npm run build
 4. **AI / LLM Disclosure**: If the changes were developed, generated, or co-authored by an AI agent or LLM, the PR title **must** be prefixed with `🤖` (e.g. `🤖 chore(catalog): ...`) and explicitly declared in the PR description.
 5. Push to your fork and submit a Pull Request to `main`.
 6. GitHub Actions CI will automatically run linting, tests, OpenTofu validation, and container smoke tests.
+7. **UX / E2E Testing Gate**: Every pull request targeting `main` or `master` automatically runs the Playwright E2E browser test suite (`.github/workflows/e2e.yml`). All browser tests must pass cleanly before the PR can be merged.
 
 ---
 

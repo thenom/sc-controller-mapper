@@ -13,11 +13,15 @@
     "dev": "npm run --workspace=@sc-mapping/web dev",
     "build": "npm run --workspace=@sc-mapping/shared-types build && npm run --workspace=@sc-mapping/parser build && npm run --workspace=@sc-mapping/resolver build && npm run --workspace=@sc-mapping/web build",
     "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report",
     "daemon:build": "cd daemon && go build -o bin/sc-daemon main.go",
     "daemon:extract": "./daemon/bin/sc-daemon --update-project",
     "daemon:serve": "./daemon/bin/sc-daemon --daemon"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.0",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^26.6.4",

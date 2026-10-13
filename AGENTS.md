@@ -26,6 +26,7 @@ sc-mapping/
 ├── TODO.md                       # Project backlog & deferred enhancements
 ├── Dockerfile                    # Multi-stage unprivileged Nginx container build
 ├── docker-compose.yml            # Stage 1 private server container definition
+├── playwright.config.ts          # Playwright E2E configuration & Vite preview server
 ├── docs/
 │   ├── ARCHITECTURE_BLUEPRINT.md # Full 40KB system specification, rules, and cipher specs
 │   ├── STAGED_ROLLOUT_PLAN.md    # Multi-stage deployment, GCP OpenTofu, & monetization plan
@@ -48,6 +49,8 @@ sc-mapping/
 │           ├── data/             # referralCodes.ts (community supporter referral pool)
 │           ├── hooks/            # useGamepadListener.ts (HTML5 Gamepad API hook)
 │           └── App.tsx           # Main workspace UI
+├── e2e/                          # Playwright End-to-End browser UX test suite
+│   └── app-workflow.spec.ts      # Complete user journey tests (presets, matrix, modals, XML export)
 ├── infra/                        # OpenTofu infrastructure as code
 │   └── tofu/                     # Cloudflare Pages, DNS & Zero Trust Access configuration
 ├── scripts/                      # Pre-commit security gates and developer utilities
@@ -170,6 +173,13 @@ npm install
 
 # Run automated Vitest test suite across all workspace packages
 npm test
+
+# Run Playwright End-to-End browser tests (headless Chromium)
+npm run test:e2e
+# Run Playwright with interactive UI mode
+npm run test:e2e:ui
+# View Playwright HTML test report
+npm run test:e2e:report
 
 # Run pre-commit checks and secret scans across all files
 pre-commit run --all-files
