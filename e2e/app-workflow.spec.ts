@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import * as fs from 'node:fs';
 
 test.describe('Star Citizen Keybinding Architect E2E UX Suite', () => {
   test.beforeEach(async ({ page }) => {
@@ -241,5 +242,64 @@ test.describe('Star Citizen Keybinding Architect E2E UX Suite', () => {
 
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toMatch(/layout_.*exported\.xml/);
+  });
+
+  test('executes unified round-trip: import XML, edit binding, export, and verify XML contents', async ({ page }) => {
+    // 1. Import sample HOTAS profile
+    const fileInput = page.locator('input[type="file"]');
+    await fileInput.setInputFiles('sample-data/hotas_t16000m.xml');
+    await expect(page.getByText('hotas_t16000m.xml')).toBeVisible();
+
+    // 2. Search for the action to edit
+    const searchInput = page.getByPlaceholder(/Search actions, labels, or inputs/i);
+    await searchInput.fill('v_boost');
+    await expect(page.getByText('v_boost').first()).toBeVisible();
+
+    // 3. Open Binding Editor modal
+    const editButton = page.getByRole('button', { name: 'Edit', exact: true }).first();
+    await editButton.click();
+    await expect(page.getByRole('button', { name: /Save Changes/i })).toBeVisible();
+
+    // 4. Add an additive concurrent input binding
+    const addBindingButton = page.getByRole('button', { name: /Add Input Binding/i });
+    await addBindingButton.click();
+
+    // 5. Update input code and set activation mode to 'hold'
+    const inputFields = page.locator('input[placeholder*="e.g. js1_button1"]');
+    await expect(inputFields).toHaveCount(2);
+    await inputFields.nth(1).fill('js1_button11');
+
+    const modeSelects = page.locator('select').filter({ has: page.locator('option[value="hold"]') });
+    await modeSelects.nth(1).selectOption('hold');
+
+    // 6. Save changes and confirm in table
+    const saveButton = page.getByRole('button', { name: /Save Changes/i });
+    await saveButton.click();
+    await expect(saveButton).not.toBeVisible();
+    await expect(page.getByText('js1_button11')).toBeVisible();
+
+    // 7. Trigger XML Export Download
+    const downloadPromise = page.waitForEvent('download');
+    const exportButton = page.getByRole('button', { name: /Export XML/i });
+    await exportButton.click();
+
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toBe('layout_t16000m_hotas_standard_exported.xml');
+
+    // 8. Read the downloaded file content from disk
+    const downloadPath = await download.path();
+    expect(downloadPath).toBeTruthy();
+    const xmlContent = fs.readFileSync(downloadPath!, 'utf-8');
+
+    // 9. Verify exact XML contents & lossless round-tripping
+    expect(xmlContent).toContain('profileName="t16000m_hotas_standard"');
+    expect(xmlContent).toContain('<options type="joystick" instance="1" Product="T.16000M');
+    expect(xmlContent).toContain('<options type="joystick" instance="2" Product="TWCS Throttle');
+    expect(xmlContent).toContain('<pitch invert="1"/>');
+    expect(xmlContent).toContain('<action name="v_pitch">');
+    expect(xmlContent).toContain('<rebind input="js1_pitch"/>');
+    expect(xmlContent).toContain('<action name="v_boost">');
+    expect(xmlContent).toContain('<rebind input="js2_button1"');
+    expect(xmlContent).toContain('<addbind input="js1_button11" activationMode="hold"/>');
   });
 });
