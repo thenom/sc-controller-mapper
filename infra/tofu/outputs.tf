@@ -20,12 +20,12 @@ output "custom_domain_url" {
 
 output "dns_record_id" {
   description = "The ID of the proxied DNS CNAME record."
-  value       = cloudflare_record.pages_cname.id
+  value       = cloudflare_dns_record.pages_cname.id
 }
 
 output "dns_record_hostname" {
   description = "The fully-qualified hostname configured in DNS."
-  value       = cloudflare_record.pages_cname.hostname
+  value       = cloudflare_dns_record.pages_cname.name
 }
 
 output "zero_trust_enabled" {

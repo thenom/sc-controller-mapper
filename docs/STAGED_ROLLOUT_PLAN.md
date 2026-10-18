@@ -107,9 +107,9 @@ pre-commit run --all-files
 ### Directory Structure (`infra/tofu/`)
 ```
 infra/tofu/
-├── versions.tf               # OpenTofu requirement (>= 1.6.0), cloudflare/cloudflare (~> 4.52), local backend
+├── versions.tf               # OpenTofu requirement (>= 1.6.0), cloudflare/cloudflare (~> 5.26), local backend
 ├── variables.tf              # Account ID, Zone ID, custom_domain (scbind.com), allowed_ips, allowed_emails
-├── main.tf                   # cloudflare_pages_project, cloudflare_pages_domain, cloudflare_record, zero trust app & policy
+├── main.tf                   # cloudflare_pages_project, cloudflare_pages_domain, cloudflare_dns_record, zero trust app & inline policy
 ├── outputs.tf                # Live URLs, DNS CNAME, Zero Trust AUD tag, and staged rollout status
 └── terraform.tfvars.example  # Git-tracked placeholder template
 ```
