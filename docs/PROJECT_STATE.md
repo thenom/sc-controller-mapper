@@ -1,7 +1,10 @@
-# Star Citizen Keybinding Management Suite — Project State & Roadmap
+# Star Citizen Keybinding Management Suite — System Status & Overview
 
-**Last Updated**: 2026-09-21
-**Current Milestone**: Phase 4 Real-World Game Integration Complete; Phase 5 Interactive Web UI, Hardware Studio & Contributor Workflow Complete.
+**Status**: Production Release (Live at [https://scbind.com](https://scbind.com))
+**Target Star Citizen Release**: Dynamically tracked via `GAME_METADATA` in `packages/parser/src/catalog/defaultCatalog.ts` and displayed in the web application header.
+
+> [!WARNING]
+> **XML Profile Backup Notice:** Always retain offline backup copies of your original and working Star Citizen keybinding XML files (`LIVE/USER/Client/0/Controls/Mappings/`) before importing, editing, re-indexing, or exporting profiles.
 
 ---
 
@@ -26,7 +29,7 @@ This project provides a lossless, high-performance Keybinding Management Suite f
 | **Conflict Viewer Diagnostics** | `apps/web/src/components/ConflictViewer.tsx` | **Complete** | Multi-severity conflict explorer with device-scoping, formatted tokens, and resolution suggestions. |
 | **Contributor Hub** | `apps/web/src/App.tsx` | **Complete** | Dedicated maintainer hub separating `sc-daemon` patch extraction and PR submission tools from regular player workflows. |
 | **Go Extraction Daemon** | `daemon/` | **Complete** | Direct Zip64 central directory streamer (`io.ReaderAt`). CryEngine 16-byte XOR cipher decryptor. Zero-dependency `CryXmlB` binary XML decoder. Method 100 (zstd) decompression. Local `.scj` cache, CLI flags (`--version`, `--game-path`), sanitized paths, and HTTP server (`:8765`). |
-| **Vanilla CSS Design System** | `apps/web/src/index.css` | **Complete** | Pure Vanilla CSS design system with constrained icon sizing, layout utilities, sci-fi glassmorphism cards, and interactive modal dialogs without Tailwind dependency. |
+| **Cockpit Design System** | `apps/web/src/index.css` | **Complete** | Tailwind CSS v3 + custom CSS design system with constrained icon sizing, layout utilities, sci-fi glassmorphism cards, and interactive modal dialogs. |
 
 ---
 
@@ -55,11 +58,11 @@ When integrating against real Star Citizen game files (`.../StarCitizen/LIVE/Dat
 - **Full Workspace Build**: `npm run build` exits 0 with all packages (`shared-types`, `parser`, `resolver`, `web`) compiling in < 1s.
 - **Go Daemon Build**: `npm run daemon:build` exits 0 (`daemon/bin/sc-daemon`).
 - **Resolver Verification Suite**: `node packages/resolver/dist/test-verify.js` exits 0 (all 5 core test cases pass).
-- **Live Game Data**: `game-data.json` and `apps/web/public/game-data.json` populated with 50 ActionMaps, 1,103 actions, and 956 bindings from LIVE 3.24+.
+- **Live Game Data**: `apps/web/public/game-data.json` and `packages/parser/src/catalog/` populated with all Star Citizen ActionMaps and actions extracted from `Data.p4k`.
 - **Browser End-to-End Audit**: Full headless browser interaction test verified:
   - Sci-fi HUD and styling render cleanly with zero console errors.
   - Preset switching (Dual VKB HOSAS, T.16000M HOTAS) dynamically updates Device Rack and Conflict Engine.
-  - Live Game Data loader populates 50 Maps and 1,103 Actions in < 100ms.
+  - Live Game Data loader populates all extracted ActionMaps and Actions in < 100ms.
   - Search filtering (`v_pitch`) filters bindings instantly.
   - `BindingEditorModal` captures hardware input and allows activationMode/multiTap customization.
 
@@ -76,7 +79,7 @@ When integrating against real Star Citizen game files (`.../StarCitizen/LIVE/Dat
 - [x] **Conflict Engine False-Positive Elimination**: Expanded `ExclusionMatrix` across all 50 real Star Citizen action maps into 10 mutually exclusive operational domains (`spaceship`, `onfoot`, `eva`, `ground_vehicle`, `turret`, `screen_ui`, `menu`, `spectator`, `camera_mode`, `internal_debug`). Added device-scoped auditing (`Joysticks`, `All`, `Keyboard`).
 - [x] **Hardware Device Inspector & Live HUD**: Live interactive button matrix (Buttons 1-32+) and analog axis deflection meters. Solves the physical button identification problem by lighting up pressed buttons and displaying exact Star Citizen input IDs and mapped actions.
 - [x] **Daemon Versioning & Privacy Sanitization**: Added `--version` CLI flag, `/api/v1/version` endpoint, and sanitized file paths to prevent exposure of personal home directories.
-- [x] **Star Citizen Game Version Compatibility Tracking**: Automatically extracts `build_manifest.id` from the game directory (`sc-alpha-4.10.2`, Build `4.10.196.36804`). Web UI displays prominent Game Compatibility badge and an architecture modal explaining game patch compatibility (e.g. 4.10.3).
+- [x] **Star Citizen Game Version Compatibility Tracking**: Automatically extracts `build_manifest.id` from the game directory and pairs it with validated `--game-branch` (`-gb`) metadata (`sc-alpha-4.x.x`). Web UI displays a prominent Game Compatibility badge and modal explaining patch compatibility.
 - [x] **Hardware Studio & Preset Generator**: Interactive modal to detect physical gamepads or pick templates, configure axis inversions, and generate Star Citizen `<options>` XML blocks, community JSON hardware definitions, starter XML layouts, and GitHub PR contribution templates.
 - [x] **Dedicated VKB Gladiator EVO Right + Left Omni-Throttle (OTA) 6DOF Profile**: Added `sample-data/vkb_evo_hosas_omni.xml` and 1-click web UI preset for dual VKB sticks with left Omni-Throttle 6DOF strafe mapping.
 - [x] **Automated Metadata Synchronization & Clean Project Generation**: `sc-daemon` exports typed `GAME_METADATA` into `defaultCatalog.ts` directly from `build_manifest.id` and `game-data.json`. Eliminates hardcoded React state fallbacks in `App.tsx` and suppresses redundant duplicate `game-data.json` generation in workspace root during `--update-project` runs.

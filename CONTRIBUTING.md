@@ -112,10 +112,11 @@ When RSI releases a new Star Citizen patch (LIVE, PTU, or EPTU), contributors up
 > Game updates are **build-time schema updates**. Contributors run `sc-daemon --update-project` on their local machine where the game is installed, commit the generated files to git, and open a Pull Request. Once merged, CI/CD bakes the new catalogs into the container image permanently for all players.
 
 ### A. Monorepo Files Updated by Extraction
-Running `sc-daemon` with `--update-project` (`-u`) automatically generates and updates:
+Running `sc-daemon` with `--update-project` (`-u`) and `-gb "sc-alpha-4.x.x"` automatically generates and updates:
 1. `apps/web/public/game-data.json` — The bundled JSON payload containing the base `defaultProfile.xml` and complete localization dictionary.
 2. `packages/parser/src/catalog/sc_action_catalog.json` — The canonical action catalog used by the TypeScript parser for category hierarchy, domain mappings, and human-readable action labels.
 3. `apps/web/public/data/sc_action_catalog.json` — The client-side catalog consumed by the web application for real-time action search and binding creation.
+4. `packages/parser/src/catalog/defaultCatalog.ts` — The typed TypeScript `MASTER_ACTION_CATALOG` and `GAME_METADATA` constants bundled into `@sc-mapping/parser`.
 
 ### B. Step-by-Step Contributor Procedure
 
@@ -127,23 +128,23 @@ This builds the native Go binary to `daemon/bin/sc-daemon`.
 
 #### Step 2: Extract game data and update project files
 > [!IMPORTANT]
-> **Mandatory `--game-branch` (`-gb`) Flag**: CIG's internal `build_manifest.id` retains the base Perforce stream name (such as `sc-alpha-4.10.0`) across point releases (`4.10.1`, `4.10.2`, `4.10.3`). When running `--update-project` (`-u`), `sc-daemon` requires `-gb "sc-alpha-4.x.x"` so the web application's header badge displays the accurate Target Game release.
+> **Mandatory `--game-branch` (`-gb`) Flag**: CIG's internal `build_manifest.id` retains the base Perforce stream name (such as `sc-alpha-4.x.0`) across point releases. When running `--update-project` (`-u`), `sc-daemon` requires `-gb "sc-alpha-4.x.x"` so the web application's header badge displays the accurate Target Game release.
 
 - **Automatic Path Detection** (parses RSI Launcher logs in `%APPDATA%`):
   ```bash
-  ./daemon/bin/sc-daemon -gb "sc-alpha-4.10.3" -u
+  ./daemon/bin/sc-daemon -gb "sc-alpha-4.x.x" -u
   ```
 - **Explicit Star Citizen or RSI directory**:
   ```bash
-  ./daemon/bin/sc-daemon -p "C:\Games\RSI\StarCitizen" -gb "sc-alpha-4.10.3" -u
+  ./daemon/bin/sc-daemon -p "C:\Games\RSI\StarCitizen" -gb "sc-alpha-4.x.x" -u
   ```
 - **Direct `Data.p4k` archive path**:
   ```bash
-  ./daemon/bin/sc-daemon --p4k="D:\Games\StarCitizen\LIVE\Data.p4k" -gb "sc-alpha-4.10.3" -u
+  ./daemon/bin/sc-daemon --p4k="D:\Games\StarCitizen\LIVE\Data.p4k" -gb "sc-alpha-4.x.x" -u
   ```
 - **Linux / Proton / Wine installations**:
   ```bash
-  ./daemon/bin/sc-daemon -p "/mnt/games/StarCitizen/LIVE" -gb "sc-alpha-4.10.3" -u
+  ./daemon/bin/sc-daemon -p "/mnt/games/StarCitizen/LIVE" -gb "sc-alpha-4.x.x" -u
   ```
 
 > [!NOTE]
@@ -189,7 +190,7 @@ npm run build
 
 ## 6. Security & Secret Leak Prevention
 
-- **Never** commit `.tfstate` or `*.tfvars` files with real GCP credentials or project IDs.
+- **Never** commit `.tfstate`, `*.tfvars`, or files with real Cloudflare account/zone IDs, API tokens, or private IP addresses.
 - Template files ending in `.example` (such as `terraform.tfvars.example` and `apps/web/.env.example`) are checked into git; actual local overrides remain strictly `.gitignored`.
 - Pre-commit runs `gitleaks` on every staged commit to intercept secrets before they leave your workstation.
 

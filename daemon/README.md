@@ -13,9 +13,10 @@ A high-performance, lightweight Go binary designed to extract `defaultProfile.xm
 2. **Auto-Discovery Fallback**: Automatically parses RSI Launcher logs (`%APPDATA%\rsilauncher\logs\log.log` and `%APPDATA%\RSI Launcher\logs\log.log`) and standard installation paths if no path is passed.
 3. **Zip64 Byte Seeking**: Utilizes `io.ReaderAt` byte-range seeks to read the archive's Central Directory at the file tail without loading the 90GB archive into memory.
 4. **CryEngine Decryption**: Integrates the 16-byte CryEngine cipher key (`0x5E, 0x7A, 0x20, 0x02, 0x30, 0x2E, 0xEB, 0x1A, 0x3B, 0xB6, 0x17, 0xC3, 0x0F, 0xDE, 0x1E, 0x47`) to decrypt encrypted zip entries in-place.
-5. **Project Action Catalog Generator**: Pass `--update-project` (or `-u`) to automatically update:
+5. **Project Action Catalog Generator**: Pass `--update-project` (or `-u`) with `--game-branch` (`-gb`) to automatically update:
    - `packages/parser/src/catalog/sc_action_catalog.json` (canonical parser catalog)
    - `apps/web/public/data/sc_action_catalog.json` (web search catalog)
+   - `packages/parser/src/catalog/defaultCatalog.ts` (typed TypeScript `MASTER_ACTION_CATALOG` & `GAME_METADATA`)
    - `apps/web/public/game-data.json` (bundled base profile and localization)
 6. **Smart `.scj` Cache**: Computes a fast signature (file size + modtime) and maintains a gzip-compressed cache (`cache.scj`) in the local temp directory to avoid redundant extractions.
 7. **Optional HTTP Daemon**: Pass `--daemon` or run `sc-daemon serve` to serve local endpoints (`/api/v1/health`, `/api/v1/version`, `/api/v1/game-data`) on port 8765 for real-time web UI sync.
@@ -42,26 +43,26 @@ The compiled binary will be placed at `daemon/bin/sc-daemon`.
 ### 1. Extract & Update Project Monorepo Files (Recommended for PRs)
 
 > [!IMPORTANT]
-> **`--game-branch` (`-gb`) is required with `--update-project` (`-u`)**: CIG's internal `build_manifest.id` keeps a generic base stream name (e.g. `sc-alpha-4.10.0`) across point releases (`4.10.1`, `4.10.2`, `4.10.3`). Passing `-gb "sc-alpha-4.x.x"` is enforced by `sc-daemon` so the web UI displays the accurate Target Game version.
+> **`--game-branch` (`-gb`) is required with `--update-project` (`-u`)**: CIG's internal `build_manifest.id` keeps a generic base stream name (e.g. `sc-alpha-4.x.0`) across point releases. Passing `-gb "sc-alpha-4.x.x"` is enforced by `sc-daemon` so the web UI displays the accurate Target Game version.
 
 #### Auto-detecting Star Citizen path:
 ```bash
-./daemon/bin/sc-daemon -gb "sc-alpha-4.10.3" -u
+./daemon/bin/sc-daemon -gb "sc-alpha-4.x.x" -u
 ```
 
 #### Explicit Star Citizen Root or Channel:
 ```bash
-./daemon/bin/sc-daemon -p "C:\Program Files\Roberts Space Industries\StarCitizen" -gb "sc-alpha-4.10.3" -u
+./daemon/bin/sc-daemon -p "C:\Program Files\Roberts Space Industries\StarCitizen" -gb "sc-alpha-4.x.x" -u
 ```
 
 #### Direct Path to `Data.p4k`:
 ```bash
-./daemon/bin/sc-daemon --p4k="D:\Games\StarCitizen\LIVE\Data.p4k" -gb "sc-alpha-4.10.3" -u
+./daemon/bin/sc-daemon --p4k="D:\Games\StarCitizen\LIVE\Data.p4k" -gb "sc-alpha-4.x.x" -u
 ```
 
 #### Linux / Proton / Steam Deck:
 ```bash
-./daemon/bin/sc-daemon -p "/mnt/games/StarCitizen/LIVE" -gb "sc-alpha-4.10.3" -u
+./daemon/bin/sc-daemon -p "/mnt/games/StarCitizen/LIVE" -gb "sc-alpha-4.x.x" -u
 ```
 
 ### 2. Standalone JSON File Extraction
@@ -100,7 +101,10 @@ Once running, navigate to `http://localhost:5173` and click **Sync with Local Da
 |------|-------|---------|-------------|
 | `--game-path` | `-p` | `""` | Path to Star Citizen root directory or channel |
 | `--p4k` | | `""` | Direct path to `Data.p4k` archive (alias for `--game-path`) |
-| `--update-project` | `-u` | `false` | Updates monorepo action catalogs and web public data |
+| `--update-project` | `-u` | `false` | Updates monorepo action catalogs and web public data (requires `--game-branch`) |
+| `--game-branch` | `-gb` | `""` | Target Star Citizen branch (e.g. `sc-alpha-4.x.x` or `4.x.x`; normalized to `sc-alpha-X.Y.Z`) |
+| `--game-version` | `-gv` | `""` | Override Star Citizen build version |
+| `--game-build-date` | `-gd` | `""` | Override Star Citizen build date |
 | `--project-root` | | `.` | Monorepo root directory when running `--update-project` |
 | `--output` | `-o` | `game-data.json` | Destination path for standalone extracted JSON payload |
 | `--daemon` | | `false` | Run as persistent background HTTP service |

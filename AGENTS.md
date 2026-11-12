@@ -25,11 +25,11 @@ sc-mapping/
 ├── CONTRIBUTING.md               # Open source contributor setup & PR guidelines
 ├── TODO.md                       # Project backlog & deferred enhancements
 ├── Dockerfile                    # Multi-stage unprivileged Nginx container build
-├── docker-compose.yml            # Stage 1 private server container definition
+├── docker-compose.yml            # Self-hosted Nginx container definition
 ├── playwright.config.ts          # Playwright E2E configuration & Vite preview server
 ├── docs/
 │   ├── ARCHITECTURE_BLUEPRINT.md # Full 40KB system specification, rules, and cipher specs
-│   ├── STAGED_ROLLOUT_PLAN.md    # Multi-stage deployment, GCP OpenTofu, & monetization plan
+│   ├── PROJECT_STATE.md          # Production system status & component overview
 │   └── BOOTSTRAP_WALKTHROUGH.md  # Implementation log of initial bootstrap
 ├── sample-data/                  # Offline sample XML profiles and localization fixtures
 │   ├── dual_vkb_evo_hosas.xml    # Dual VKB Gladiator EVO profile (HOSAS)
@@ -126,8 +126,8 @@ Conflicts are rated across a 4-tier severity spectrum:
   - When resolving input conflicts in `TemporalEvaluator` and `ExclusionMatrix`, code **MUST** query `CatalogManager.getDefaultActivationMode(actionName)` and `CatalogManager.getMasterFlightMode(actionName)` before falling back to textual cues (`(Hold)`, `long press`) or naming suffixes (`_hold`, `_tap`). Missing attributes must NOT simply default to `'press'` without consulting the catalog.
 - **Synchronized Catalog Regeneration Pipeline**:
   - `sc-daemon` extracts `defaultProfile.xml` and `global.ini` from Star Citizen's `Data.p4k` (or falls back to `apps/web/public/game-data.json` during offline dev / CI).
-  - **Mandatory `--game-branch` (`-gb`) Enforcement**: Because CIG's internal `build_manifest.id` keeps a generic base stream name (e.g. `sc-alpha-4.10.0`) across point releases (`4.10.1`, `4.10.2`, `4.10.3`), `sc-daemon` enforces passing `-gb "sc-alpha-4.x.x"` whenever `--update-project` (`-u`) is used so the web UI displays the accurate Target Game version.
-  - Running `./daemon/bin/sc-daemon --update-project -gb "sc-alpha-4.10.3"` automatically updates:
+  - **Mandatory `--game-branch` (`-gb`) Enforcement**: Because CIG's internal `build_manifest.id` keeps a generic base stream name (e.g. `sc-alpha-4.x.0`) across point releases, `sc-daemon` enforces passing `-gb "sc-alpha-4.x.x"` whenever `--update-project` (`-u`) is used so the web UI displays the accurate Target Game version.
+  - Running `./daemon/bin/sc-daemon --update-project -gb "sc-alpha-4.x.x"` automatically updates:
     1. `packages/parser/src/catalog/sc_action_catalog.json` (canonical parser catalog)
     2. `apps/web/public/data/sc_action_catalog.json` (web app client catalog)
     3. `packages/parser/src/catalog/defaultCatalog.ts` (TypeScript AST constant & typed `GAME_METADATA`)
@@ -139,9 +139,9 @@ Conflicts are rated across a 4-tier severity spectrum:
   - [AGENTS.md](AGENTS.md): Agent context, invariants, monorepo directory tree, and commands.
   - [README.md](README.md): Public feature showcases, live deployment domain (`scbind.com`), and quickstart.
   - [CONTRIBUTING.md](CONTRIBUTING.md): Verification test sequences, OpenTofu validation steps, and PR guidelines.
-  - [TODO.md](TODO.md): Backlog tasks, completed stage milestones, and deferred enhancements.
+  - [TODO.md](TODO.md): Backlog tasks and optional enhancements.
   - [docs/ARCHITECTURE_BLUEPRINT.md](docs/ARCHITECTURE_BLUEPRINT.md): Structural directories, schemas, and system specs.
-  - [docs/STAGED_ROLLOUT_PLAN.md](docs/STAGED_ROLLOUT_PLAN.md): Cloud rollout stages, Zero Trust stages, and monetization progression.
+  - [docs/PROJECT_STATE.md](docs/PROJECT_STATE.md): Production system status and component overview.
 - **No Stale Documentation**: Documentation must strictly reflect the active, running architecture of the repository. Obsolete designs, theoretical architectures, stale paths, or replaced technologies must be cleaned up and kept in sync with the codebase.
 
 ### H. Public Repository Secret Safety & Sanitization Protocol
@@ -198,13 +198,13 @@ npm run dev
 # Run full project build (packages + web)
 npm run build
 
-# Build and run Stage 1 container locally or on private server
+# Build and run self-hosted container locally
 docker-compose up -d --build
 
 # Build the Go extraction daemon
 npm run daemon:build
-# Run daemon patch extraction & monorepo catalog update
-npm run daemon:extract
+# Run daemon patch extraction & monorepo catalog update (-gb is required with -u)
+npm run daemon:extract -- -gb "sc-alpha-4.x.x"
 # Run daemon HTTP server for live web UI sync
 npm run daemon:serve
 # Run daemon CLI help
