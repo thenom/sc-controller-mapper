@@ -1,10 +1,10 @@
 import type { MasterActionCatalog, GameMetadata } from "@sc-mapping/shared-types";
 
 export const GAME_METADATA: GameMetadata = {
-  "gameVersion": "4.10.197.2878",
-  "gameBranch": "sc-alpha-4.10.2",
-  "gameBuildDate": "Mon Oct 12 2026",
-  "extractedAt": "2026-10-15T15:53:32+01:00"
+  "gameVersion": "4.10.200.58746",
+  "gameBranch": "sc-alpha-4.10.0",
+  "gameBuildDate": "Wed Nov 11 2026",
+  "extractedAt": "2026-11-12T17:41:55Z"
 };
 
 export const MASTER_ACTION_CATALOG: MasterActionCatalog = {
@@ -2559,7 +2559,7 @@ export const MASTER_ACTION_CATALOG: MasterActionCatalog = {
       },
       {
         "name": "pc_pit_looting",
-        "label": "Toogle Loot Screen (hold)",
+        "label": "Toggle Loot Screen (hold)",
         "category": "Player Choice",
         "defaultActivationMode": "delayed_press",
         "defaultMultiTap": 1
@@ -3173,6 +3173,14 @@ export const MASTER_ACTION_CATALOG: MasterActionCatalog = {
         "label": "Toggle Salvage Operator Mode",
         "category": "ShipSystems",
         "description": "Activate salvage mode when seated.",
+        "defaultActivationMode": "press",
+        "defaultMultiTap": 1
+      },
+      {
+        "name": "v_cycle_industrial_mode",
+        "label": "Cycle Industrial Operator Modes",
+        "category": "ShipSystems",
+        "description": "Next Industrial Mode",
         "defaultActivationMode": "press",
         "defaultMultiTap": 1
       },
