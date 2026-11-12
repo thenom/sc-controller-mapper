@@ -107,6 +107,14 @@ func main() {
 			"         Explicitly pass the target patch branch so the web UI displays the accurate Star Citizen release version.")
 	}
 
+	if strings.TrimSpace(gameBranchFlag) != "" {
+		normalizedBranch, err := locator.ValidateAndNormalizeGameBranch(gameBranchFlag)
+		if err != nil {
+			log.Fatalf("[daemon] Fatal: %v", err)
+		}
+		gameBranchFlag = normalizedBranch
+	}
+
 	outputExplicit := false
 	fs.Visit(func(f *flag.Flag) {
 		if f.Name == "output" || f.Name == "o" {

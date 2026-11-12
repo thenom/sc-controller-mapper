@@ -282,6 +282,22 @@ func parseManifestFromGameLog(baseDir string) (*BuildManifest, error) {
 	return nil, fmt.Errorf("no valid game log found")
 }
 
+var validGameBranchRegex = regexp.MustCompile(`^(?i:(?:sc-alpha-|alpha-|sc-)?(\d+\.\d+(?:\.\d+)?(?:-[a-z0-9]+)?))$`)
+
+// ValidateAndNormalizeGameBranch validates a game branch string (e.g. "sc-alpha-4.10.3" or "4.10.3")
+// and normalizes it to the canonical "sc-alpha-X.Y.Z" format.
+func ValidateAndNormalizeGameBranch(branch string) (string, error) {
+	trimmed := strings.TrimSpace(branch)
+	if trimmed == "" {
+		return "", fmt.Errorf("game branch cannot be empty (expected format like \"sc-alpha-4.10.3\" or \"4.10.3\")")
+	}
+	matches := validGameBranchRegex.FindStringSubmatch(trimmed)
+	if len(matches) < 2 {
+		return "", fmt.Errorf("invalid game branch %q: expected semantic patch format \"sc-alpha-X.Y.Z\" or \"X.Y.Z\" (e.g. \"sc-alpha-4.10.3\")", branch)
+	}
+	return "sc-alpha-" + strings.ToLower(matches[1]), nil
+}
+
 // ResolveBuildMetadata resolves Star Citizen build info from manifest, game logs, launcher logs, and archive modtime
 func ResolveBuildMetadata(gameRoot string, p4kPath string) *BuildManifest {
 	manifest, _ := ReadBuildManifest(gameRoot)
