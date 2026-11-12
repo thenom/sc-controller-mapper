@@ -67,10 +67,10 @@ func main() {
 		fmt.Println("\nFlags:")
 		fs.PrintDefaults()
 		fmt.Println("\nExamples:")
-		fmt.Println("  # Extract and update project action catalog & web data files for a PR:")
-		fmt.Println("  ./daemon/bin/sc-daemon --update-project")
-		fmt.Println("  ./daemon/bin/sc-daemon -p \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\" -u")
-		fmt.Println("  ./daemon/bin/sc-daemon extract --p4k=\"/path/to/Data.p4k\" --update-project")
+		fmt.Println("  # Extract and update project action catalog & web data files for a PR (--gb is required with -u):")
+		fmt.Println("  ./daemon/bin/sc-daemon --update-project -gb \"sc-alpha-4.10.3\"")
+		fmt.Println("  ./daemon/bin/sc-daemon -p \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\" -gb \"sc-alpha-4.10.3\" -u")
+		fmt.Println("  ./daemon/bin/sc-daemon extract --p4k=\"/path/to/Data.p4k\" -gb \"sc-alpha-4.10.3\" --update-project")
 		fmt.Println("\n  # Run local HTTP daemon for live web app sync:")
 		fmt.Println("  ./daemon/bin/sc-daemon --daemon --port=8765")
 		fmt.Println("  ./daemon/bin/sc-daemon serve --port=8765")
@@ -99,6 +99,12 @@ func main() {
 	if versionFlag {
 		fmt.Printf("sc-daemon v%s\n", Version)
 		return
+	}
+
+	if updateProjectFlag && strings.TrimSpace(gameBranchFlag) == "" {
+		log.Fatalf("[daemon] Fatal: --game-branch (-gb) is required when running --update-project (-u) (e.g. -gb \"sc-alpha-4.10.3\").\n" +
+			"         CIG's internal build_manifest.id retains the base stream name (e.g. sc-alpha-4.10.0) across point releases.\n" +
+			"         Explicitly pass the target patch branch so the web UI displays the accurate Star Citizen release version.")
 	}
 
 	outputExplicit := false

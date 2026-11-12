@@ -207,6 +207,10 @@ func TestResolveGamePath_EnvAndLogs(t *testing.T) {
 	}
 
 	// 3. Test unable to locate failure
+	origDefaults := candidateDefaults
+	candidateDefaults = []string{filepath.Join(tmpDir, "nonexistent_default")}
+	defer func() { candidateDefaults = origDefaults }()
+
 	t.Setenv("APPDATA", filepath.Join(tmpDir, "empty_appdata"))
 	_, err = ResolveGamePath("")
 	if err == nil {

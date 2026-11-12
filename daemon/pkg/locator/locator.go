@@ -11,12 +11,27 @@ import (
 	"time"
 )
 
+// candidateDefaults lists standard Star Citizen installation paths on Windows
+var candidateDefaults = []string{
+	`C:\Program Files\Roberts Space Industries\StarCitizen`,
+	`D:\Roberts Space Industries\StarCitizen`,
+	`D:\Games\Roberts Space Industries\StarCitizen`,
+	`E:\Roberts Space Industries\StarCitizen`,
+	`E:\Games\Roberts Space Industries\StarCitizen`,
+}
+
 // ResolveGamePath resolves the Star Citizen root directory using CLI arg, env var, launcher logs, or standard paths
 func ResolveGamePath(cliPath string) (string, error) {
 	// 1. Explicit CLI Path supplied by user
 	if cliPath != "" {
 		cleaned := filepath.Clean(cliPath)
-		if _, err := os.Stat(cleaned); err == nil {
+		if fi, err := os.Stat(cleaned); err == nil {
+			if fi.IsDir() && !strings.HasSuffix(strings.ToLower(cleaned), "starcitizen") {
+				subPath := filepath.Join(cleaned, "StarCitizen")
+				if subFi, subErr := os.Stat(subPath); subErr == nil && subFi.IsDir() {
+					return subPath, nil
+				}
+			}
 			return cleaned, nil
 		}
 		return "", fmt.Errorf("specified game path does not exist: %s", cleaned)
@@ -24,8 +39,15 @@ func ResolveGamePath(cliPath string) (string, error) {
 
 	// 2. Check Environment Variable
 	if envPath := os.Getenv("STARCITIZEN_PATH"); envPath != "" {
-		if _, err := os.Stat(envPath); err == nil {
-			return envPath, nil
+		cleaned := filepath.Clean(envPath)
+		if fi, err := os.Stat(cleaned); err == nil {
+			if fi.IsDir() && !strings.HasSuffix(strings.ToLower(cleaned), "starcitizen") {
+				subPath := filepath.Join(cleaned, "StarCitizen")
+				if subFi, subErr := os.Stat(subPath); subErr == nil && subFi.IsDir() {
+					return subPath, nil
+				}
+			}
+			return cleaned, nil
 		}
 	}
 
@@ -38,14 +60,6 @@ func ResolveGamePath(cliPath string) (string, error) {
 	}
 
 	// 4. Default standard locations
-	candidateDefaults := []string{
-		`C:\Program Files\Roberts Space Industries\StarCitizen`,
-		`D:\Roberts Space Industries\StarCitizen`,
-		`D:\Games\Roberts Space Industries\StarCitizen`,
-		`E:\Roberts Space Industries\StarCitizen`,
-		`E:\Games\Roberts Space Industries\StarCitizen`,
-	}
-
 	for _, candidate := range candidateDefaults {
 		if _, err := os.Stat(candidate); err == nil {
 			return candidate, nil

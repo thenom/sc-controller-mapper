@@ -126,12 +126,13 @@ Conflicts are rated across a 4-tier severity spectrum:
   - When resolving input conflicts in `TemporalEvaluator` and `ExclusionMatrix`, code **MUST** query `CatalogManager.getDefaultActivationMode(actionName)` and `CatalogManager.getMasterFlightMode(actionName)` before falling back to textual cues (`(Hold)`, `long press`) or naming suffixes (`_hold`, `_tap`). Missing attributes must NOT simply default to `'press'` without consulting the catalog.
 - **Synchronized Catalog Regeneration Pipeline**:
   - `sc-daemon` extracts `defaultProfile.xml` and `global.ini` from Star Citizen's `Data.p4k` (or falls back to `apps/web/public/game-data.json` during offline dev / CI).
-  - Running `npm run daemon:extract` (or `./daemon/bin/sc-daemon --update-project`) automatically updates:
+  - **Mandatory `--game-branch` (`-gb`) Enforcement**: Because CIG's internal `build_manifest.id` keeps a generic base stream name (e.g. `sc-alpha-4.10.0`) across point releases (`4.10.1`, `4.10.2`, `4.10.3`), `sc-daemon` enforces passing `-gb "sc-alpha-4.x.x"` whenever `--update-project` (`-u`) is used so the web UI displays the accurate Target Game version.
+  - Running `./daemon/bin/sc-daemon --update-project -gb "sc-alpha-4.10.3"` automatically updates:
     1. `packages/parser/src/catalog/sc_action_catalog.json` (canonical parser catalog)
     2. `apps/web/public/data/sc_action_catalog.json` (web app client catalog)
     3. `packages/parser/src/catalog/defaultCatalog.ts` (TypeScript AST constant & typed `GAME_METADATA`)
     4. `apps/web/public/game-data.json` (web app live extraction cache)
-  - Whenever game files are updated or patch data changes, agents and contributors must run `npm run daemon:extract` to ensure resolver heuristics and action catalogs reflect the latest patch data.
+  - Whenever game files are updated or patch data changes, agents and contributors must run `sc-daemon --update-project -gb "sc-alpha-4.x.x"` to ensure resolver heuristics and action catalogs reflect the latest patch data.
 
 ### G. Documentation Synchronization & Maintenance Invariant
 - **Continuous Documentation Integrity**: Whenever changes are made to codebase architecture, cloud infrastructure, deployment configurations, security hooks, monetization models, or workflows, agents and contributors **MUST proactively update all relevant documentation**:
