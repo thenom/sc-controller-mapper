@@ -2,9 +2,9 @@ import type { MasterActionCatalog, GameMetadata } from "@sc-mapping/shared-types
 
 export const GAME_METADATA: GameMetadata = {
   "gameVersion": "4.10.200.58746",
-  "gameBranch": "sc-alpha-4.10.0",
+  "gameBranch": "sc-alpha-4.10.3",
   "gameBuildDate": "Wed Nov 11 2026",
-  "extractedAt": "2026-11-12T17:41:55Z"
+  "extractedAt": "2026-11-12T17:53:24Z"
 };
 
 export const MASTER_ACTION_CATALOG: MasterActionCatalog = {
