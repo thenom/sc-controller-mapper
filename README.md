@@ -24,6 +24,7 @@ Configuring complex HOTAS, HOSAS, pedals, and button boxes in Star Citizen's nat
 - **Intelligent 4-Tier Conflict Diagnostics**: Differentiates harmless overlaps in mutually exclusive flight/ground modes from lethal collisions. Analyzes temporal mechanics (`multiTap`, `press`, `hold`, Master Modes SCM/NAV) and warns you before accidental inputs trigger fatal actions like Self-Destruct, Eject, or Jettison Cargo.
 - **Live Hardware Listening Mode**: Powered by the HTML5 Gamepad API. Press any physical button or deflect any analog stick or pedal on your desk, and the UI immediately detects the input and filters to the corresponding binding.
 - **Lossless CryEngine XML Round-Tripping**: Never discards device `<options>` blocks (axis inversions, sensitivity curves, product GUIDs) and preserves concurrent secondary `<addbind>` inputs alongside primary `<rebind>` overrides.
+- **WebMCP Browser AI Agent Ready (`document.modelContext`)**: Exposes 9 structured client-side tools (`get_profile_summary`, `audit_conflicts`, `search_bindings_and_catalog`, `find_unused_joystick_inputs`, `set_action_binding`, `auto_fix_obsolete_conflicts`, `remap_joystick_instances`, `configure_joystick_options`, and `workspace_control`) so W3C WebMCP-compatible browser AI assistants can audit, search, and configure flight profiles deterministically in memory.
 
 ---
 

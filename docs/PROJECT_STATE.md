@@ -27,7 +27,8 @@ This project provides a lossless, high-performance Keybinding Management Suite f
 | **Hardware Studio & Generator** | `apps/web/src/components/HardwareGeneratorModal.tsx` | **Complete** | Generates `<options>` blocks, community hardware JSON profiles, starter XML templates, and PR contribution templates for unmapped devices. |
 | **Binding Table & Rebind Engine** | `apps/web/src/components/BindingTable.tsx` | **Complete** | Filterable, paginated 50-map matrix with live hardware listening, separated metadata tags, device chips, and inline rebind editor. |
 | **Conflict Viewer Diagnostics** | `apps/web/src/components/ConflictViewer.tsx` | **Complete** | Multi-severity conflict explorer with device-scoping, formatted tokens, and resolution suggestions. |
-| **Contributor Hub** | `apps/web/src/App.tsx` | **Complete** | Dedicated maintainer hub separating `sc-daemon` patch extraction and PR submission tools from regular player workflows. |
+| **WebMCP Browser AI Bridge** | `apps/web/src/hooks/useWebMCP.ts` | **Complete** | Exposes 9 typed client-side tools on `document.modelContext` / `navigator.modelContext` with a built-in diagnostic runner in Contributor Tools. |
+| **Contributor Hub** | `apps/web/src/App.tsx` | **Complete** | Dedicated maintainer hub separating `sc-daemon` patch extraction, WebMCP bridge diagnostics, and PR submission tools from regular player workflows. |
 | **Go Extraction Daemon** | `daemon/` | **Complete** | Direct Zip64 central directory streamer (`io.ReaderAt`). CryEngine 16-byte XOR cipher decryptor. Zero-dependency `CryXmlB` binary XML decoder. Method 100 (zstd) decompression. Local `.scj` cache, CLI flags (`--version`, `--game-path`), sanitized paths, and HTTP server (`:8765`). |
 | **Cockpit Design System** | `apps/web/src/index.css` | **Complete** | Tailwind CSS v3 + custom CSS design system with constrained icon sizing, layout utilities, sci-fi glassmorphism cards, and interactive modal dialogs. |
 
