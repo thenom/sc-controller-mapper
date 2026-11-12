@@ -9,6 +9,7 @@ This project is a high-performance web-based Keybinding Management Suite designe
 3. **Intelligent Conflict Detection**: Distinguishes between harmless overlaps in mutually exclusive flight/ground modes and fatal collisions using temporal state machine analysis (`multiTap`, `activationMode`, Master Modes SCM/NAV).
 4. **Hardware Listening**: HTML5 Gamepad API listener to detect physical button/axis presses in real time and jump straight to the relevant binding in the UI.
 5. **Native Go Extraction Daemon (`sc-daemon`)**: Direct Zip64 central directory streamer and CryEngine cipher decryptor to extract default bindings and localization strings directly from Star Citizen's 90GB+ `Data.p4k` archive without high RAM consumption.
+6. **WebMCP Browser AI Agent Integration (`useWebMCP.ts`)**: Exposes 9 structured, JSON-Schema-typed tools on `document.modelContext` / `navigator.modelContext` so browser-embedded AI agents can audit conflicts, search the 50-map catalog, find unused stick buttons, re-index `jsX_` devices, and modify bindings client-side without fragile DOM scraping.
 
 Detailed specifications, mathematical formulas, and cipher routines are documented in [docs/ARCHITECTURE_BLUEPRINT.md](docs/ARCHITECTURE_BLUEPRINT.md).
 
@@ -47,7 +48,7 @@ sc-mapping/
 │       └── src/
 │           ├── components/       # DeviceRack.tsx, ReferralCodeCard.tsx, MonetizationSlot.tsx, etc.
 │           ├── data/             # referralCodes.ts (community supporter referral pool)
-│           ├── hooks/            # useGamepadListener.ts (HTML5 Gamepad API hook)
+│           ├── hooks/            # useGamepadListener.ts (HTML5 Gamepad API), useWebMCP.ts (W3C WebMCP tools)
 │           └── App.tsx           # Main workspace UI
 ├── e2e/                          # Playwright End-to-End browser UX test suite
 │   └── app-workflow.spec.ts      # Complete user journey tests (presets, matrix, modals, XML export)

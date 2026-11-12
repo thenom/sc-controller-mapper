@@ -302,4 +302,39 @@ test.describe('Star Citizen Keybinding Architect E2E UX Suite', () => {
     expect(xmlContent).toContain('<rebind input="js2_button1"');
     expect(xmlContent).toContain('<addbind input="js1_button11" activationMode="hold"/>');
   });
+
+  test('exposes WebMCP tools on document.modelContext and executes agent workflows end-to-end', async ({ page }) => {
+    // 1. Verify WebMCP tools are registered on document.modelContext
+    const toolNames = await page.evaluate(() => {
+      return document.modelContext?.getTools().map(t => t.name) ?? [];
+    });
+    expect(toolNames).toContain('get_profile_summary');
+    expect(toolNames).toContain('audit_conflicts');
+    expect(toolNames).toContain('search_bindings_and_catalog');
+    expect(toolNames).toContain('set_action_binding');
+    expect(toolNames).toContain('remap_joystick_instances');
+
+    // 2. Invoke set_action_binding via document.modelContext like an embedded browser AI agent
+    const bindResult: any = await page.evaluate(async () => {
+      return await document.modelContext?.executeTool('set_action_binding', {
+        mapName: 'spaceship_movement',
+        actionName: 'v_eject',
+        inputs: [{ input: 'js2_button12', activationMode: 'hold' }]
+      });
+    });
+    expect(bindResult.status).toBe('updated');
+    await expect(page.getByText('js2_button12')).toBeVisible();
+
+    // 3. Click the WebMCP header badge to open the WebMCP diagnostic panel
+    const headerBadge = page.getByTestId('webmcp-header-badge');
+    await expect(headerBadge).toBeVisible();
+    await expect(headerBadge).toContainText('WebMCP: 9 AI Tools');
+    await headerBadge.click();
+    const bridgePanel = page.getByTestId('webmcp-bridge-panel');
+    await expect(bridgePanel).toBeVisible();
+    await expect(bridgePanel).toContainText('9 Tools Ready');
+
+    await bridgePanel.getByRole('button', { name: /Run Tool/i }).click();
+    await expect(page.getByTestId('webmcp-test-output')).toContainText('dual_vkb_evo_scm');
+  });
 });

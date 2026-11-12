@@ -798,6 +798,12 @@ export function useGamepadListener(
 }
 ```
 
+### 3.3 WebMCP Browser AI Agent Integration (`useWebMCP.ts`)
+
+Exposes 9 structured JSON-Schema-typed tools directly on `document.modelContext` and `navigator.modelContext` (with an automatic standards-compliant polyfill bridge) so browser-embedded AI assistants can inspect and mutate the active Star Citizen profile in memory without DOM scraping or requiring a backend server:
+- **Read / Diagnostic Tools**: `get_profile_summary`, `audit_conflicts`, `search_bindings_and_catalog`, `find_unused_joystick_inputs`
+- **Write / Mutate Tools**: `set_action_binding` (enforcing the `<rebind input=""/>` unbind invariant and chorded modifier parsing), `auto_fix_obsolete_conflicts`, `remap_joystick_instances`, `configure_joystick_options`, and `workspace_control`.
+
 ---
 
 ## Phase 4: Local Extraction Daemon Strategy (Go)

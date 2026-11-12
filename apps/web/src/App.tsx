@@ -29,6 +29,7 @@ import {
 } from './components/MonetizationSlot';
 import { ReferralCodeCard } from './components/ReferralCodeCard';
 import { useGamepadListener } from './hooks/useGamepadListener';
+import { useWebMCP } from './hooks/useWebMCP';
 import {
   Upload,
   Download,
@@ -391,6 +392,52 @@ export const App: React.FC = () => {
     }
   };
 
+  // WebMCP Browser AI Agent Integration (document.modelContext / navigator.modelContext)
+  const {
+    registeredTools: webMcpTools,
+    isNativeSupport: isWebMcpNative,
+    lastToolCall: lastWebMcpCall,
+    executeRegisteredTool: executeWebMcpTool
+  } = useWebMCP({
+    doc,
+    activePreset,
+    gameVersion,
+    gameBranch,
+    gameBuildDate,
+    suiteVersion,
+    hardwareMapping,
+    conflictReport,
+    deviceScope,
+    activeTab,
+    searchQuery,
+    onSetActiveTab: setActiveTab,
+    onSetSearchQuery: setSearchQuery,
+    onSetDeviceScope: setDeviceScope,
+    onSetHardwareMapping: setHardwareMapping,
+    onApplyDeviceOptions: handleApplyDeviceOptions,
+    onSaveActionInputs: handleSaveActionInputs,
+    onAutoFixConflict: handleAutoFix,
+    onLoadSamplePreset: handleLoadSamplePreset
+  });
+
+  const [selectedWebMcpTool, setSelectedWebMcpTool] = useState<string>('get_profile_summary');
+  const [webMcpTestOutput, setWebMcpTestOutput] = useState<string | null>(null);
+
+  const handleRunWebMcpDiagnostic = async (toolName: string) => {
+    try {
+      const sampleInputs: Record<string, Record<string, unknown>> = {
+        get_profile_summary: {},
+        audit_conflicts: { deviceScope: 'js', severity: 'all', limit: 10 },
+        search_bindings_and_catalog: { query: 'eject', limit: 5 },
+        find_unused_joystick_inputs: { deviceInstance: 1, maxButtons: 16 }
+      };
+      const result = await executeWebMcpTool(toolName, sampleInputs[toolName] || {});
+      setWebMcpTestOutput(JSON.stringify(result, null, 2));
+    } catch (err: any) {
+      setWebMcpTestOutput(JSON.stringify({ error: err.message }, null, 2));
+    }
+  };
+
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-8">
       {/* Pilot Safety & XML Backup Advisory Banner */}
@@ -440,6 +487,17 @@ export const App: React.FC = () => {
                   <Info className="w-3 h-3 text-[#94a3b8]" />
                 </button>
                 <span className="text-[11px] text-[#64748b] font-mono">• Build: {gameBuildDate}</span>
+                <span className="text-[11px] text-[#64748b] font-mono">•</span>
+                <button
+                  type="button"
+                  data-testid="webmcp-header-badge"
+                  onClick={() => setIsContributorToolsOpen(true)}
+                  className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[rgba(0,255,136,0.08)] border border-[#00ff88]/40 text-[#00ff88] hover:bg-[rgba(0,255,136,0.18)] transition-colors text-[11px] font-mono cursor-pointer"
+                  title="W3C WebMCP Supported: Click to inspect or test the 9 browser AI agent tools exposed on navigator.modelContext / document.modelContext"
+                >
+                  <Sparkles className="w-3 h-3 text-[#00ff88]" />
+                  <span>WebMCP: <strong>{webMcpTools.length} AI Tools</strong> ({isWebMcpNative ? 'Native' : 'Ready'})</span>
+                </button>
               </div>
             </div>
           </div>
@@ -885,6 +943,59 @@ git commit -am "chore(catalog): update actions & tokens for Star Citizen 4.x"`}
                 <p className="text-[10px] text-[#64748b]">
                   "Preview Bundled LIVE Data" tests the static catalog committed to git. "Local Dev Sync" is strictly an optional diagnostic when testing the Go daemon before writing files.
                 </p>
+              </div>
+
+              {/* WebMCP Browser AI Agent Bridge Diagnostic Panel */}
+              <div
+                data-testid="webmcp-bridge-panel"
+                className="p-3 rounded bg-[#090d15] border border-[#2d415f] space-y-2"
+              >
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-[#00f0ff] font-semibold flex items-center gap-1.5">
+                    <Cpu className="w-3.5 h-3.5" />
+                    WebMCP AI Agent Bridge (<code className="text-[#00f0ff]">document.modelContext</code>)
+                  </span>
+                  <span className="font-mono text-[10px] text-[#00ff88]">
+                    {webMcpTools.length} Tools Ready ({isWebMcpNative ? 'Native W3C' : 'Polyfill Active'})
+                  </span>
+                </div>
+                <p className="text-[10px] text-[#94a3b8]">
+                  Exposes structured client-side tools so browser-embedded AI agents can audit conflicts, search the 50-map catalog, re-index <code className="text-[#00f0ff]">jsX_</code> sticks, and edit bindings without DOM scraping.
+                </p>
+                <div className="flex items-center gap-2 pt-1">
+                  <select
+                    aria-label="Select WebMCP tool to test"
+                    value={selectedWebMcpTool}
+                    onChange={(e) => setSelectedWebMcpTool(e.target.value)}
+                    className="bg-[#0b111e] border border-[#2d415f] rounded px-2 py-1 text-[11px] font-mono text-white flex-1"
+                  >
+                    {webMcpTools.map((t) => (
+                      <option key={t.name} value={t.name}>
+                        {t.name} {t.readOnlyHint ? '(read)' : '(write)'}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => handleRunWebMcpDiagnostic(selectedWebMcpTool)}
+                    className="btn-sci-fi text-[#00ff88] border-[#00ff88] hover:bg-[rgba(0,255,136,0.12)] text-[11px] py-1 px-2.5"
+                  >
+                    Run Tool
+                  </button>
+                </div>
+                {lastWebMcpCall && (
+                  <div className="text-[10px] font-mono text-[#94a3b8]">
+                    Last Invocation: <strong className="text-white">{lastWebMcpCall.toolName}</strong> ({lastWebMcpCall.status})
+                  </div>
+                )}
+                {webMcpTestOutput && (
+                  <pre
+                    data-testid="webmcp-test-output"
+                    className="p-2 rounded bg-black/60 border border-[#2d415f] text-[10px] font-mono text-[#00ff88] max-h-36 overflow-y-auto"
+                  >
+                    {webMcpTestOutput}
+                  </pre>
+                )}
               </div>
             </div>
 
