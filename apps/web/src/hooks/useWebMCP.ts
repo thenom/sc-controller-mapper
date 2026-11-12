@@ -95,6 +95,25 @@ export function ensureModelContextHost(): ModelContextContainer {
     return existingDocCtx;
   }
 
+  const wrapForNativeMcp = (tool: WebMCPToolDefinition<any, any>): WebMCPToolDefinition<any, any> => ({
+    ...tool,
+    async execute(input: any) {
+      const res = await tool.execute(input);
+      if (res && typeof res === 'object' && 'content' in (res as Record<string, unknown>)) {
+        return res;
+      }
+      return {
+        ...(typeof res === 'object' && res !== null ? res : { result: res }),
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(res, null, 2)
+          }
+        ]
+      };
+    }
+  });
+
   const container: ModelContextContainer = {
     __isPolyfill: !existingDocCtx && !existingNavCtx,
     async registerTool(tool: WebMCPToolDefinition<any, any>, options?: Record<string, unknown>) {
@@ -102,15 +121,17 @@ export function ensureModelContextHost(): ModelContextContainer {
         throw new Error('Invalid WebMCP tool definition: name and execute() are required');
       }
       toolRegistry.set(tool.name, tool);
+      const nativeTool = wrapForNativeMcp(tool);
       if (existingDocCtx && existingDocCtx !== container && typeof existingDocCtx.registerTool === 'function') {
         try {
-          await existingDocCtx.registerTool(tool, options);
+          await existingDocCtx.registerTool(nativeTool, options);
         } catch {
           // Ignore duplicate native registration errors on hot-reload
         }
-      } else if (existingNavCtx && existingNavCtx !== container && typeof existingNavCtx.registerTool === 'function') {
+      }
+      if (existingNavCtx && existingNavCtx !== container && typeof existingNavCtx.registerTool === 'function') {
         try {
-          await existingNavCtx.registerTool(tool, options);
+          await existingNavCtx.registerTool(nativeTool, options);
         } catch {
           // Ignore duplicate native registration errors on hot-reload
         }
@@ -119,7 +140,18 @@ export function ensureModelContextHost(): ModelContextContainer {
     async unregisterTool(name: string) {
       toolRegistry.delete(name);
       if (existingDocCtx && existingDocCtx !== container && typeof existingDocCtx.unregisterTool === 'function') {
-        await existingDocCtx.unregisterTool(name);
+        try {
+          await existingDocCtx.unregisterTool(name);
+        } catch {
+          // Ignore if already unregistered
+        }
+      }
+      if (existingNavCtx && existingNavCtx !== container && typeof existingNavCtx.unregisterTool === 'function') {
+        try {
+          await existingNavCtx.unregisterTool(name);
+        } catch {
+          // Ignore if already unregistered
+        }
       }
     },
     getTools() {

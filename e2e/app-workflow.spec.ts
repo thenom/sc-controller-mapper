@@ -325,8 +325,11 @@ test.describe('Star Citizen Keybinding Architect E2E UX Suite', () => {
     expect(bindResult.status).toBe('updated');
     await expect(page.getByText('js2_button12')).toBeVisible();
 
-    // 3. Open Contributor Tools modal and verify WebMCP diagnostic panel works interactively
-    await page.getByRole('button', { name: /Contributor Tools/i }).click();
+    // 3. Click the WebMCP header badge to open the WebMCP diagnostic panel
+    const headerBadge = page.getByTestId('webmcp-header-badge');
+    await expect(headerBadge).toBeVisible();
+    await expect(headerBadge).toContainText('WebMCP: 9 AI Tools');
+    await headerBadge.click();
     const bridgePanel = page.getByTestId('webmcp-bridge-panel');
     await expect(bridgePanel).toBeVisible();
     await expect(bridgePanel).toContainText('9 Tools Ready');

@@ -393,11 +393,14 @@ describe('WebMCP Browser AI Agent Integration (useWebMCP)', () => {
     expect(wsRes.exportedXml).toContain('profileName="webmcp_test_profile"');
   });
 
-  it('renders WebMCP Bridge diagnostic panel inside Contributor Tools modal in App', async () => {
+  it('renders WebMCP header badge and WebMCP Bridge diagnostic panel in App', async () => {
     render(<App />);
 
-    const contributorBtn = screen.getByRole('button', { name: /Contributor Tools/i });
-    fireEvent.click(contributorBtn);
+    const headerBadge = screen.getByTestId('webmcp-header-badge');
+    expect(headerBadge).toBeTruthy();
+    expect(headerBadge.textContent).toContain('WebMCP: 9 AI Tools');
+
+    fireEvent.click(headerBadge);
 
     const bridgePanel = await screen.findByTestId('webmcp-bridge-panel');
     expect(bridgePanel).toBeTruthy();

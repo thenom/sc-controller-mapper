@@ -487,6 +487,17 @@ export const App: React.FC = () => {
                   <Info className="w-3 h-3 text-[#94a3b8]" />
                 </button>
                 <span className="text-[11px] text-[#64748b] font-mono">• Build: {gameBuildDate}</span>
+                <span className="text-[11px] text-[#64748b] font-mono">•</span>
+                <button
+                  type="button"
+                  data-testid="webmcp-header-badge"
+                  onClick={() => setIsContributorToolsOpen(true)}
+                  className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[rgba(0,255,136,0.08)] border border-[#00ff88]/40 text-[#00ff88] hover:bg-[rgba(0,255,136,0.18)] transition-colors text-[11px] font-mono cursor-pointer"
+                  title="W3C WebMCP Supported: Click to inspect or test the 9 browser AI agent tools exposed on navigator.modelContext / document.modelContext"
+                >
+                  <Sparkles className="w-3 h-3 text-[#00ff88]" />
+                  <span>WebMCP: <strong>{webMcpTools.length} AI Tools</strong> ({isWebMcpNative ? 'Native' : 'Ready'})</span>
+                </button>
               </div>
             </div>
           </div>
