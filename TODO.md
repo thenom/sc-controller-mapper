@@ -14,7 +14,7 @@ This document tracks optional items, future stage milestones, and deferred confi
 
 ---
 
-## 2. Monetization & Partner Programs (Deferred to Public Launch)
+## 2. Monetization & Partner Programs
 
 - [x] **Star Citizen Recruit Referral Code Randomizer**:
   - Implemented interactive Star Citizen Referral Code box with creator code `STAR-7TZ5-ZNDC` as permanent anchor.
@@ -28,8 +28,8 @@ This document tracks optional items, future stage milestones, and deferred confi
 - [ ] **Flight Hardware Partnerships (VKB / VIRPIL)**:
   - Apply to VKB-Sim and VIRPIL Controls creator/partner programs.
   - Update `VITE_AFFILIATE_VKB_TAG` and `VITE_AFFILIATE_VIRPIL_TAG`.
-- [ ] **Google AdSense Public Approval**:
-  - After deploying with a public domain in Stage 3, submit site to Google AdSense review.
+- [ ] **Google AdSense Approval**:
+  - Submit `scbind.com` to Google AdSense review.
   - Replace sandbox ID `ca-pub-0000000000000000` with live publisher ID and switch `VITE_MONETIZATION_MODE=live`.
 
 ---
@@ -52,13 +52,8 @@ This document tracks optional items, future stage milestones, and deferred confi
 
 ---
 
-## 4. Cloud Infrastructure Milestones (Cloudflare Pages & Zero Trust)
+## 4. Cloud Infrastructure (Completed)
 
-- [x] **Stage 2A: Cloudflare Pages & Zero Trust Deployment (Completed)**:
-  - Deployed static web application to Cloudflare Pages via OpenTofu (`infra/tofu/`).
-  - Attached custom domain `scbind.com` and configured proxied DNS CNAME.
-  - Configured Cloudflare Zero Trust Access Application and IP whitelist policy.
+- [x] **Cloudflare Pages Deployment on `scbind.com` (Completed)**:
+  - Deployed static web application to Cloudflare Pages via OpenTofu (`infra/tofu/`) with automated edge DDoS protection, global CDN caching, and SSL/TLS.
   - Hardened Git security with pre-commit gates (`block-sensitive-files.sh`, `detect-private-key`, `gitleaks`).
-- [x] **Stage 3: Public Release (Completed)**:
-  - Set `enable_zero_trust = false` in `infra/tofu/terraform.tfvars` and ran `tofu apply`.
-  - Opened `https://scbind.com` to the world with automated edge DDoS protection, global CDN caching, and SSL/TLS.

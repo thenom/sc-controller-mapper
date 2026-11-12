@@ -1,21 +1,13 @@
 # Architectural Blueprint: Star Citizen Keybinding Management Application
 
-A high-performance, web-based Keybinding Management Suite tailored for Star Citizen's CryEngine-derived XML input system. This document specifies the comprehensive architecture, JSON schemas, core TypeScript implementations, conflict resolution mathematics, and the Go-based extraction daemon.
+A high-performance, web-based Keybinding Management Suite tailored for Star Citizen's CryEngine-derived XML input system. This document specifies the comprehensive production architecture, JSON schemas, core TypeScript implementations, conflict resolution mathematics, and the Go-based extraction daemon.
+
+> [!WARNING]
+> **XML Profile Backup Notice:** Users should always retain offline backup copies of their original and working Star Citizen keybinding XML files (`LIVE/USER/Client/0/Controls/Mappings/`) before importing, re-indexing, or exporting profiles.
 
 ---
 
-## User Review Required
-
-> [!IMPORTANT]
-> **User Feedback Incorporated**:
-> 1. **Go Daemon CLI & Config Generator**: The Go tool runs both as an automated CLI tool and optional daemon. It accepts a `--game-path` (`-p`) CLI argument for custom installation paths (with fallback to RSI Launcher log discovery) and an `--output` (`-o`) argument to write a self-contained, merged `game-data.json` or compressed `.scj` config file directly to the web app's `public/` directory or specified destination.
-> 2. **Lossless XML DOM Pipeline**: Confirmed for implementation. Non-destructive AST preserves all hardware prefixes (`kb1_`, `mo1_`, `js1_`), attributes (`activationMode`, `multiTap`), and root `<options>`.
-> 3. **Conflict Detection Engine**: Confirmed for implementation. Tri-state severity rating (0 = None, 1 = Warning, 2 = Fatal) with exclusionary context matrix and temporal state machine.
-
-
----
-
-## Proposed System Architecture & Directory Structure
+## System Architecture & Directory Structure
 
 A modular monorepo structure separating concerns between schema definitions, client-side visualizers, server-side parsers, and the native Go extraction daemon:
 

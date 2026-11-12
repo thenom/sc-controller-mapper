@@ -399,7 +399,7 @@ export const App: React.FC = () => {
           <div className="flex items-center gap-2.5">
             <AlertTriangle className="w-4 h-4 text-[#ffb700] shrink-0" />
             <p className="text-[11px] leading-snug">
-              <strong className="text-[#ffb700] font-semibold">Early Development Pilot Advisory:</strong> Conflict rules and action catalogs are in active community development and may contain heuristics or rule discrepancies across Star Citizen patches. Always retain backup copies of your working XML files (<code className="text-[#00f0ff] font-mono text-[10px]">LIVE/USER/Client/0/Controls/Mappings/</code>). Provided as-is without warranty; maintainers assume no liability for lost or altered files.
+              <strong className="text-[#ffb700] font-semibold">XML Profile Backup Notice:</strong> Always retain backup copies of your original and working Star Citizen keybinding XML files (<code className="text-[#00f0ff] font-mono text-[10px]">LIVE/USER/Client/0/Controls/Mappings/</code>) before importing, re-indexing, or exporting profiles. Provided as-is without warranty; maintainers assume no liability for lost or altered files.
             </p>
           </div>
           <button
@@ -781,7 +781,7 @@ export const App: React.FC = () => {
                   If a new patch introduces new flight actions, targeting modes, or changes action names, your existing profiles will continue to function safely. However, newly added game features won't appear in the binding catalog until the game data is refreshed.
                 </p>
                 <p className="text-[11px] text-[#00f0ff]">
-                  To update compatibility, run <code className="text-white bg-[#090d15] px-1 py-0.5 rounded border border-[#2d415f]">npm run daemon:extract</code> (or <code className="text-white bg-[#090d15] px-1 py-0.5 rounded border border-[#2d415f]">./daemon/bin/sc-daemon -u</code>) or click <strong>Sync Daemon</strong> when playing on the latest patch.
+                  Action catalogs on <strong>scbind.com</strong> are updated alongside each Star Citizen release. Contributors can also extract new patches locally via <strong>Contributor Tools</strong>.
                 </p>
               </div>
             </div>
@@ -837,10 +837,10 @@ export const App: React.FC = () => {
 {`# 1. Compile the extraction daemon binary
 npm run daemon:build
 
-# 2. Extract Data.p4k & update git-tracked catalogs
-npm run daemon:extract
+# 2. Extract Data.p4k & update git-tracked catalogs (--gb is required)
+./daemon/bin/sc-daemon -gb "sc-alpha-4.10.3" -u
 # Or specify explicit game directory / Data.p4k path:
-./daemon/bin/sc-daemon -p "C:\\Program Files\\Roberts Space Industries\\StarCitizen" -u
+./daemon/bin/sc-daemon -p "C:\\Program Files\\Roberts Space Industries\\StarCitizen" -gb "sc-alpha-4.10.3" -u
 
 # 3. Verify tests and TypeScript compilation
 npm test && npm run build

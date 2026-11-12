@@ -1,7 +1,10 @@
-# Star Citizen Keybinding Management Suite — Project State & Roadmap
+# Star Citizen Keybinding Management Suite — System Status & Overview
 
-**Last Updated**: 2026-09-21
-**Current Milestone**: Phase 4 Real-World Game Integration Complete; Phase 5 Interactive Web UI, Hardware Studio & Contributor Workflow Complete.
+**Status**: Production Release (Live at [https://scbind.com](https://scbind.com))
+**Target Star Citizen Release**: Alpha 4.10.3 (Build `4.10.200.58746`)
+
+> [!WARNING]
+> **XML Profile Backup Notice:** Always retain offline backup copies of your original and working Star Citizen keybinding XML files (`LIVE/USER/Client/0/Controls/Mappings/`) before importing, editing, re-indexing, or exporting profiles.
 
 ---
 

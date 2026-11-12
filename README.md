@@ -12,7 +12,7 @@ A high-performance visual keybinding management suite, conflict diagnostics engi
 ![Star Citizen Keybinding Architect Dashboard](docs/images/main_dashboard.png)
 
 > [!WARNING]
-> **Pilot Advisory & Early Community Release:** Keybinding Architect is in active community development. While conflict detection algorithms and Star Citizen patch catalogs are continuously refined, diagnostic heuristics and action rules may still have edge-case discrepancies or patch mismatches. Always retain offline backup copies of your original and working keybinding XML files (`LIVE/USER/Client/0/Controls/Mappings/`) before editing, re-indexing, or importing profiles. This suite is provided as-is under the AGPL-3.0 license without warranty; maintainers assume no responsibility or liability for any lost, altered, or overwritten mapping files. If you find an incorrect conflict rule, please [open a GitHub Issue](https://github.com/thenom/sc-controller-mapper/issues) to help refine the engine!
+> **XML Profile Backup Notice:** Always retain offline backup copies of your original and working Star Citizen keybinding XML files (`LIVE/USER/Client/0/Controls/Mappings/`) before editing, re-indexing, or importing profiles. This suite is provided as-is under the AGPL-3.0 license without warranty; maintainers assume no responsibility or liability for any lost, altered, or overwritten mapping files. If you encounter an issue or want to suggest an improvement, please [open a GitHub Issue](https://github.com/thenom/sc-controller-mapper/issues).
 
 ---
 
@@ -66,61 +66,25 @@ Keybinding Architect supports all standard DirectInput devices, with tailored pr
 
 ---
 
-## Quickstart Guide
+## Getting Started
 
-### Option 1: Live Web App (No Installation)
-Launch directly at **[https://scbind.com](https://scbind.com)** in any modern desktop browser. All file processing runs 100% locally in your browser with zero server uploads.
+### 1. Live Web Application (Recommended for Pilots)
+Launch directly at **[https://scbind.com](https://scbind.com)** in any modern desktop browser.
+- **100% Local Browser Processing**: Your XML files never leave your computer.
+- **Import Your Profile**: Click **Import XML** to load your exported Star Citizen profile from `LIVE/USER/Client/0/Controls/Mappings/` (always keep a backup copy of your original XML files first), or choose one of the built-in **Starter Presets** (Dual VKB HOSAS, VKB Omni-Throttle OTA, or Thrustmaster T.16000M HOTAS).
+- **Re-Index, Audit & Export**: Drag and drop controller cards in the **Device Rack** to fix `jsX_` ordering, check **Conflict Diagnostics**, and click **Export XML** to save your updated profile.
 
-### Option 2: Run Locally with Node.js (Developers)
+### 2. Self-Hosting with Docker / Podman
+If you prefer to run a local copy offline on your own machine or home server:
 ```bash
-# Clone the repository
-git clone https://github.com/thenom/sc-controller-mapper.git
-cd sc-controller-mapper
-
-# Install dependencies across all packages
-npm install
-
-# Start development server
-npm run dev
-```
-Open [http://localhost:5173](http://localhost:5173) in your browser.
-
-### Option 3: Run with Docker / Podman
-```bash
-# Build and start container (listens on port 8080)
 docker-compose up -d --build
 # Or with Podman:
 podman-compose up -d --build
 ```
 Open [http://localhost:8080](http://localhost:8080) in your browser.
 
-### Option 4: Offline / Portable
-The web application operates 100% client-side in the browser. You can load sample XML profiles from `sample-data/` or import your own `actionmaps.xml` exported from Star Citizen (`LIVE/USER/Client/0/Controls/Mappings/`).
-
----
-
-## Verification & Testing
-
-Keybinding Architect is backed by an automated test suite, OpenTofu validation, and pre-commit security scanning:
-
-```bash
-# Run the automated Vitest test suite across all packages (<1s execution)
-npm test
-
-# Run Playwright End-to-End browser tests (headless Chromium)
-npm run test:e2e
-# View Playwright HTML test report
-npm run test:e2e:report
-
-# Run pre-commit checks and Gitleaks secret scans
-pre-commit run --all-files
-
-# Validate OpenTofu infrastructure code (maintainers)
-cd infra/tofu && tofu init -backend=false && tofu fmt -check && tofu validate && cd ../..
-
-# Compile TypeScript monorepo and production web bundle
-npm run build
-```
+### 3. Local Development & Contributing
+For contributors building from source or extracting new Star Citizen patches with `sc-daemon`, see [CONTRIBUTING.md](CONTRIBUTING.md) for full setup, verification, and Pull Request instructions.
 
 ---
 
@@ -137,9 +101,8 @@ The web suite includes a built-in Star Citizen referral code hub:
 
 ---
 
-## Documentation & Roadmap
+## Documentation & Resources
 
-- **[docs/STAGED_ROLLOUT_PLAN.md](docs/STAGED_ROLLOUT_PLAN.md)**: Full staged rollout roadmap (Private Server $\rightarrow$ Cloudflare Pages & Zero Trust on scbind.com $\rightarrow$ Public Release & Monetization).
 - **[docs/ARCHITECTURE_BLUEPRINT.md](docs/ARCHITECTURE_BLUEPRINT.md)**: Full 40KB technical specification, CryEngine cipher routines, and conflict decision formulas.
 - **[CONTRIBUTING.md](CONTRIBUTING.md)**: Contributor onboarding, game patch extraction workflow (`sc-daemon`), PR guidelines, and code standards.
 - **[infra/tofu/](infra/tofu/)**: Maintainer OpenTofu configuration for production deployment to Cloudflare Pages on `scbind.com`.

@@ -153,12 +153,12 @@ describe('App Main Component', () => {
   it('dismisses top disclaimer alert banner', () => {
     render(<App />);
 
-    expect(screen.getByText(/Early Development Pilot Advisory:/i)).toBeDefined();
+    expect(screen.getByText(/XML Profile Backup Notice:/i)).toBeDefined();
 
     const dismissBtn = screen.getByTitle('Dismiss advisory');
     fireEvent.click(dismissBtn);
 
-    expect(screen.queryByText(/Early Development Pilot Advisory:/i)).toBeNull();
+    expect(screen.queryByText(/XML Profile Backup Notice:/i)).toBeNull();
   });
 
   it('opens and closes Hardware Studio from Device Rack', () => {

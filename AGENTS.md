@@ -25,11 +25,11 @@ sc-mapping/
 ├── CONTRIBUTING.md               # Open source contributor setup & PR guidelines
 ├── TODO.md                       # Project backlog & deferred enhancements
 ├── Dockerfile                    # Multi-stage unprivileged Nginx container build
-├── docker-compose.yml            # Stage 1 private server container definition
+├── docker-compose.yml            # Self-hosted Nginx container definition
 ├── playwright.config.ts          # Playwright E2E configuration & Vite preview server
 ├── docs/
 │   ├── ARCHITECTURE_BLUEPRINT.md # Full 40KB system specification, rules, and cipher specs
-│   ├── STAGED_ROLLOUT_PLAN.md    # Multi-stage deployment, GCP OpenTofu, & monetization plan
+│   ├── PROJECT_STATE.md          # Production system status & component overview
 │   └── BOOTSTRAP_WALKTHROUGH.md  # Implementation log of initial bootstrap
 ├── sample-data/                  # Offline sample XML profiles and localization fixtures
 │   ├── dual_vkb_evo_hosas.xml    # Dual VKB Gladiator EVO profile (HOSAS)
@@ -139,9 +139,9 @@ Conflicts are rated across a 4-tier severity spectrum:
   - [AGENTS.md](AGENTS.md): Agent context, invariants, monorepo directory tree, and commands.
   - [README.md](README.md): Public feature showcases, live deployment domain (`scbind.com`), and quickstart.
   - [CONTRIBUTING.md](CONTRIBUTING.md): Verification test sequences, OpenTofu validation steps, and PR guidelines.
-  - [TODO.md](TODO.md): Backlog tasks, completed stage milestones, and deferred enhancements.
+  - [TODO.md](TODO.md): Backlog tasks and optional enhancements.
   - [docs/ARCHITECTURE_BLUEPRINT.md](docs/ARCHITECTURE_BLUEPRINT.md): Structural directories, schemas, and system specs.
-  - [docs/STAGED_ROLLOUT_PLAN.md](docs/STAGED_ROLLOUT_PLAN.md): Cloud rollout stages, Zero Trust stages, and monetization progression.
+  - [docs/PROJECT_STATE.md](docs/PROJECT_STATE.md): Production system status and component overview.
 - **No Stale Documentation**: Documentation must strictly reflect the active, running architecture of the repository. Obsolete designs, theoretical architectures, stale paths, or replaced technologies must be cleaned up and kept in sync with the codebase.
 
 ### H. Public Repository Secret Safety & Sanitization Protocol
@@ -198,7 +198,7 @@ npm run dev
 # Run full project build (packages + web)
 npm run build
 
-# Build and run Stage 1 container locally or on private server
+# Build and run self-hosted container locally
 docker-compose up -d --build
 
 # Build the Go extraction daemon
