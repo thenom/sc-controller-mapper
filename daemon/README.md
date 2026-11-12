@@ -41,24 +41,27 @@ The compiled binary will be placed at `daemon/bin/sc-daemon`.
 
 ### 1. Extract & Update Project Monorepo Files (Recommended for PRs)
 
-#### Using npm shortcut (auto-detects Star Citizen path):
+> [!IMPORTANT]
+> **`--game-branch` (`-gb`) is required with `--update-project` (`-u`)**: CIG's internal `build_manifest.id` keeps a generic base stream name (e.g. `sc-alpha-4.10.0`) across point releases (`4.10.1`, `4.10.2`, `4.10.3`). Passing `-gb "sc-alpha-4.x.x"` is enforced by `sc-daemon` so the web UI displays the accurate Target Game version.
+
+#### Auto-detecting Star Citizen path:
 ```bash
-npm run daemon:extract
+./daemon/bin/sc-daemon -gb "sc-alpha-4.10.3" -u
 ```
 
 #### Explicit Star Citizen Root or Channel:
 ```bash
-./daemon/bin/sc-daemon -p "C:\Program Files\Roberts Space Industries\StarCitizen" -u
+./daemon/bin/sc-daemon -p "C:\Program Files\Roberts Space Industries\StarCitizen" -gb "sc-alpha-4.10.3" -u
 ```
 
 #### Direct Path to `Data.p4k`:
 ```bash
-./daemon/bin/sc-daemon --p4k="D:\Games\StarCitizen\LIVE\Data.p4k" -u
+./daemon/bin/sc-daemon --p4k="D:\Games\StarCitizen\LIVE\Data.p4k" -gb "sc-alpha-4.10.3" -u
 ```
 
 #### Linux / Proton / Steam Deck:
 ```bash
-./daemon/bin/sc-daemon -p "/mnt/games/StarCitizen/LIVE" -u
+./daemon/bin/sc-daemon -p "/mnt/games/StarCitizen/LIVE" -gb "sc-alpha-4.10.3" -u
 ```
 
 ### 2. Standalone JSON File Extraction

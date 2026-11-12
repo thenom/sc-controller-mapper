@@ -2550,7 +2550,7 @@
       },
       {
         "name": "pc_pit_looting",
-        "label": "Toogle Loot Screen (hold)",
+        "label": "Toggle Loot Screen (hold)",
         "category": "Player Choice",
         "defaultActivationMode": "delayed_press",
         "defaultMultiTap": 1
@@ -3164,6 +3164,14 @@
         "label": "Toggle Salvage Operator Mode",
         "category": "ShipSystems",
         "description": "Activate salvage mode when seated.",
+        "defaultActivationMode": "press",
+        "defaultMultiTap": 1
+      },
+      {
+        "name": "v_cycle_industrial_mode",
+        "label": "Cycle Industrial Operator Modes",
+        "category": "ShipSystems",
+        "description": "Next Industrial Mode",
         "defaultActivationMode": "press",
         "defaultMultiTap": 1
       },

@@ -207,6 +207,10 @@ func TestResolveGamePath_EnvAndLogs(t *testing.T) {
 	}
 
 	// 3. Test unable to locate failure
+	origDefaults := candidateDefaults
+	candidateDefaults = []string{filepath.Join(tmpDir, "nonexistent_default")}
+	defer func() { candidateDefaults = origDefaults }()
+
 	t.Setenv("APPDATA", filepath.Join(tmpDir, "empty_appdata"))
 	_, err = ResolveGamePath("")
 	if err == nil {
@@ -231,5 +235,45 @@ func TestResolveBuildMetadata_Patterns(t *testing.T) {
 	mVer := ResolveBuildMetadata("/opt/StarCitizen/LIVE/build-98765432", "")
 	if mVer.Data.Version != "98765432" {
 		t.Errorf("expected version 98765432, got %s", mVer.Data.Version)
+	}
+}
+
+func TestValidateAndNormalizeGameBranch(t *testing.T) {
+	validCases := map[string]string{
+		"sc-alpha-4.10.3":     "sc-alpha-4.10.3",
+		"SC-ALPHA-4.10.3":     "sc-alpha-4.10.3",
+		"4.10.3":              "sc-alpha-4.10.3",
+		"alpha-4.10.3":        "sc-alpha-4.10.3",
+		"sc-4.10.3":           "sc-alpha-4.10.3",
+		"4.10":                "sc-alpha-4.10",
+		"sc-alpha-4.10.3-ptu": "sc-alpha-4.10.3-ptu",
+	}
+
+	for input, expected := range validCases {
+		got, err := ValidateAndNormalizeGameBranch(input)
+		if err != nil {
+			t.Errorf("expected valid branch for %q, got error: %v", input, err)
+		}
+		if got != expected {
+			t.Errorf("for input %q: expected %q, got %q", input, expected, got)
+		}
+	}
+
+	invalidCases := []string{
+		"",
+		"   ",
+		"LIVE",
+		"PTU",
+		"sc-alpha-",
+		"4",
+		"v4.10.3",
+		"sc-alpha-4.10.3.1",
+		"random-branch",
+	}
+
+	for _, input := range invalidCases {
+		if got, err := ValidateAndNormalizeGameBranch(input); err == nil {
+			t.Errorf("expected error for invalid branch %q, but got %q", input, got)
+		}
 	}
 }
