@@ -1,7 +1,7 @@
 # Star Citizen Keybinding Management Suite — System Status & Overview
 
 **Status**: Production Release (Live at [https://scbind.com](https://scbind.com))
-**Target Star Citizen Release**: Alpha 4.10.3 (Build `4.10.200.58746`)
+**Target Star Citizen Release**: Dynamically tracked via `GAME_METADATA` in `packages/parser/src/catalog/defaultCatalog.ts` and displayed in the web application header.
 
 > [!WARNING]
 > **XML Profile Backup Notice:** Always retain offline backup copies of your original and working Star Citizen keybinding XML files (`LIVE/USER/Client/0/Controls/Mappings/`) before importing, editing, re-indexing, or exporting profiles.
@@ -58,11 +58,11 @@ When integrating against real Star Citizen game files (`.../StarCitizen/LIVE/Dat
 - **Full Workspace Build**: `npm run build` exits 0 with all packages (`shared-types`, `parser`, `resolver`, `web`) compiling in < 1s.
 - **Go Daemon Build**: `npm run daemon:build` exits 0 (`daemon/bin/sc-daemon`).
 - **Resolver Verification Suite**: `node packages/resolver/dist/test-verify.js` exits 0 (all 5 core test cases pass).
-- **Live Game Data**: `apps/web/public/game-data.json` and `packages/parser/src/catalog/` populated with 50 ActionMaps and 1,110 actions from Star Citizen Alpha 4.10.3 (Build `4.10.200.58746`).
+- **Live Game Data**: `apps/web/public/game-data.json` and `packages/parser/src/catalog/` populated with all Star Citizen ActionMaps and actions extracted from `Data.p4k`.
 - **Browser End-to-End Audit**: Full headless browser interaction test verified:
   - Sci-fi HUD and styling render cleanly with zero console errors.
   - Preset switching (Dual VKB HOSAS, T.16000M HOTAS) dynamically updates Device Rack and Conflict Engine.
-  - Live Game Data loader populates 50 Maps and 1,110 Actions in < 100ms.
+  - Live Game Data loader populates all extracted ActionMaps and Actions in < 100ms.
   - Search filtering (`v_pitch`) filters bindings instantly.
   - `BindingEditorModal` captures hardware input and allows activationMode/multiTap customization.
 
@@ -79,7 +79,7 @@ When integrating against real Star Citizen game files (`.../StarCitizen/LIVE/Dat
 - [x] **Conflict Engine False-Positive Elimination**: Expanded `ExclusionMatrix` across all 50 real Star Citizen action maps into 10 mutually exclusive operational domains (`spaceship`, `onfoot`, `eva`, `ground_vehicle`, `turret`, `screen_ui`, `menu`, `spectator`, `camera_mode`, `internal_debug`). Added device-scoped auditing (`Joysticks`, `All`, `Keyboard`).
 - [x] **Hardware Device Inspector & Live HUD**: Live interactive button matrix (Buttons 1-32+) and analog axis deflection meters. Solves the physical button identification problem by lighting up pressed buttons and displaying exact Star Citizen input IDs and mapped actions.
 - [x] **Daemon Versioning & Privacy Sanitization**: Added `--version` CLI flag, `/api/v1/version` endpoint, and sanitized file paths to prevent exposure of personal home directories.
-- [x] **Star Citizen Game Version Compatibility Tracking**: Automatically extracts `build_manifest.id` from the game directory and pairs it with validated `--game-branch` (`-gb`) metadata (`sc-alpha-4.10.3`, Build `4.10.200.58746`). Web UI displays a prominent Game Compatibility badge and modal explaining patch compatibility.
+- [x] **Star Citizen Game Version Compatibility Tracking**: Automatically extracts `build_manifest.id` from the game directory and pairs it with validated `--game-branch` (`-gb`) metadata (`sc-alpha-4.x.x`). Web UI displays a prominent Game Compatibility badge and modal explaining patch compatibility.
 - [x] **Hardware Studio & Preset Generator**: Interactive modal to detect physical gamepads or pick templates, configure axis inversions, and generate Star Citizen `<options>` XML blocks, community JSON hardware definitions, starter XML layouts, and GitHub PR contribution templates.
 - [x] **Dedicated VKB Gladiator EVO Right + Left Omni-Throttle (OTA) 6DOF Profile**: Added `sample-data/vkb_evo_hosas_omni.xml` and 1-click web UI preset for dual VKB sticks with left Omni-Throttle 6DOF strafe mapping.
 - [x] **Automated Metadata Synchronization & Clean Project Generation**: `sc-daemon` exports typed `GAME_METADATA` into `defaultCatalog.ts` directly from `build_manifest.id` and `game-data.json`. Eliminates hardcoded React state fallbacks in `App.tsx` and suppresses redundant duplicate `game-data.json` generation in workspace root during `--update-project` runs.

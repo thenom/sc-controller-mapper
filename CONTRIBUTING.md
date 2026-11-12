@@ -128,23 +128,23 @@ This builds the native Go binary to `daemon/bin/sc-daemon`.
 
 #### Step 2: Extract game data and update project files
 > [!IMPORTANT]
-> **Mandatory `--game-branch` (`-gb`) Flag**: CIG's internal `build_manifest.id` retains the base Perforce stream name (such as `sc-alpha-4.10.0`) across point releases (`4.10.1`, `4.10.2`, `4.10.3`). When running `--update-project` (`-u`), `sc-daemon` requires `-gb "sc-alpha-4.x.x"` so the web application's header badge displays the accurate Target Game release.
+> **Mandatory `--game-branch` (`-gb`) Flag**: CIG's internal `build_manifest.id` retains the base Perforce stream name (such as `sc-alpha-4.x.0`) across point releases. When running `--update-project` (`-u`), `sc-daemon` requires `-gb "sc-alpha-4.x.x"` so the web application's header badge displays the accurate Target Game release.
 
 - **Automatic Path Detection** (parses RSI Launcher logs in `%APPDATA%`):
   ```bash
-  ./daemon/bin/sc-daemon -gb "sc-alpha-4.10.3" -u
+  ./daemon/bin/sc-daemon -gb "sc-alpha-4.x.x" -u
   ```
 - **Explicit Star Citizen or RSI directory**:
   ```bash
-  ./daemon/bin/sc-daemon -p "C:\Games\RSI\StarCitizen" -gb "sc-alpha-4.10.3" -u
+  ./daemon/bin/sc-daemon -p "C:\Games\RSI\StarCitizen" -gb "sc-alpha-4.x.x" -u
   ```
 - **Direct `Data.p4k` archive path**:
   ```bash
-  ./daemon/bin/sc-daemon --p4k="D:\Games\StarCitizen\LIVE\Data.p4k" -gb "sc-alpha-4.10.3" -u
+  ./daemon/bin/sc-daemon --p4k="D:\Games\StarCitizen\LIVE\Data.p4k" -gb "sc-alpha-4.x.x" -u
   ```
 - **Linux / Proton / Wine installations**:
   ```bash
-  ./daemon/bin/sc-daemon -p "/mnt/games/StarCitizen/LIVE" -gb "sc-alpha-4.10.3" -u
+  ./daemon/bin/sc-daemon -p "/mnt/games/StarCitizen/LIVE" -gb "sc-alpha-4.x.x" -u
   ```
 
 > [!NOTE]

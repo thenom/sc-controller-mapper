@@ -43,26 +43,26 @@ The compiled binary will be placed at `daemon/bin/sc-daemon`.
 ### 1. Extract & Update Project Monorepo Files (Recommended for PRs)
 
 > [!IMPORTANT]
-> **`--game-branch` (`-gb`) is required with `--update-project` (`-u`)**: CIG's internal `build_manifest.id` keeps a generic base stream name (e.g. `sc-alpha-4.10.0`) across point releases (`4.10.1`, `4.10.2`, `4.10.3`). Passing `-gb "sc-alpha-4.x.x"` is enforced by `sc-daemon` so the web UI displays the accurate Target Game version.
+> **`--game-branch` (`-gb`) is required with `--update-project` (`-u`)**: CIG's internal `build_manifest.id` keeps a generic base stream name (e.g. `sc-alpha-4.x.0`) across point releases. Passing `-gb "sc-alpha-4.x.x"` is enforced by `sc-daemon` so the web UI displays the accurate Target Game version.
 
 #### Auto-detecting Star Citizen path:
 ```bash
-./daemon/bin/sc-daemon -gb "sc-alpha-4.10.3" -u
+./daemon/bin/sc-daemon -gb "sc-alpha-4.x.x" -u
 ```
 
 #### Explicit Star Citizen Root or Channel:
 ```bash
-./daemon/bin/sc-daemon -p "C:\Program Files\Roberts Space Industries\StarCitizen" -gb "sc-alpha-4.10.3" -u
+./daemon/bin/sc-daemon -p "C:\Program Files\Roberts Space Industries\StarCitizen" -gb "sc-alpha-4.x.x" -u
 ```
 
 #### Direct Path to `Data.p4k`:
 ```bash
-./daemon/bin/sc-daemon --p4k="D:\Games\StarCitizen\LIVE\Data.p4k" -gb "sc-alpha-4.10.3" -u
+./daemon/bin/sc-daemon --p4k="D:\Games\StarCitizen\LIVE\Data.p4k" -gb "sc-alpha-4.x.x" -u
 ```
 
 #### Linux / Proton / Steam Deck:
 ```bash
-./daemon/bin/sc-daemon -p "/mnt/games/StarCitizen/LIVE" -gb "sc-alpha-4.10.3" -u
+./daemon/bin/sc-daemon -p "/mnt/games/StarCitizen/LIVE" -gb "sc-alpha-4.x.x" -u
 ```
 
 ### 2. Standalone JSON File Extraction
@@ -102,9 +102,9 @@ Once running, navigate to `http://localhost:5173` and click **Sync with Local Da
 | `--game-path` | `-p` | `""` | Path to Star Citizen root directory or channel |
 | `--p4k` | | `""` | Direct path to `Data.p4k` archive (alias for `--game-path`) |
 | `--update-project` | `-u` | `false` | Updates monorepo action catalogs and web public data (requires `--game-branch`) |
-| `--game-branch` | `-gb` | `""` | Target Star Citizen branch (e.g. `sc-alpha-4.10.3` or `4.10.3`; normalized to `sc-alpha-X.Y.Z`) |
-| `--game-version` | `-gv` | `""` | Override Star Citizen build version (e.g. `4.10.200.58746`) |
-| `--game-build-date` | `-gd` | `""` | Override Star Citizen build date (e.g. `Wed Nov 11 2026`) |
+| `--game-branch` | `-gb` | `""` | Target Star Citizen branch (e.g. `sc-alpha-4.x.x` or `4.x.x`; normalized to `sc-alpha-X.Y.Z`) |
+| `--game-version` | `-gv` | `""` | Override Star Citizen build version |
+| `--game-build-date` | `-gd` | `""` | Override Star Citizen build date |
 | `--project-root` | | `.` | Monorepo root directory when running `--update-project` |
 | `--output` | `-o` | `game-data.json` | Destination path for standalone extracted JSON payload |
 | `--daemon` | | `false` | Run as persistent background HTTP service |
