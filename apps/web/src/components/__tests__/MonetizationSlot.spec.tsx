@@ -39,18 +39,20 @@ describe('Monetization Components', () => {
   });
 
   describe('AdSenseSlot', () => {
-    it('renders live Google AdSense unit by default with publisher and slot IDs', () => {
+    it('renders live Google AdSense unit by default with publisher and slot IDs and shows fallback until filled', () => {
       const { container } = render(<AdSenseSlot />);
       const slotContainer = screen.getByTestId('monetization-slot-container');
       expect(slotContainer).toBeDefined();
       expect(screen.getByText(/SPONSOR COMM TRANSMISSION/i)).toBeDefined();
+      // Fallback creative is shown while data-ad-status is not yet "filled"
+      expect(screen.getByText(/Aegis Flight Systems & Precision HOTAS Mounts/i)).toBeDefined();
 
       const ins = container.querySelector('ins.adsbygoogle');
       expect(ins).not.toBeNull();
       expect(ins?.getAttribute('data-ad-client')).toBe('ca-pub-4414971156573564');
       expect(ins?.getAttribute('data-ad-slot')).toBe('9700539154');
-      expect(ins?.getAttribute('data-ad-format')).toBe('auto');
-      expect(ins?.getAttribute('data-full-width-responsive')).toBe('true');
+      expect(ins?.getAttribute('data-ad-format')).toBe('horizontal');
+      expect(ins?.getAttribute('data-full-width-responsive')).toBe('false');
     });
 
     it('renders mock simulator creative when in mock mode without breaking layout', () => {
@@ -105,19 +107,30 @@ describe('Monetization Components', () => {
       vi.unstubAllEnvs();
     });
 
-    it('gracefully renders compact fallback banner when AdSense marks slot as unfilled (e.g. preview domains)', async () => {
+    it('swaps fallback creative for live AdSense unit only when data-ad-status="filled"', async () => {
       vi.stubEnv('VITE_MONETIZATION_MODE', 'live');
       const { container } = render(<AdSenseSlot />);
 
       const ins = container.querySelector('ins.adsbygoogle');
       expect(ins).not.toBeNull();
+      // Before fill (status null), fallback creative is displayed so there is no blank box
+      expect(screen.getByText(/Aegis Flight Systems & Precision HOTAS Mounts/i)).toBeDefined();
+
+      act(() => {
+        ins?.setAttribute('data-ad-status', 'filled');
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByText(/Aegis Flight Systems & Precision HOTAS Mounts/i)).toBeNull();
+        const wrapper = screen.getByTestId('adsense-unit-wrapper');
+        expect(wrapper.style.height).toBe('90px');
+      });
 
       act(() => {
         ins?.setAttribute('data-ad-status', 'unfilled');
       });
 
       await waitFor(() => {
-        expect(screen.getByTestId('monetization-slot-container')).toBeDefined();
         expect(screen.getByText(/Aegis Flight Systems & Precision HOTAS Mounts/i)).toBeDefined();
       });
 
@@ -134,7 +147,7 @@ describe('Monetization Components', () => {
       expect(ins).not.toBeNull();
       expect(ins?.getAttribute('data-ad-client')).toBe('ca-pub-4414971156573564');
       expect(ins?.getAttribute('data-ad-slot')).toBe('9700539154');
-      expect(ins?.getAttribute('data-ad-format')).toBe('auto');
+      expect(ins?.getAttribute('data-ad-format')).toBe('horizontal');
 
       vi.unstubAllEnvs();
     });
