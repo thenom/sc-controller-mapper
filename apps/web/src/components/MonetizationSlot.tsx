@@ -138,7 +138,7 @@ export const AdSenseSlot: React.FC<MonetizationProps> = ({ className = '' }) => 
       : '9700539154';
 
   const [adBlocked, setAdBlocked] = useState<boolean>(false);
-  const [adUnfilled, setAdUnfilled] = useState<boolean>(false);
+  const [adFilled, setAdFilled] = useState<boolean>(false);
   const [, setIsLoaded] = useState<boolean>(false);
   const insRef = React.useRef<HTMLModElement | null>(null);
   const pushedRef = React.useRef<boolean>(false);
@@ -188,16 +188,22 @@ export const AdSenseSlot: React.FC<MonetizationProps> = ({ className = '' }) => 
     }
   }, [mode, clientId, slotId]);
 
-  // Watch for AdSense marking the slot as unfilled so we don't leave a blank box
+  // Only reveal the live AdSense container once Google sets data-ad-status="filled"
   useEffect(() => {
     const el = insRef.current;
     if (!el || typeof MutationObserver === 'undefined') return;
 
-    const observer = new MutationObserver(() => {
-      if (el.getAttribute('data-ad-status') === 'unfilled') {
-        setAdUnfilled(true);
+    const checkStatus = () => {
+      const status = el.getAttribute('data-ad-status');
+      if (status === 'filled') {
+        setAdFilled(true);
+      } else if (status === 'unfilled') {
+        setAdFilled(false);
       }
-    });
+    };
+
+    checkStatus();
+    const observer = new MutationObserver(checkStatus);
     observer.observe(el, { attributes: true, attributeFilter: ['data-ad-status'] });
     return () => observer.disconnect();
   }, [mode]);
@@ -206,7 +212,7 @@ export const AdSenseSlot: React.FC<MonetizationProps> = ({ className = '' }) => 
     return null;
   }
 
-  const showFallbackCreative = mode === 'mock' || adBlocked || adUnfilled;
+  const showFallbackCreative = mode === 'mock' || adBlocked || !adFilled;
 
   return (
     <div
@@ -230,8 +236,8 @@ export const AdSenseSlot: React.FC<MonetizationProps> = ({ className = '' }) => 
         </div>
       </div>
 
-      {showFallbackCreative ? (
-        // Compact, low-profile dark-mode creative (used in mock mode or when AdSense is blocked/unfilled on preview domains)
+      {showFallbackCreative && (
+        // Compact, low-profile dark-mode creative shown until AdSense fills an active creative
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 px-3 py-1.5 rounded-md border border-slate-800/50 bg-slate-900/40">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded bg-cyan-950/30 border border-cyan-800/30 text-cyan-400/80 shrink-0">
@@ -256,17 +262,29 @@ export const AdSenseSlot: React.FC<MonetizationProps> = ({ className = '' }) => 
             <ExternalLink className="w-2.5 h-2.5" />
           </a>
         </div>
-      ) : (
-        // Official Google AdSense Default Ad Unit (block container ensures non-zero availableWidth on push)
-        <div className="w-full min-h-[60px] overflow-hidden">
+      )}
+
+      {mode !== 'mock' && !adBlocked && (
+        // Official Google AdSense slim horizontal unit (collapsed to 0px height until data-ad-status="filled")
+        <div
+          data-testid="adsense-unit-wrapper"
+          style={{
+            width: '100%',
+            height: adFilled ? '90px' : '0px',
+            maxHeight: adFilled ? '90px' : '0px',
+            opacity: adFilled ? 1 : 0,
+            overflow: 'hidden',
+            pointerEvents: adFilled ? 'auto' : 'none'
+          }}
+        >
           <ins
             ref={insRef}
             className="adsbygoogle"
-            style={{ display: 'block', width: '100%' }}
+            style={{ display: 'block', width: '100%', height: '90px', maxHeight: '90px' }}
             data-ad-client={clientId}
             data-ad-slot={slotId}
-            data-ad-format="auto"
-            data-full-width-responsive="true"
+            data-ad-format="horizontal"
+            data-full-width-responsive="false"
             data-adtest={mode === 'test' ? 'on' : undefined}
           />
         </div>
