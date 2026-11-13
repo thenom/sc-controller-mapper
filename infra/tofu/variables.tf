@@ -99,9 +99,9 @@ variable "supporter_url" {
 }
 
 variable "monetization_mode" {
-  description = "Monetization display mode ('test', 'mock', 'live', or 'off'). Defaults to automatic ('test' during Zero Trust staging, 'live' upon public release)."
+  description = "Monetization display mode ('test', 'mock', 'live', or 'off'). Defaults to 'live'."
   type        = string
-  default     = ""
+  default     = "live"
 }
 
 variable "affiliate_amazon_tag" {
@@ -111,13 +111,13 @@ variable "affiliate_amazon_tag" {
 }
 
 variable "adsense_client_id" {
-  description = "Google AdSense Publisher Client ID (e.g., ca-pub-0000000000000000)."
+  description = "Google AdSense Publisher Client ID (e.g., ca-pub-4414971156573564)."
   type        = string
-  default     = "ca-pub-0000000000000000"
+  default     = "ca-pub-4414971156573564"
 }
 
 variable "adsense_slot_id" {
   description = "Google AdSense Slot ID."
   type        = string
-  default     = "0000000000"
+  default     = "9700539154"
 }

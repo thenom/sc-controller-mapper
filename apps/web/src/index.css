@@ -192,13 +192,14 @@ svg {
   display: inline-block;
 }
 
-svg.w-3, svg.h-3, [class*="w-3"] { width: 12px; height: 12px; }
-svg.w-3\.5, svg.h-3\.5, [class*="w-3.5"] { width: 14px; height: 14px; }
-svg.w-4, svg.h-4, [class*="w-4"] { width: 16px; height: 16px; }
-svg.w-5, svg.h-5, [class*="w-5"] { width: 20px; height: 20px; }
-svg.w-6, svg.h-6, [class*="w-6"] { width: 24px; height: 24px; }
-svg.w-7, svg.h-7, [class*="w-7"] { width: 28px; height: 28px; }
-svg.w-8, svg.h-8, [class*="w-8"] { width: 32px; height: 32px; }
+svg.w-2\.5, svg.h-2\.5 { width: 10px; height: 10px; }
+svg.w-3, svg.h-3 { width: 12px; height: 12px; }
+svg.w-3\.5, svg.h-3\.5 { width: 14px; height: 14px; }
+svg.w-4, svg.h-4 { width: 16px; height: 16px; }
+svg.w-5, svg.h-5 { width: 20px; height: 20px; }
+svg.w-6, svg.h-6 { width: 24px; height: 24px; }
+svg.w-7, svg.h-7 { width: 28px; height: 28px; }
+svg.w-8, svg.h-8 { width: 32px; height: 32px; }
 
 /* Display & Flexbox Utilities */
 .flex { display: flex; }

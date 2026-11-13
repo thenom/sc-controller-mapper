@@ -120,20 +120,50 @@ export const HardwareAffiliateCard: React.FC<MonetizationProps> = ({ className =
  * AdSenseSlot: Aesthetic, sci-fi container with test mode / mock mode and automatic adblock fallback.
  */
 export const AdSenseSlot: React.FC<MonetizationProps> = ({ className = '' }) => {
-  const mode = (import.meta.env.VITE_MONETIZATION_MODE as MonetizationMode) || 'mock';
-  const clientId = import.meta.env.VITE_ADSENSE_CLIENT_ID || 'ca-pub-4414971156573564';
-  const slotId = import.meta.env.VITE_ADSENSE_SLOT_ID || '0000000000';
+  const envMode = (import.meta.env.VITE_MONETIZATION_MODE as MonetizationMode) || 'live';
+  const isProductionHostname =
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'scbind.com' || window.location.hostname.endsWith('.scbind.com'));
+  const mode: MonetizationMode =
+    envMode === 'off' ? 'off' : isProductionHostname ? 'live' : envMode;
+  const rawClientId = import.meta.env.VITE_ADSENSE_CLIENT_ID;
+  const clientId =
+    rawClientId && rawClientId !== 'ca-pub-0000000000000000'
+      ? rawClientId
+      : 'ca-pub-4414971156573564';
+  const rawSlotId = import.meta.env.VITE_ADSENSE_SLOT_ID;
+  const slotId =
+    rawSlotId && rawSlotId !== '0000000000'
+      ? rawSlotId
+      : '9700539154';
 
   const [adBlocked, setAdBlocked] = useState<boolean>(false);
-  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const [adUnfilled, setAdUnfilled] = useState<boolean>(false);
+  const [, setIsLoaded] = useState<boolean>(false);
+  const insRef = React.useRef<HTMLModElement | null>(null);
+  const pushedRef = React.useRef<boolean>(false);
 
   useEffect(() => {
     if (mode === 'off') return;
 
     if (mode === 'test' || mode === 'live') {
+      const pushAd = () => {
+        if (pushedRef.current) return;
+        try {
+          pushedRef.current = true;
+          // @ts-ignore
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+        } catch (err) {
+          console.warn('[AdSense] Push execution error:', err);
+        }
+      };
+
       try {
-        // Attempt to load Google AdSense script dynamically if not present
-        if (!document.querySelector('script[src*="adsbygoogle.js"]')) {
+        const existingScript = document.querySelector(
+          'script[src*="adsbygoogle.js"]'
+        ) as HTMLScriptElement | null;
+
+        if (!existingScript) {
           const script = document.createElement('script');
           script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${clientId}`;
           script.async = true;
@@ -144,72 +174,74 @@ export const AdSenseSlot: React.FC<MonetizationProps> = ({ className = '' }) => 
           };
           script.onload = () => {
             setIsLoaded(true);
-            try {
-              // @ts-ignore
-              (window.adsbygoogle = window.adsbygoogle || []).push({});
-            } catch (err) {
-              console.warn('[AdSense] Push execution error:', err);
-            }
+            pushAd();
           };
           document.head.appendChild(script);
         } else {
+          existingScript.addEventListener('error', () => setAdBlocked(true));
           setIsLoaded(true);
-          try {
-            // @ts-ignore
-            (window.adsbygoogle = window.adsbygoogle || []).push({});
-          } catch (err) {
-            console.warn('[AdSense] Push execution error:', err);
-          }
+          pushAd();
         }
       } catch (e) {
         setAdBlocked(true);
       }
     }
-  }, [mode, clientId]);
+  }, [mode, clientId, slotId]);
+
+  // Watch for AdSense marking the slot as unfilled so we don't leave a blank box
+  useEffect(() => {
+    const el = insRef.current;
+    if (!el || typeof MutationObserver === 'undefined') return;
+
+    const observer = new MutationObserver(() => {
+      if (el.getAttribute('data-ad-status') === 'unfilled') {
+        setAdUnfilled(true);
+      }
+    });
+    observer.observe(el, { attributes: true, attributeFilter: ['data-ad-status'] });
+    return () => observer.disconnect();
+  }, [mode]);
 
   if (mode === 'off') {
     return null;
   }
 
-  // Graceful degradation when ad blocker is active: seamlessly hide container or show sleek hardware fallback
-  if (adBlocked) {
-    return null;
-  }
+  const showFallbackCreative = mode === 'mock' || adBlocked || adUnfilled;
 
   return (
     <div
       data-testid="monetization-slot-container"
-      className={`relative rounded-xl border border-slate-800/90 bg-slate-950/80 p-3 overflow-hidden backdrop-blur-md shadow-md ${className}`}
+      className={`relative w-full rounded-lg border border-slate-800/60 bg-slate-950/50 px-3 py-2 overflow-hidden backdrop-blur-sm ${className}`}
     >
-      <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800/60 text-[10px] font-mono text-slate-300">
-        <div className="flex items-center gap-1.5 text-cyan-400">
-          <Radio className="w-3 h-3 animate-pulse" />
-          <span className="tracking-wider uppercase font-semibold">
+      <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-800/40 text-[9px] font-mono text-slate-400">
+        <div className="flex items-center gap-1.5 text-slate-400">
+          <Radio className="w-2.5 h-2.5 text-cyan-500/70" />
+          <span className="tracking-wider uppercase font-medium">
             {mode === 'live' ? 'SPONSOR COMM TRANSMISSION' : 'SPONSOR COMM // SIMULATOR MODE'}
           </span>
         </div>
         <div className="flex items-center gap-2">
           {mode !== 'live' && (
-            <span className="px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-700/50 text-emerald-300 font-mono text-[9px]">
+            <span className="px-1.5 py-0.2 rounded bg-emerald-950/40 border border-emerald-700/40 text-emerald-400/90 font-mono text-[8px]">
               SAFE TEST ACTIVE
             </span>
           )}
-          <span className="text-slate-300">Supports Hosting</span>
+          <span className="text-slate-500">Supports Hosting</span>
         </div>
       </div>
 
-      {mode === 'mock' ? (
-        // High-fidelity dark-mode mock creative to verify layout and aesthetics
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-lg border border-slate-800/70 bg-gradient-to-r from-slate-900/60 via-slate-900/40 to-cyan-950/20">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-cyan-950/40 border border-cyan-800/40 text-cyan-400">
-              <Sparkles className="w-5 h-5" />
+      {showFallbackCreative ? (
+        // Compact, low-profile dark-mode creative (used in mock mode or when AdSense is blocked/unfilled on preview domains)
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 px-3 py-1.5 rounded-md border border-slate-800/50 bg-slate-900/40">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded bg-cyan-950/30 border border-cyan-800/30 text-cyan-400/80 shrink-0">
+              <Sparkles className="w-3.5 h-3.5" />
             </div>
             <div>
-              <div className="text-xs font-bold text-slate-100 tracking-wide">
+              <div className="text-[11px] font-semibold text-slate-200 tracking-wide">
                 Aegis Flight Systems & Precision HOTAS Mounts
               </div>
-              <p className="text-[11px] text-slate-300 mt-0.5">
+              <p className="text-[10px] text-slate-400 leading-tight">
                 Zero-flex flight stick positioning engineered specifically for high-G space combat simulation.
               </p>
             </div>
@@ -218,18 +250,19 @@ export const AdSenseSlot: React.FC<MonetizationProps> = ({ className = '' }) => 
             href="https://www.amazon.com/s?k=hotas+desk+mount"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-shrink-0 px-3 py-1.5 rounded text-xs font-mono font-medium border border-cyan-500/40 bg-cyan-950/50 text-cyan-300 hover:bg-cyan-900/40 hover:border-cyan-400 transition-all duration-150 flex items-center gap-1"
+            className="flex-shrink-0 px-2.5 py-1 rounded text-[10px] font-mono font-medium border border-cyan-500/30 bg-cyan-950/30 text-cyan-300 hover:bg-cyan-900/30 hover:border-cyan-400 transition-all duration-150 flex items-center gap-1"
           >
             <span>Learn More</span>
-            <ExternalLink className="w-3 h-3" />
+            <ExternalLink className="w-2.5 h-2.5" />
           </a>
         </div>
       ) : (
-        // Official Google AdSense slot with sandbox/test attributes
-        <div className="min-h-[90px] flex items-center justify-center overflow-hidden">
+        // Official Google AdSense Default Ad Unit (block container ensures non-zero availableWidth on push)
+        <div className="w-full min-h-[60px] overflow-hidden">
           <ins
+            ref={insRef}
             className="adsbygoogle"
-            style={{ display: 'block', minHeight: '90px', width: '100%' }}
+            style={{ display: 'block', width: '100%' }}
             data-ad-client={clientId}
             data-ad-slot={slotId}
             data-ad-format="auto"
