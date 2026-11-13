@@ -1,6 +1,8 @@
 import React from 'react';
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, act, waitFor } from '@testing-library/react';
 import {
   SupporterFuelBadge,
   HardwareAffiliateCard,
@@ -80,18 +82,44 @@ describe('Monetization Components', () => {
 
       // Trigger onload
       if (script && script.onload) {
-        (script as any).onload(new Event('load'));
+        act(() => {
+          (script as any).onload(new Event('load'));
+        });
       }
 
       unmount();
       document.head.innerHTML = '';
 
-      // Trigger onerror for adblock detection
+      // Trigger onerror for adblock detection and verify graceful fallback creative remains visible
       render(<AdSenseSlot />);
       const script2 = document.querySelector('script[src*="adsbygoogle.js"]') as HTMLScriptElement;
       if (script2 && script2.onerror) {
-        (script2 as any).onerror(new Event('error'));
+        act(() => {
+          (script2 as any).onerror(new Event('error'));
+        });
       }
+
+      expect(screen.getByTestId('monetization-slot-container')).toBeDefined();
+      expect(screen.getByText(/Aegis Flight Systems & Precision HOTAS Mounts/i)).toBeDefined();
+
+      vi.unstubAllEnvs();
+    });
+
+    it('gracefully renders compact fallback banner when AdSense marks slot as unfilled (e.g. preview domains)', async () => {
+      vi.stubEnv('VITE_MONETIZATION_MODE', 'live');
+      const { container } = render(<AdSenseSlot />);
+
+      const ins = container.querySelector('ins.adsbygoogle');
+      expect(ins).not.toBeNull();
+
+      act(() => {
+        ins?.setAttribute('data-ad-status', 'unfilled');
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('monetization-slot-container')).toBeDefined();
+        expect(screen.getByText(/Aegis Flight Systems & Precision HOTAS Mounts/i)).toBeDefined();
+      });
 
       vi.unstubAllEnvs();
     });
@@ -109,6 +137,13 @@ describe('Monetization Components', () => {
       expect(ins?.getAttribute('data-ad-format')).toBe('auto');
 
       vi.unstubAllEnvs();
+    });
+
+    it('prevents unscoped [class*="w-*"] CSS substring selectors in index.css from collapsing layout containers', () => {
+      const cssPath = path.resolve(__dirname, '../../index.css');
+      const cssContent = fs.readFileSync(cssPath, 'utf-8');
+      expect(cssContent).not.toMatch(/,\s*\[class\*="w-\d/);
+      expect(cssContent).not.toMatch(/,\s*\[class\*="h-\d/);
     });
   });
 });
