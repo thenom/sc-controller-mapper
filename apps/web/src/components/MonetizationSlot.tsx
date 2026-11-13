@@ -201,15 +201,12 @@ export const AdSenseSlot: React.FC<MonetizationProps> = ({ className = '' }) => 
     return null;
   }
 
-  // Graceful degradation when ad blocker is active or ad slot is unfilled
-  if (adBlocked || adUnfilled) {
-    return null;
-  }
+  const showFallbackCreative = mode === 'mock' || adBlocked || adUnfilled;
 
   return (
     <div
       data-testid="monetization-slot-container"
-      className={`relative max-w-4xl mx-auto rounded-lg border border-slate-800/60 bg-slate-950/50 px-3 py-2 overflow-hidden backdrop-blur-sm ${className}`}
+      className={`relative w-full rounded-lg border border-slate-800/60 bg-slate-950/50 px-3 py-2 overflow-hidden backdrop-blur-sm ${className}`}
     >
       <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-800/40 text-[9px] font-mono text-slate-400">
         <div className="flex items-center gap-1.5 text-slate-400">
@@ -228,9 +225,9 @@ export const AdSenseSlot: React.FC<MonetizationProps> = ({ className = '' }) => 
         </div>
       </div>
 
-      {mode === 'mock' ? (
-        // Compact, low-profile dark-mode mock creative
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 px-3 py-2 rounded-md border border-slate-800/50 bg-slate-900/40">
+      {showFallbackCreative ? (
+        // Compact, low-profile dark-mode creative (used in mock mode or when AdSense is blocked/unfilled on preview domains)
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 px-3 py-1.5 rounded-md border border-slate-800/50 bg-slate-900/40">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded bg-cyan-950/30 border border-cyan-800/30 text-cyan-400/80 shrink-0">
               <Sparkles className="w-3.5 h-3.5" />
@@ -255,8 +252,8 @@ export const AdSenseSlot: React.FC<MonetizationProps> = ({ className = '' }) => 
           </a>
         </div>
       ) : (
-        // Official Google AdSense Default Ad Unit
-        <div className="min-h-[60px] flex items-center justify-center overflow-hidden">
+        // Official Google AdSense Default Ad Unit (block container ensures non-zero availableWidth on push)
+        <div className="w-full min-h-[60px] overflow-hidden">
           <ins
             ref={insRef}
             className="adsbygoogle"
