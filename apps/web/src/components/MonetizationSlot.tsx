@@ -120,7 +120,12 @@ export const HardwareAffiliateCard: React.FC<MonetizationProps> = ({ className =
  * AdSenseSlot: Aesthetic, sci-fi container with test mode / mock mode and automatic adblock fallback.
  */
 export const AdSenseSlot: React.FC<MonetizationProps> = ({ className = '' }) => {
-  const mode = (import.meta.env.VITE_MONETIZATION_MODE as MonetizationMode) || 'live';
+  const envMode = (import.meta.env.VITE_MONETIZATION_MODE as MonetizationMode) || 'live';
+  const isProductionHostname =
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'scbind.com' || window.location.hostname.endsWith('.scbind.com'));
+  const mode: MonetizationMode =
+    envMode === 'off' ? 'off' : isProductionHostname ? 'live' : envMode;
   const rawClientId = import.meta.env.VITE_ADSENSE_CLIENT_ID;
   const clientId =
     rawClientId && rawClientId !== 'ca-pub-0000000000000000'

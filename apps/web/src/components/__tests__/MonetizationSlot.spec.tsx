@@ -139,6 +139,29 @@ describe('Monetization Components', () => {
       vi.unstubAllEnvs();
     });
 
+    it('forces live mode on scbind.com even when VITE_MONETIZATION_MODE is set to test in Cloudflare build env', () => {
+      vi.stubEnv('VITE_MONETIZATION_MODE', 'test');
+      const originalLocation = window.location;
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: { ...originalLocation, hostname: 'scbind.com' }
+      });
+
+      const { container } = render(<AdSenseSlot />);
+      expect(screen.getByText(/SPONSOR COMM TRANSMISSION/i)).toBeDefined();
+      expect(screen.queryByText(/SAFE TEST ACTIVE/i)).toBeNull();
+
+      const ins = container.querySelector('ins.adsbygoogle');
+      expect(ins).not.toBeNull();
+      expect(ins?.getAttribute('data-adtest')).toBeNull();
+
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: originalLocation
+      });
+      vi.unstubAllEnvs();
+    });
+
     it('prevents unscoped [class*="w-*"] CSS substring selectors in index.css from collapsing layout containers', () => {
       const cssPath = path.resolve(__dirname, '../../index.css');
       const cssContent = fs.readFileSync(cssPath, 'utf-8');
