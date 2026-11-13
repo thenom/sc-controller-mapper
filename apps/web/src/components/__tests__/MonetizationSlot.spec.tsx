@@ -37,13 +37,29 @@ describe('Monetization Components', () => {
   });
 
   describe('AdSenseSlot', () => {
+    it('renders live Google AdSense unit by default with publisher and slot IDs', () => {
+      const { container } = render(<AdSenseSlot />);
+      const slotContainer = screen.getByTestId('monetization-slot-container');
+      expect(slotContainer).toBeDefined();
+      expect(screen.getByText(/SPONSOR COMM TRANSMISSION/i)).toBeDefined();
+
+      const ins = container.querySelector('ins.adsbygoogle');
+      expect(ins).not.toBeNull();
+      expect(ins?.getAttribute('data-ad-client')).toBe('ca-pub-4414971156573564');
+      expect(ins?.getAttribute('data-ad-slot')).toBe('9700539154');
+      expect(ins?.getAttribute('data-ad-format')).toBe('auto');
+      expect(ins?.getAttribute('data-full-width-responsive')).toBe('true');
+    });
+
     it('renders mock simulator creative when in mock mode without breaking layout', () => {
+      vi.stubEnv('VITE_MONETIZATION_MODE', 'mock');
       render(<AdSenseSlot />);
       const container = screen.getByTestId('monetization-slot-container');
       expect(container).toBeDefined();
       expect(screen.getByText(/SPONSOR COMM \/\/ SIMULATOR MODE/i)).toBeDefined();
       expect(screen.getByText(/SAFE TEST ACTIVE/i)).toBeDefined();
       expect(screen.getByText(/Aegis Flight Systems & Precision HOTAS Mounts/i)).toBeDefined();
+      vi.unstubAllEnvs();
     });
 
     it('returns null when mode is off', () => {
@@ -54,9 +70,10 @@ describe('Monetization Components', () => {
     });
 
     it('injects script in test/live mode and handles onload and onerror', () => {
+      document.head.innerHTML = '';
       vi.stubEnv('VITE_MONETIZATION_MODE', 'test');
       vi.stubEnv('VITE_ADSENSE_CLIENT_ID', 'ca-pub-test1234');
-      const { container, unmount } = render(<AdSenseSlot />);
+      const { unmount } = render(<AdSenseSlot />);
 
       const script = document.querySelector('script[src*="adsbygoogle.js"]') as HTMLScriptElement;
       expect(script).toBeDefined();
@@ -67,13 +84,29 @@ describe('Monetization Components', () => {
       }
 
       unmount();
+      document.head.innerHTML = '';
 
       // Trigger onerror for adblock detection
-      const { container: container2 } = render(<AdSenseSlot />);
+      render(<AdSenseSlot />);
       const script2 = document.querySelector('script[src*="adsbygoogle.js"]') as HTMLScriptElement;
       if (script2 && script2.onerror) {
         (script2 as any).onerror(new Event('error'));
       }
+
+      vi.unstubAllEnvs();
+    });
+
+    it('falls back from placeholder ca-pub-0000000000000000 client ID and 0000000000 slot ID', () => {
+      vi.stubEnv('VITE_MONETIZATION_MODE', 'live');
+      vi.stubEnv('VITE_ADSENSE_CLIENT_ID', 'ca-pub-0000000000000000');
+      vi.stubEnv('VITE_ADSENSE_SLOT_ID', '0000000000');
+
+      const { container } = render(<AdSenseSlot />);
+      const ins = container.querySelector('ins.adsbygoogle');
+      expect(ins).not.toBeNull();
+      expect(ins?.getAttribute('data-ad-client')).toBe('ca-pub-4414971156573564');
+      expect(ins?.getAttribute('data-ad-slot')).toBe('9700539154');
+      expect(ins?.getAttribute('data-ad-format')).toBe('auto');
 
       vi.unstubAllEnvs();
     });

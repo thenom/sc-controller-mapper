@@ -28,9 +28,8 @@ This document tracks optional items, future stage milestones, and deferred confi
 - [ ] **Flight Hardware Partnerships (VKB / VIRPIL)**:
   - Apply to VKB-Sim and VIRPIL Controls creator/partner programs.
   - Update `VITE_AFFILIATE_VKB_TAG` and `VITE_AFFILIATE_VIRPIL_TAG`.
-- [ ] **Google AdSense Approval**:
-  - Submit `scbind.com` to Google AdSense review.
-  - Replace sandbox ID `ca-pub-0000000000000000` with live publisher ID and switch `VITE_MONETIZATION_MODE=live`.
+- [x] **Google AdSense Integration**:
+  - Configured `scbind.com` with live publisher ID (`ca-pub-4414971156573564`), ad unit slot ID (`9700539154`), `ads.txt`, and `VITE_MONETIZATION_MODE=live`.
 
 ---
 
