@@ -181,5 +181,27 @@ describe('Monetization Components', () => {
       expect(cssContent).not.toMatch(/,\s*\[class\*="w-\d/);
       expect(cssContent).not.toMatch(/,\s*\[class\*="h-\d/);
     });
+
+    it('provides crawlable robots.txt, sitemap.xml, privacy.html, and index.html AdSense readiness metadata', () => {
+      const publicDir = path.resolve(__dirname, '../../../public');
+      const indexHtmlPath = path.resolve(__dirname, '../../../index.html');
+
+      const robotsTxt = fs.readFileSync(path.join(publicDir, 'robots.txt'), 'utf-8');
+      expect(robotsTxt).toContain('User-agent: Mediapartners-Google');
+      expect(robotsTxt).toContain('Allow: /');
+      expect(robotsTxt).toContain('Sitemap: https://scbind.com/sitemap.xml');
+
+      const sitemapXml = fs.readFileSync(path.join(publicDir, 'sitemap.xml'), 'utf-8');
+      expect(sitemapXml).toContain('<loc>https://scbind.com/</loc>');
+      expect(sitemapXml).toContain('<loc>https://scbind.com/privacy.html</loc>');
+
+      const privacyHtml = fs.readFileSync(path.join(publicDir, 'privacy.html'), 'utf-8');
+      expect(privacyHtml).toContain('Google AdSense');
+      expect(privacyHtml).toContain('adssettings.google.com');
+
+      const indexHtml = fs.readFileSync(indexHtmlPath, 'utf-8');
+      expect(indexHtml).toContain('name="google-adsense-account" content="ca-pub-4414971156573564"');
+      expect(indexHtml).toContain('pp_resortdevices');
+    });
   });
 });
