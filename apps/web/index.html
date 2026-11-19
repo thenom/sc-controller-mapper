@@ -18,13 +18,40 @@
     <meta name="twitter:description" content="Visual keybinding management, intelligent conflict diagnostics, and drag-and-drop joystick re-indexing for Star Citizen HOTAS/HOSAS setups." />
     <meta name="twitter:image" content="https://scbind.com/preview.png" />
     <!-- Google AdSense Verification & Runtime Script -->
+    <meta name="google-adsense-account" content="ca-pub-4414971156573564" />
+    <link rel="canonical" href="https://scbind.com/" />
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4414971156573564" crossorigin="anonymous"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <main style="max-width: 960px; margin: 2rem auto; padding: 1.5rem; color: #e2e8f0; font-family: system-ui, sans-serif; line-height: 1.6;">
+        <h1>Star Citizen Keybinding Architect &mdash; HOTAS, HOSAS &amp; XML Input Management Suite</h1>
+        <p>
+          <strong>Star Citizen Keybinding Architect</strong> (<code>scbind.com</code>) is a free, open-source web utility engineered for Star Citizen pilots using complex HOTAS, HOSAS, rudder pedal, and multi-panel flight simulator cockpits. Built specifically for Star Citizen's CryEngine-derived <code>actionmaps.xml</code> input architecture, it provides lossless XML editing, drag-and-drop joystick instance re-indexing, real-time HTML5 Gamepad hardware telemetry, and intelligent Master Modes conflict diagnostics.
+        </p>
+        <h2>Core Capabilities &amp; Technical Architecture</h2>
+        <ul>
+          <li><strong>Bypass the 4-Device <code>pp_resortdevices</code> Console Limit:</strong> Star Citizen's in-game console command <code>pp_resortdevices</code> cannot remap setups with more than four connected DirectInput controllers. When Windows reorders USB joysticks after a reboot or firmware update, this suite rewrites <code>js1_</code>, <code>js2_</code>, <code>js3_</code>, <code>js4_</code>, and higher device prefixes directly at the XML Abstract Syntax Tree (AST) level while updating <code>&lt;options type="joystick" instance="X"&gt;</code> hardware blocks in lockstep.</li>
+          <li><strong>Lossless CryEngine XML Round-Tripping:</strong> Preserves axis inversions (<code>invert="1"</code>), custom deadzones, sensitivity curves, DirectInput <code>ProductGUID</code> attributes, primary <code>&lt;rebind&gt;</code> overrides, additive <code>&lt;addbind&gt;</code> concurrent inputs, and explicit unbind tags (<code>&lt;rebind input=""/&gt;</code>) so Star Citizen never silently reverts cleared actions to <code>defaultProfile.xml</code> defaults.</li>
+          <li><strong>Master Modes (SCM / NAV) &amp; Temporal Conflict Diagnostics:</strong> Evaluates over 50 Star Citizen action maps across a four-tier severity hierarchy. Automatically distinguishes harmless overlaps between mutually exclusive contexts (such as on-foot FPS vs. spaceship flight, or isolated cockpit Operator Modes like Mining, Salvage, Scanning, and Missile Operator) from fatal concurrent collisions and destructive hold/press conflicts (such as sharing a button with <code>v_eject</code> or <code>v_self_destruct</code>).</li>
+          <li><strong>Live HTML5 Gamepad Hardware Inspector:</strong> Press any physical button, hat switch, or analog axis on your connected VKB Gladiator EVO, VIRPIL MongoosT-50, Thrustmaster T.16000M, or WinWing controller to immediately locate and edit every action bound to that physical input.</li>
+        </ul>
+        <h2>How to Import, Re-Index, and Export Star Citizen Keybindings</h2>
+        <ol>
+          <li>Export your current profile in Star Citizen via <em>Options &rarr; Keybindings &rarr; Advanced Controls Customization &rarr; Control Profiles &rarr; Save Control Settings</em>, or locate your XML file under <code>StarCitizen\LIVE\USER\Client\0\Controls\Mappings\</code>.</li>
+          <li>Click <strong>Import XML</strong> in the Keybinding Architect toolbar (or select one of the built-in Dual VKB EVO HOSAS, VKB Omni-Throttle OTA, or Thrustmaster T.16000M HOTAS starter templates).</li>
+          <li>Use the <strong>Device Rack</strong> to drag and drop joystick instances (<code>js1</code> &harr; <code>js2</code>), inspect or edit bindings in the <strong>Keybinding Matrix</strong>, and review the <strong>Conflict Diagnostics</strong> tab for fatal collisions or deprecated bindings.</li>
+          <li>Click <strong>Export XML</strong> to download your clean, lossless profile and place it in your <code>Mappings</code> folder, then load it in-game via <code>pp_rebindkeys layout_filename_exported</code>.</li>
+        </ol>
+        <p>
+          <a href="/privacy.html" style="color: #00f0ff;">Privacy Policy, Google AdSense Cookie Disclosure &amp; Terms of Use</a> &bull;
+          <a href="https://github.com/thenom/sc-controller-mapper" style="color: #00f0ff;">Open-Source GitHub Repository (AGPL-3.0)</a>
+        </p>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

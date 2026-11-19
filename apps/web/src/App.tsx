@@ -166,6 +166,7 @@ export const App: React.FC = () => {
   // Hardware Generator / Submission Studio Modal State
   const [isHardwareStudioOpen, setIsHardwareStudioOpen] = useState(false);
   const [isContributorToolsOpen, setIsContributorToolsOpen] = useState(false);
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [isDisclaimerDismissed, setIsDisclaimerDismissed] = useState(false);
 
   // Modal State for Interactive Binding Editor
@@ -735,8 +736,48 @@ export const App: React.FC = () => {
         <HardwareAffiliateCard />
       </section>
 
+      {/* Crawlable Technical Reference Guide & FAQ (Compact Collapsible Drawer) */}
+      <section className="mt-8" aria-label="Star Citizen Keybinding Architecture Guide and FAQ">
+        <details className="glass-panel px-4 py-3 text-xs text-[#94a3b8] border border-[#2d415f]/60 rounded-lg">
+          <summary className="cursor-pointer font-mono font-semibold text-[#cbd5e1] hover:text-[#00f0ff] transition-colors flex items-center justify-between">
+            <span>STAR CITIZEN XML KEYBINDING ARCHITECTURE GUIDE, HOSAS/HOTAS SETUP &amp; FAQ</span>
+            <span className="text-[10px] text-[#64748b] font-mono">Click to Expand Reference</span>
+          </summary>
+          <div className="mt-3 pt-3 border-t border-[#2d415f]/50 grid grid-cols-1 md:grid-cols-2 gap-4 text-[11px] leading-relaxed text-[#cbd5e1]">
+            <div className="space-y-2">
+              <h2 className="text-xs font-bold text-[#00f0ff] uppercase tracking-wider">
+                1. Solving the 4-Device pp_resortdevices Limitation
+              </h2>
+              <p>
+                Star Citizen uses a CryEngine-derived input subsystem where connected DirectInput controllers are assigned sequential 1-based prefixes (<code className="text-[#00f0ff]">js1_</code>, <code className="text-[#00f0ff]">js2_</code>, <code className="text-[#00f0ff]">js3_</code>, <code className="text-[#00f0ff]">js4_</code>). When Windows re-enumerates USB devices after a reboot, hub reconnect, or firmware update, your right and left flight sticks, rudder pedals, or button boxes often swap instance numbers. Because the in-game console command <code className="text-[#00f0ff]">pp_resortdevices joystick 1 2</code> only supports up to 4 devices, pilots with 5+ controllers cannot fix swapped bindings in-game. Keybinding Architect solves this by rewriting every <code className="text-[#00f0ff]">jsX_</code> input prefix and <code className="text-[#00f0ff]">&lt;options type=&quot;joystick&quot; instance=&quot;X&quot;&gt;</code> block directly in your exported XML.
+              </p>
+              <h2 className="text-xs font-bold text-[#00f0ff] uppercase tracking-wider pt-1">
+                2. Lossless &lt;rebind&gt;, &lt;addbind&gt; &amp; Explicit Unbind Preservation
+              </h2>
+              <p>
+                Unlike basic text-replacement scripts, our XML parser preserves custom axis inversions (<code className="text-[#00f0ff]">invert=&quot;1&quot;</code>), deadzones, sensitivity curves, and DirectInput <code className="text-[#00f0ff]">ProductGUID</code> identifiers. It maintains both primary <code className="text-[#00f0ff]">&lt;rebind&gt;</code> overrides and concurrent <code className="text-[#00f0ff]">&lt;addbind&gt;</code> inputs, and automatically emits explicit empty <code className="text-[#00f0ff]">&lt;rebind input=&quot;&quot;/&gt;</code> tags when an action is cleared so Star Citizen does not fall back to <code className="text-[#00f0ff]">defaultProfile.xml</code> bindings.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-xs font-bold text-[#00f0ff] uppercase tracking-wider">
+                3. Master Modes (SCM / NAV) &amp; Temporal Conflict Diagnostics
+              </h2>
+              <p>
+                Sharing a physical joystick button across multiple actions is essential in a 6-DOF space sim, provided those actions belong to mutually exclusive operational contexts. Our Conflict Diagnostics Engine evaluates over 50 Star Citizen action maps across on-foot FPS, ground vehicle, turret, EVA, and cockpit Operator Modes (Weapons, Missiles, Mining, Salvage, Scanning), as well as temporal modifiers (<code className="text-[#00f0ff]">press</code>, <code className="text-[#00f0ff]">hold</code>, <code className="text-[#00f0ff]">double_tap</code>, <code className="text-[#00f0ff]">multiTap=&quot;2&quot;</code>) to distinguish safe context sharing from fatal collisions or accidental <code className="text-[#00f0ff]">v_eject</code> / <code className="text-[#00f0ff]">v_self_destruct</code> triggers.
+              </p>
+              <h2 className="text-xs font-bold text-[#00f0ff] uppercase tracking-wider pt-1">
+                4. Quick Import &amp; In-Game Console Loading Workflow
+              </h2>
+              <p>
+                Place your exported <code className="text-[#00f0ff]">layout_*_exported.xml</code> file into <code className="text-[#00f0ff]">StarCitizen\LIVE\USER\Client\0\Controls\Mappings\</code>. Open the in-game console (<code className="text-[#00f0ff]">~</code>) and run <code className="text-[#00f0ff]">pp_rebindkeys layout_yourprofile_exported</code>, or load it from <em>Options &rarr; Keybindings &rarr; Advanced Controls Customization &rarr; Control Profiles</em>.
+              </p>
+            </div>
+          </div>
+        </details>
+      </section>
+
       {/* Cockpit HUD Footer */}
-      <footer className="mt-12 pt-6 border-t border-[#2d415f]/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#64748b]">
+      <footer className="mt-10 pt-6 border-t border-[#2d415f]/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#64748b]">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-semibold text-[#8492a6]">Star Citizen Keybinding Architect</span>
           <span>•</span>
@@ -747,6 +788,18 @@ export const App: React.FC = () => {
           <span>Open Source (AGPL-3.0)</span>
         </div>
         <div className="flex items-center gap-4 flex-wrap">
+          <a
+            href="/privacy.html"
+            onClick={(e) => {
+              e.preventDefault();
+              setIsPrivacyModalOpen(true);
+            }}
+            data-testid="footer-privacy-link"
+            className="text-[#94a3b8] hover:text-[#00e5ff] transition-colors"
+            title="View Privacy Policy, Google AdSense Cookie Disclosure, and Terms of Use"
+          >
+            Privacy &amp; Terms
+          </a>
           <a
             href="https://github.com/thenom/sc-controller-mapper"
             target="_blank"
@@ -768,6 +821,90 @@ export const App: React.FC = () => {
           </a>
         </div>
       </footer>
+
+      {/* Privacy Policy, Cookie Disclosure & Terms Modal */}
+      {isPrivacyModalOpen && (
+        <div
+          data-testid="privacy-policy-modal"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+        >
+          <div className="glass-panel w-full max-w-xl p-6 shadow-2xl border border-[#00f0ff]/40 rounded-lg space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#2d415f]">
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck className="w-5 h-5 text-[#00f0ff]" />
+                <h2 className="text-base font-bold text-white tracking-wide">
+                  Privacy Policy, Cookie Disclosure &amp; Terms
+                </h2>
+              </div>
+              <button
+                onClick={() => setIsPrivacyModalOpen(false)}
+                className="text-[#94a3b8] hover:text-white p-1 rounded hover:bg-white/10 transition-colors"
+                aria-label="Close privacy modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-[#cbd5e1] leading-relaxed">
+              <div>
+                <h3 className="font-semibold text-[#00f0ff] mb-1">1. 100% Client-Side XML &amp; Gamepad Processing</h3>
+                <p className="text-[11px]">
+                  All Star Citizen <code className="text-[#00f0ff]">actionmaps.xml</code> profile parsing, conflict diagnostics, device re-indexing, and HTML5 Gamepad API controller listening run locally inside your browser. Your personal keybinding files are never uploaded to or stored on our servers.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-[#00f0ff] mb-1">2. Google AdSense &amp; Advertising Cookies</h3>
+                <p className="text-[11px]">
+                  Third-party vendors, including Google, use cookies to serve ads based on a user&apos;s prior visits to <code className="text-[#00f0ff]">scbind.com</code> or other websites. Google&apos;s use of advertising cookies enables it and its partners to serve ads to users based on their visit to this site and/or other sites on the Internet. You may opt out of personalized advertising by visiting{' '}
+                  <a
+                    href="https://adssettings.google.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#00f0ff] underline"
+                  >
+                    Google Ads Settings
+                  </a>{' '}
+                  or{' '}
+                  <a
+                    href="https://www.aboutads.info/choices/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#00f0ff] underline"
+                  >
+                    www.aboutads.info
+                  </a>.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-[#00f0ff] mb-1">3. Affiliate Links &amp; Unofficial Fan Tool Disclaimer</h3>
+                <p className="text-[11px]">
+                  This site participates in affiliate programs (including Amazon Associates and flight peripheral partners) to support hosting costs. Star Citizen Keybinding Architect is an independent open-source community project (AGPL-3.0) and is not affiliated with or endorsed by Cloud Imperium Games (CIG) or Roberts Space Industries (RSI).
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-2 flex items-center justify-between border-t border-[#2d415f]/60">
+              <a
+                href="/privacy.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] font-mono text-[#00f0ff] hover:underline flex items-center gap-1"
+              >
+                <span>Open Standalone Privacy Page (/privacy.html)</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+              <button
+                onClick={() => setIsPrivacyModalOpen(false)}
+                className="px-4 py-1.5 rounded bg-[#1e293b] hover:bg-[#334155] text-white text-xs font-semibold transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Interactive Binding Editor Modal */}
       {editingTarget && (
