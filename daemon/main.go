@@ -174,6 +174,18 @@ func main() {
 			}
 		}
 
+		if gameData != nil {
+			if overrides.Version != "" {
+				gameData.GameVersion = overrides.Version
+			}
+			if overrides.Branch != "" {
+				gameData.GameBranch = overrides.Branch
+			}
+			if overrides.BuildDate != "" {
+				gameData.GameBuildDate = overrides.BuildDate
+			}
+		}
+
 		if gameData == nil && !runDaemonFlag && !updateProjectFlag {
 			log.Fatalf("[daemon] Fatal: Cannot proceed without a valid game path or game-data.json. Use --game-path=\"...\" or --p4k=\"...\"")
 		}
@@ -207,8 +219,9 @@ func main() {
 		}
 
 		// Also update apps/web/public/game-data.json if not already written by processGameData
+		// (e.g., when -o points elsewhere or when running offline from an existing game-data.json cache).
 		webGameDataPath := filepath.Join(projectRootFlag, "apps", "web", "public", "game-data.json")
-		if outputFlag != webGameDataPath {
+		if gameRoot == "" || outputFlag != webGameDataPath {
 			if err := writeOutputFile(webGameDataPath, gameData); err != nil {
 				log.Printf("[daemon] Warning: failed updating web app game data at %s: %v\n", webGameDataPath, err)
 			} else {
@@ -319,7 +332,14 @@ func writeOutputFile(path string, data *config.GameDataConfig) error {
 		}
 	}
 
-	fileBytes, err := json.MarshalIndent(data, "", "  ")
+	out := *data
+	origCount := len(data.Localization)
+	out.Localization = catalog.FilterLocalizationForKeybindings(data.DefaultProfileXML, data.Localization)
+	if origCount > len(out.Localization) {
+		fmt.Printf("[daemon] ✓ Pruned localization dictionary: %d -> %d keybinding/UI tokens\n", origCount, len(out.Localization))
+	}
+
+	fileBytes, err := json.MarshalIndent(&out, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to serialize JSON config: %w", err)
 	}
@@ -364,7 +384,9 @@ func startHTTPServer(port int, initialData *config.GameDataConfig) {
 			http.Error(w, `{"error": "No game data extracted yet"}`, http.StatusNotFound)
 			return
 		}
-		json.NewEncoder(w).Encode(initialData)
+		out := *initialData
+		out.Localization = catalog.FilterLocalizationForKeybindings(initialData.DefaultProfileXML, initialData.Localization)
+		json.NewEncoder(w).Encode(&out)
 	})
 
 	addr := fmt.Sprintf("127.0.0.1:%d", port)

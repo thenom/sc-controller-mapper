@@ -229,3 +229,85 @@ func TestGenerateCatalog_ExtendedFeatures(t *testing.T) {
 		t.Errorf("expected error for invalid xml")
 	}
 }
+
+func TestFilterLocalizationForKeybindings(t *testing.T) {
+	xmlData := `<?xml version="1.0" encoding="utf-8"?>
+<profile version="1">
+  <actiongroup action="v_attack">
+    <action name="v_attack_all" UILabel="@custom_attack_label" UIDescription="@custom_attack_label_desc" />
+  </actiongroup>
+  <actionmap name="spaceship_movement" UILabel="@map_flight_label">
+    <action name="v_pitch" UILabel="@ui_v_pitch" />
+    <action name="v_special" UILabel="@item_Name_Turret_Remote" />
+  </actionmap>
+</profile>`
+
+	fullLoc := map[string]string{
+		"ui_v_pitch":                             "Pitch",
+		"ui_legacy_removed_action":               "Legacy Cruise Control",
+		"pit_acflightsystems":                    "Flight Systems",
+		"interaction_toggleequiphelmet":          "Toggle Helmet",
+		"vehicle_interactor_quantumtravel_enable": "Enable Quantum",
+		"map_flight_label,p":                     "Flight Movement",
+		"custom_attack_label,u":                  "Fire All Weapons",
+		"custom_attack_label_desc":               "Fires all weapon groups",
+		"item_Name_Turret_Remote":                "Remote Turret",
+		"mission_bounty_desc_001":                "Track down the pirate in Stanton...",
+		"npc_dialogue_bartender_greeting":        "What can I get you, pilot?",
+		"commodity_quantanium_lore":              "Highly volatile unstable ore.",
+	}
+
+	filtered := FilterLocalizationForKeybindings(xmlData, fullLoc)
+
+	mustKeep := []string{
+		"ui_v_pitch",
+		"ui_legacy_removed_action",
+		"pit_acflightsystems",
+		"interaction_toggleequiphelmet",
+		"vehicle_interactor_quantumtravel_enable",
+		"map_flight_label,p",
+		"custom_attack_label,u",
+		"custom_attack_label_desc",
+		"item_Name_Turret_Remote",
+	}
+	for _, k := range mustKeep {
+		if _, ok := filtered[k]; !ok {
+			t.Errorf("expected key %q to be preserved in filtered localization", k)
+		}
+	}
+
+	mustDrop := []string{
+		"mission_bounty_desc_001",
+		"npc_dialogue_bartender_greeting",
+		"commodity_quantanium_lore",
+	}
+	for _, k := range mustDrop {
+		if _, ok := filtered[k]; ok {
+			t.Errorf("expected unrelated key %q to be pruned from filtered localization", k)
+		}
+	}
+
+	// Verify catalog generation produces identical output before and after filtering
+	catFull, err := GenerateCatalogFromGameData(xmlData, fullLoc)
+	if err != nil {
+		t.Fatalf("GenerateCatalogFromGameData (full) failed: %v", err)
+	}
+	catFiltered, err := GenerateCatalogFromGameData(xmlData, filtered)
+	if err != nil {
+		t.Fatalf("GenerateCatalogFromGameData (filtered) failed: %v", err)
+	}
+	if len(catFull) != len(catFiltered) {
+		t.Fatalf("catalog map count mismatch: full=%d filtered=%d", len(catFull), len(catFiltered))
+	}
+	for mapName, fullMap := range catFull {
+		filtMap := catFiltered[mapName]
+		if fullMap.Label != filtMap.Label || len(fullMap.Actions) != len(filtMap.Actions) {
+			t.Errorf("catalog mismatch for map %q: full=%+v filtered=%+v", mapName, fullMap, filtMap)
+		}
+		for i := range fullMap.Actions {
+			if fullMap.Actions[i] != filtMap.Actions[i] {
+				t.Errorf("action mismatch in %q[%d]: full=%+v filtered=%+v", mapName, i, fullMap.Actions[i], filtMap.Actions[i])
+			}
+		}
+	}
+}

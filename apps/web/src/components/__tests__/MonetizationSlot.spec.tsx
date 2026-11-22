@@ -39,13 +39,19 @@ describe('Monetization Components', () => {
   });
 
   describe('AdSenseSlot', () => {
-    it('renders live Google AdSense unit by default with publisher and slot IDs and shows fallback until filled', () => {
+    it('renders visible live Google AdSense unit by default with compliant Advertisement label and no hidden opacity/0px wrapper', () => {
       const { container } = render(<AdSenseSlot />);
       const slotContainer = screen.getByTestId('monetization-slot-container');
       expect(slotContainer).toBeDefined();
-      expect(screen.getByText(/SPONSOR COMM TRANSMISSION/i)).toBeDefined();
-      // Fallback creative is shown while data-ad-status is not yet "filled"
-      expect(screen.getByText(/Aegis Flight Systems & Precision HOTAS Mounts/i)).toBeDefined();
+      expect(screen.getByText(/^Advertisement$/i)).toBeDefined();
+      expect(screen.queryByText(/Supports Hosting/i)).toBeNull();
+      // Fallback creative is NOT shown before Google marks data-ad-status="unfilled"
+      expect(screen.queryByText(/Aegis Flight Systems & Precision HOTAS Mounts/i)).toBeNull();
+
+      const wrapper = screen.getByTestId('adsense-unit-wrapper');
+      expect(wrapper.style.display).toBe('block');
+      expect(wrapper.style.minHeight).toBe('90px');
+      expect(wrapper.style.opacity).not.toBe('0');
 
       const ins = container.querySelector('ins.adsbygoogle');
       expect(ins).not.toBeNull();
@@ -60,7 +66,7 @@ describe('Monetization Components', () => {
       render(<AdSenseSlot />);
       const container = screen.getByTestId('monetization-slot-container');
       expect(container).toBeDefined();
-      expect(screen.getByText(/SPONSOR COMM \/\/ SIMULATOR MODE/i)).toBeDefined();
+      expect(screen.getByText(/Advertisement \/\/ Simulator Mode/i)).toBeDefined();
       expect(screen.getByText(/SAFE TEST ACTIVE/i)).toBeDefined();
       expect(screen.getByText(/Aegis Flight Systems & Precision HOTAS Mounts/i)).toBeDefined();
       vi.unstubAllEnvs();
@@ -107,24 +113,15 @@ describe('Monetization Components', () => {
       vi.unstubAllEnvs();
     });
 
-    it('swaps fallback creative for live AdSense unit only when data-ad-status="filled"', async () => {
+    it('keeps live AdSense unit visible by default and swaps to fallback only when data-ad-status="unfilled"', async () => {
       vi.stubEnv('VITE_MONETIZATION_MODE', 'live');
       const { container } = render(<AdSenseSlot />);
 
       const ins = container.querySelector('ins.adsbygoogle');
       expect(ins).not.toBeNull();
-      // Before fill (status null), fallback creative is displayed so there is no blank box
-      expect(screen.getByText(/Aegis Flight Systems & Precision HOTAS Mounts/i)).toBeDefined();
-
-      act(() => {
-        ins?.setAttribute('data-ad-status', 'filled');
-      });
-
-      await waitFor(() => {
-        expect(screen.queryByText(/Aegis Flight Systems & Precision HOTAS Mounts/i)).toBeNull();
-        const wrapper = screen.getByTestId('adsense-unit-wrapper');
-        expect(wrapper.style.height).toBe('90px');
-      });
+      const wrapper = screen.getByTestId('adsense-unit-wrapper');
+      expect(wrapper.style.display).toBe('block');
+      expect(screen.queryByText(/Aegis Flight Systems & Precision HOTAS Mounts/i)).toBeNull();
 
       act(() => {
         ins?.setAttribute('data-ad-status', 'unfilled');
@@ -132,6 +129,16 @@ describe('Monetization Components', () => {
 
       await waitFor(() => {
         expect(screen.getByText(/Aegis Flight Systems & Precision HOTAS Mounts/i)).toBeDefined();
+        expect(wrapper.style.display).toBe('none');
+      });
+
+      act(() => {
+        ins?.setAttribute('data-ad-status', 'filled');
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByText(/Aegis Flight Systems & Precision HOTAS Mounts/i)).toBeNull();
+        expect(wrapper.style.display).toBe('block');
       });
 
       vi.unstubAllEnvs();
@@ -161,7 +168,7 @@ describe('Monetization Components', () => {
       });
 
       const { container } = render(<AdSenseSlot />);
-      expect(screen.getByText(/SPONSOR COMM TRANSMISSION/i)).toBeDefined();
+      expect(screen.getByText(/^Advertisement$/i)).toBeDefined();
       expect(screen.queryByText(/SAFE TEST ACTIVE/i)).toBeNull();
 
       const ins = container.querySelector('ins.adsbygoogle');

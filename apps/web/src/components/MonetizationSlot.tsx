@@ -138,7 +138,7 @@ export const AdSenseSlot: React.FC<MonetizationProps> = ({ className = '' }) => 
       : '9700539154';
 
   const [adBlocked, setAdBlocked] = useState<boolean>(false);
-  const [adFilled, setAdFilled] = useState<boolean>(false);
+  const [adUnfilled, setAdUnfilled] = useState<boolean>(false);
   const [, setIsLoaded] = useState<boolean>(false);
   const insRef = React.useRef<HTMLModElement | null>(null);
   const pushedRef = React.useRef<boolean>(false);
@@ -188,17 +188,18 @@ export const AdSenseSlot: React.FC<MonetizationProps> = ({ className = '' }) => 
     }
   }, [mode, clientId, slotId]);
 
-  // Only reveal the live AdSense container once Google sets data-ad-status="filled"
+  // Follow official AdSense data-ad-status guidance: keep the <ins> container visible by default
+  // and only collapse/swap to fallback if Google explicitly marks data-ad-status="unfilled".
   useEffect(() => {
     const el = insRef.current;
     if (!el || typeof MutationObserver === 'undefined') return;
 
     const checkStatus = () => {
       const status = el.getAttribute('data-ad-status');
-      if (status === 'filled') {
-        setAdFilled(true);
-      } else if (status === 'unfilled') {
-        setAdFilled(false);
+      if (status === 'unfilled') {
+        setAdUnfilled(true);
+      } else if (status === 'filled') {
+        setAdUnfilled(false);
       }
     };
 
@@ -212,7 +213,7 @@ export const AdSenseSlot: React.FC<MonetizationProps> = ({ className = '' }) => 
     return null;
   }
 
-  const showFallbackCreative = mode === 'mock' || adBlocked || !adFilled;
+  const showFallbackCreative = mode === 'mock' || adBlocked || adUnfilled;
 
   return (
     <div
@@ -223,21 +224,20 @@ export const AdSenseSlot: React.FC<MonetizationProps> = ({ className = '' }) => 
         <div className="flex items-center gap-1.5 text-slate-400">
           <Radio className="w-2.5 h-2.5 text-cyan-500/70" />
           <span className="tracking-wider uppercase font-medium">
-            {mode === 'live' ? 'SPONSOR COMM TRANSMISSION' : 'SPONSOR COMM // SIMULATOR MODE'}
+            {mode === 'live' ? 'Advertisement' : 'Advertisement // Simulator Mode'}
           </span>
         </div>
-        <div className="flex items-center gap-2">
-          {mode !== 'live' && (
+        {mode !== 'live' && (
+          <div className="flex items-center gap-2">
             <span className="px-1.5 py-0.2 rounded bg-emerald-950/40 border border-emerald-700/40 text-emerald-400/90 font-mono text-[8px]">
               SAFE TEST ACTIVE
             </span>
-          )}
-          <span className="text-slate-500">Supports Hosting</span>
-        </div>
+          </div>
+        )}
       </div>
 
       {showFallbackCreative && (
-        // Compact, low-profile dark-mode creative shown until AdSense fills an active creative
+        // Compact, low-profile dark-mode creative shown in mock mode, when ad-blocked, or when data-ad-status="unfilled"
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 px-3 py-1.5 rounded-md border border-slate-800/50 bg-slate-900/40">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded bg-cyan-950/30 border border-cyan-800/30 text-cyan-400/80 shrink-0">
@@ -265,16 +265,15 @@ export const AdSenseSlot: React.FC<MonetizationProps> = ({ className = '' }) => 
       )}
 
       {mode !== 'mock' && !adBlocked && (
-        // Official Google AdSense slim horizontal unit (collapsed to 0px height until data-ad-status="filled")
+        // Official Google AdSense slim horizontal unit (rendered visibly by default; collapsed only on data-ad-status="unfilled")
         <div
           data-testid="adsense-unit-wrapper"
           style={{
+            display: adUnfilled ? 'none' : 'block',
             width: '100%',
-            height: adFilled ? '90px' : '0px',
-            maxHeight: adFilled ? '90px' : '0px',
-            opacity: adFilled ? 1 : 0,
-            overflow: 'hidden',
-            pointerEvents: adFilled ? 'auto' : 'none'
+            minHeight: adUnfilled ? undefined : '90px',
+            maxHeight: adUnfilled ? undefined : '90px',
+            overflow: 'hidden'
           }}
         >
           <ins

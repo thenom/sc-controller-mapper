@@ -6,9 +6,142 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"unicode"
 )
+
+var xmlLocTokenRegex = regexp.MustCompile(`@([A-Za-z0-9_.\-,]+)`)
+
+// keybindingLocPrefixes retains CryEngine UI and cockpit interaction localization namespaces
+// (including legacy/deprecated patch action labels) while excluding ~10MB+ of unrelated
+// mission briefings, NPC subtitles, item lore, and commodity strings.
+var keybindingLocPrefixes = []string{
+	"ui_",
+	"pit_",
+	"interaction_",
+	"vehicle_interactor_",
+}
+
+// FilterLocalizationForKeybindings prunes a full Star Citizen global.ini dictionary down to
+// localization keys relevant to keybinding profiles and UI action catalogs.
+// It retains:
+//  1. All keys under UI/cockpit interaction prefixes (ui_, pit_, interaction_, vehicle_interactor_)
+//     so legacy/custom XML actions from prior patches remain localized.
+//  2. Every @token referenced anywhere in defaultProfileXML (and ,p / ,u / _desc variants).
+//  3. Every heuristic lookup candidate for every <actionmap> and <action> in defaultProfileXML.
+func FilterLocalizationForKeybindings(defaultProfileXML string, loc map[string]string) map[string]string {
+	if len(loc) == 0 {
+		return map[string]string{}
+	}
+
+	// Build normalized lowercase lookup index -> original keys so exact casing is preserved.
+	lowerToKeys := make(map[string][]string, len(loc))
+	for origKey := range loc {
+		clean := strings.TrimPrefix(strings.ToLower(strings.TrimSpace(origKey)), "@")
+		if clean == "" {
+			continue
+		}
+		lowerToKeys[clean] = append(lowerToKeys[clean], origKey)
+	}
+
+	filtered := make(map[string]string, 5120)
+
+	addCandidate := func(raw string) {
+		clean := strings.TrimPrefix(strings.ToLower(strings.TrimSpace(raw)), "@")
+		if clean == "" {
+			return
+		}
+		variants := []string{
+			clean,
+			clean + ",p",
+			clean + ",u",
+			clean + "_desc",
+			clean + "_desc,p",
+			clean + "_desc,u",
+		}
+		if idx := strings.Index(clean, ","); idx != -1 {
+			base := clean[:idx]
+			variants = append(variants, base, base+",p", base+",u", base+"_desc")
+		}
+		for _, v := range variants {
+			if origKeys, ok := lowerToKeys[v]; ok {
+				for _, k := range origKeys {
+					filtered[k] = loc[k]
+				}
+			}
+		}
+	}
+
+	// 1. Retain all UI and cockpit interaction namespaces (covers legacy/non-default actions too)
+	for origKey, val := range loc {
+		clean := strings.TrimPrefix(strings.ToLower(strings.TrimSpace(origKey)), "@")
+		for _, prefix := range keybindingLocPrefixes {
+			if strings.HasPrefix(clean, prefix) {
+				filtered[origKey] = val
+				break
+			}
+		}
+	}
+
+	// 2. Retain every @token referenced anywhere in defaultProfile.xml
+	for _, match := range xmlLocTokenRegex.FindAllStringSubmatch(defaultProfileXML, -1) {
+		if len(match) > 1 {
+			addCandidate(match[1])
+		}
+	}
+
+	// 3. Retain heuristic localization candidates for all actionmaps, actions, and actiongroups
+	var profile xmlGenericProfile
+	if err := xml.Unmarshal([]byte(defaultProfileXML), &profile); err == nil {
+		for _, m := range profile.ActionMaps {
+			mapName := strings.TrimSpace(m.Name)
+			if mapName != "" {
+				addCandidate(mapName)
+				addCandidate("ui_" + mapName)
+				addCandidate("ui_ci_" + mapName)
+			}
+			if m.UILabel != "" {
+				addCandidate(m.UILabel)
+			}
+			for _, a := range m.Actions {
+				actName := strings.TrimSpace(a.Name)
+				if actName != "" {
+					addCandidate(actName)
+					addCandidate("ui_" + actName)
+					addCandidate("ui_ci_" + actName)
+					if mapName != "" {
+						addCandidate("ui_" + mapName + "_" + actName)
+					}
+				}
+				if a.UILabel != "" {
+					addCandidate(a.UILabel)
+				}
+				if a.UIDescription != "" {
+					addCandidate(a.UIDescription)
+				}
+			}
+		}
+		for _, g := range profile.ActionGroups {
+			for _, a := range g.Actions {
+				actName := strings.TrimSpace(a.Name)
+				if actName != "" {
+					addCandidate(actName)
+					addCandidate("ui_" + actName)
+					addCandidate("ui_ci_" + actName)
+				}
+				if a.UILabel != "" {
+					addCandidate(a.UILabel)
+				}
+				if a.UIDescription != "" {
+					addCandidate(a.UIDescription)
+				}
+			}
+		}
+	}
+
+	return filtered
+}
 
 // ActionCatalogEntry represents a single action within the catalog
 type ActionCatalogEntry struct {
