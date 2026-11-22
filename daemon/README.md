@@ -17,7 +17,7 @@ A high-performance, lightweight Go binary designed to extract `defaultProfile.xm
    - `packages/parser/src/catalog/sc_action_catalog.json` (canonical parser catalog)
    - `apps/web/public/data/sc_action_catalog.json` (web search catalog)
    - `packages/parser/src/catalog/defaultCatalog.ts` (typed TypeScript `MASTER_ACTION_CATALOG` & `GAME_METADATA`)
-   - `apps/web/public/game-data.json` (bundled base profile and localization)
+   - `apps/web/public/game-data.json` (bundled base profile and pruned keybinding/UI localization — retains all `ui_*`, `pit_*`, `interaction_*`, `vehicle_interactor_*` namespaces plus every `@token` and action/map key referenced in `defaultProfile.xml`, stripping ~11MB of unrelated mission/lore text)
 6. **Smart `.scj` Cache**: Computes a fast signature (file size + modtime) and maintains a gzip-compressed cache (`cache.scj`) in the local temp directory to avoid redundant extractions.
 7. **Optional HTTP Daemon**: Pass `--daemon` or run `sc-daemon serve` to serve local endpoints (`/api/v1/health`, `/api/v1/version`, `/api/v1/game-data`) on port 8765 for real-time web UI sync.
 

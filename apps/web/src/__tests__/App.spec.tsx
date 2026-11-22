@@ -39,7 +39,7 @@ describe('App Main Component', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders top HUD header, device rack, and active tab by default', () => {
+  it('renders top HUD header, device rack, and active tab by default without eagerly fetching /game-data.json', () => {
     render(<App />);
 
     expect(screen.getByText('STAR CITIZEN KEYBINDING ARCHITECT')).toBeDefined();
@@ -47,6 +47,7 @@ describe('App Main Component', () => {
     expect(screen.getByRole('button', { name: /Device Inspector & Live HUD/i })).toBeDefined();
     expect(screen.getByRole('button', { name: /Conflict Diagnostics/i })).toBeDefined();
     expect(screen.getByText('Hardware Device Rack & Logical Instance Remapper')).toBeDefined();
+    expect(global.fetch).not.toHaveBeenCalledWith('/game-data.json');
   });
 
   it('switches between Matrix, Inspector, and Conflict Diagnostics tabs', () => {

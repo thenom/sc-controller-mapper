@@ -221,10 +221,11 @@ test.describe('Star Citizen Keybinding Architect E2E UX Suite', () => {
     await closeReferralModal.click();
     await expect(referralModal).not.toBeVisible();
 
-    // 6. Verify AdSense / Sponsor slot container is visible and has a non-collapsed, compact bounding box
+    // 6. Verify AdSense slot container is visible, uses compliant Advertisement label, and has a non-collapsed, compact bounding box
     const adSlot = page.getByTestId('monetization-slot-container');
     await expect(adSlot).toBeVisible();
-    await expect(adSlot).toContainText(/SPONSOR COMM/i);
+    await expect(adSlot).toContainText(/Advertisement/i);
+    await expect(adSlot).not.toContainText(/Supports Hosting/i);
     const adBox = await adSlot.boundingBox();
     expect(adBox).not.toBeNull();
     expect(adBox!.width).toBeGreaterThan(300);

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ActionMapsParser,
   ActionMapsExporter,
@@ -137,31 +137,12 @@ export const App: React.FC = () => {
   const [inspectorDeviceIndex, setInspectorDeviceIndex] = useState<number>(0);
   const [inspectorSelectedInput, setInspectorSelectedInput] = useState<string | null>(null);
 
-  // Game Version & Suite Versioning State (automatically sourced from daemon-extracted GAME_METADATA)
+  // Game Version & Suite Versioning State (automatically sourced synchronously from daemon-extracted GAME_METADATA)
   const [gameVersion, setGameVersion] = useState<string>(GAME_METADATA.gameVersion);
   const [gameBranch, setGameBranch] = useState<string>(GAME_METADATA.gameBranch);
   const [gameBuildDate, setGameBuildDate] = useState<string>(GAME_METADATA.gameBuildDate);
   const suiteVersion = '1.0.0';
   const [isVersionInfoOpen, setIsVersionInfoOpen] = useState(false);
-
-  // Automatically sync target game version metadata from bundled/extracted static data
-  useEffect(() => {
-    fetch('/game-data.json')
-      .then(res => (res.ok ? res.json() : null))
-      .then(data => {
-        if (!data) return;
-        if (data.game_version) setGameVersion(data.game_version);
-        if (data.game_branch) setGameBranch(data.game_branch);
-        if (data.game_build_date) {
-          setGameBuildDate(data.game_build_date);
-        } else if (data.extracted_at) {
-          setGameBuildDate(new Date(data.extracted_at).toDateString());
-        }
-      })
-      .catch(() => {
-        // Fallback to static defaults if offline or running in test runner
-      });
-  }, []);
 
   // Hardware Generator / Submission Studio Modal State
   const [isHardwareStudioOpen, setIsHardwareStudioOpen] = useState(false);
@@ -736,12 +717,12 @@ export const App: React.FC = () => {
         <HardwareAffiliateCard />
       </section>
 
-      {/* Crawlable Technical Reference Guide & FAQ (Compact Collapsible Drawer) */}
+      {/* Crawlable Technical Reference Guide & FAQ (Visible by default for users & crawlers, collapsible) */}
       <section className="mt-8" aria-label="Star Citizen Keybinding Architecture Guide and FAQ">
-        <details className="glass-panel px-4 py-3 text-xs text-[#94a3b8] border border-[#2d415f]/60 rounded-lg">
+        <details open className="glass-panel px-4 py-3 text-xs text-[#94a3b8] border border-[#2d415f]/60 rounded-lg">
           <summary className="cursor-pointer font-mono font-semibold text-[#cbd5e1] hover:text-[#00f0ff] transition-colors flex items-center justify-between">
             <span>STAR CITIZEN XML KEYBINDING ARCHITECTURE GUIDE, HOSAS/HOTAS SETUP &amp; FAQ</span>
-            <span className="text-[10px] text-[#64748b] font-mono">Click to Expand Reference</span>
+            <span className="text-[10px] text-[#64748b] font-mono">Click to Toggle Reference</span>
           </summary>
           <div className="mt-3 pt-3 border-t border-[#2d415f]/50 grid grid-cols-1 md:grid-cols-2 gap-4 text-[11px] leading-relaxed text-[#cbd5e1]">
             <div className="space-y-2">
