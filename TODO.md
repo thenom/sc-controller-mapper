@@ -14,22 +14,15 @@ This document tracks optional items, future stage milestones, and deferred confi
 
 ---
 
-## 2. Monetization & Partner Programs
+## 2. Community Support
 
 - [x] **Star Citizen Recruit Referral Code Randomizer**:
   - Implemented interactive Star Citizen Referral Code box with creator code `STAR-7TZ5-ZNDC` as permanent anchor.
   - Community Randomizer pool supporting Ko-fi supporters and GitHub PR code contributors (`apps/web/src/data/referralCodes.ts`).
   - One-click copy with feedback, direct RSI enlist link (+5,000 UEC bonus callout), pilot attribution, and comprehensive "What's this?" help modal.
-- [ ] **Active Ko-fi Page**:
-  - Linked to `https://ko-fi.com/thenom` (Configured in `apps/web/.env` and `MonetizationSlot.tsx`).
-- [ ] **Amazon Associates**:
-  - Sign up for [Amazon Associates](https://affiliate-program.amazon.com/).
-  - Replace placeholder `VITE_AFFILIATE_AMAZON_TAG=scmapper-20` with your verified associate tracking tag.
-- [ ] **Flight Hardware Partnerships (VKB / VIRPIL)**:
-  - Apply to VKB-Sim and VIRPIL Controls creator/partner programs.
-  - Update `VITE_AFFILIATE_VKB_TAG` and `VITE_AFFILIATE_VIRPIL_TAG`.
-- [x] **Google AdSense Integration**:
-  - Configured `scbind.com` with live publisher ID (`ca-pub-4414971156573564`), ad unit slot ID (`9700539154`), `ads.txt`, and `VITE_MONETIZATION_MODE=live`.
+- [x] **Active Ko-fi Page**:
+  - Linked to `https://ko-fi.com/thenom` (Configured in `apps/web/.env.example` and `MonetizationSlot.tsx`).
+  - Site intentionally runs 100% ad-free and affiliate-free (Google AdSense and hardware affiliate cards removed).
 
 ---
 

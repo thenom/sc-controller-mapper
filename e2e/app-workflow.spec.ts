@@ -221,16 +221,9 @@ test.describe('Star Citizen Keybinding Architect E2E UX Suite', () => {
     await closeReferralModal.click();
     await expect(referralModal).not.toBeVisible();
 
-    // 6. Verify AdSense slot container is visible, uses compliant Advertisement label, and has a non-collapsed, compact bounding box
-    const adSlot = page.getByTestId('monetization-slot-container');
-    await expect(adSlot).toBeVisible();
-    await expect(adSlot).toContainText(/Advertisement/i);
-    await expect(adSlot).not.toContainText(/Supports Hosting/i);
-    const adBox = await adSlot.boundingBox();
-    expect(adBox).not.toBeNull();
-    expect(adBox!.width).toBeGreaterThan(300);
-    expect(adBox!.height).toBeGreaterThanOrEqual(45);
-    expect(adBox!.height).toBeLessThanOrEqual(220);
+    // 6. Verify site remains ad-free (no AdSense or hardware affiliate containers)
+    await expect(page.getByTestId('monetization-slot-container')).toHaveCount(0);
+    await expect(page.getByText('RECOMMENDED HARDWARE TELEMETRY')).toHaveCount(0);
   });
 
   test('opens and dismisses Hardware Studio modal', async ({ page }) => {
