@@ -90,34 +90,10 @@ variable "allowed_emails" {
 }
 
 # ==============================================================================
-# Monetization & Sponsor Settings
+# Community Supporter Settings
 # ==============================================================================
 variable "supporter_url" {
   description = "Custom donation / supporter URL (e.g., https://ko-fi.com/yourname or Patreon)."
   type        = string
   default     = "https://ko-fi.com/thenom"
-}
-
-variable "monetization_mode" {
-  description = "Monetization display mode ('test', 'mock', 'live', or 'off'). Defaults to 'live'."
-  type        = string
-  default     = "live"
-}
-
-variable "affiliate_amazon_tag" {
-  description = "Amazon Associates affiliate tracking tag for hardware cards."
-  type        = string
-  default     = "scmapper-20"
-}
-
-variable "adsense_client_id" {
-  description = "Google AdSense Publisher Client ID (e.g., ca-pub-4414971156573564)."
-  type        = string
-  default     = "ca-pub-4414971156573564"
-}
-
-variable "adsense_slot_id" {
-  description = "Google AdSense Slot ID."
-  type        = string
-  default     = "9700539154"
 }

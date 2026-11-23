@@ -22,11 +22,7 @@ import { BindingTable } from './components/BindingTable';
 import { BindingEditorModal } from './components/BindingEditorModal';
 import { HardwareInspector } from './components/HardwareInspector';
 import { HardwareGeneratorModal } from './components/HardwareGeneratorModal';
-import {
-  SupporterFuelBadge,
-  HardwareAffiliateCard,
-  AdSenseSlot
-} from './components/MonetizationSlot';
+import { SupporterFuelBadge } from './components/MonetizationSlot';
 import { ReferralCodeCard } from './components/ReferralCodeCard';
 import { useGamepadListener } from './hooks/useGamepadListener';
 import { useWebMCP } from './hooks/useWebMCP';
@@ -710,11 +706,9 @@ export const App: React.FC = () => {
         </div>
       )}
 
-      {/* Monetization & Community Telemetry */}
+      {/* Community Referral Telemetry */}
       <section className="mt-8 space-y-4">
         <ReferralCodeCard />
-        <AdSenseSlot />
-        <HardwareAffiliateCard />
       </section>
 
       {/* Crawlable Technical Reference Guide & FAQ (Visible by default for users & crawlers, collapsible) */}
@@ -777,7 +771,7 @@ export const App: React.FC = () => {
             }}
             data-testid="footer-privacy-link"
             className="text-[#94a3b8] hover:text-[#00e5ff] transition-colors"
-            title="View Privacy Policy, Google AdSense Cookie Disclosure, and Terms of Use"
+            title="View Privacy Policy and Terms of Use"
           >
             Privacy &amp; Terms
           </a>
@@ -803,7 +797,7 @@ export const App: React.FC = () => {
         </div>
       </footer>
 
-      {/* Privacy Policy, Cookie Disclosure & Terms Modal */}
+      {/* Privacy Policy & Terms Modal */}
       {isPrivacyModalOpen && (
         <div
           data-testid="privacy-policy-modal"
@@ -814,7 +808,7 @@ export const App: React.FC = () => {
               <div className="flex items-center gap-2.5">
                 <ShieldCheck className="w-5 h-5 text-[#00f0ff]" />
                 <h2 className="text-base font-bold text-white tracking-wide">
-                  Privacy Policy, Cookie Disclosure &amp; Terms
+                  Privacy Policy &amp; Terms of Use
                 </h2>
               </div>
               <button
@@ -835,33 +829,16 @@ export const App: React.FC = () => {
               </div>
 
               <div>
-                <h3 className="font-semibold text-[#00f0ff] mb-1">2. Google AdSense &amp; Advertising Cookies</h3>
+                <h3 className="font-semibold text-[#00f0ff] mb-1">2. Zero Advertising &amp; Privacy-First Analytics</h3>
                 <p className="text-[11px]">
-                  Third-party vendors, including Google, use cookies to serve ads based on a user&apos;s prior visits to <code className="text-[#00f0ff]">scbind.com</code> or other websites. Google&apos;s use of advertising cookies enables it and its partners to serve ads to users based on their visit to this site and/or other sites on the Internet. You may opt out of personalized advertising by visiting{' '}
-                  <a
-                    href="https://adssettings.google.com/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[#00f0ff] underline"
-                  >
-                    Google Ads Settings
-                  </a>{' '}
-                  or{' '}
-                  <a
-                    href="https://www.aboutads.info/choices/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[#00f0ff] underline"
-                  >
-                    www.aboutads.info
-                  </a>.
+                  <code className="text-[#00f0ff]">scbind.com</code> displays no third-party advertisements and sets no advertising or cross-site tracking cookies. Basic, cookieless aggregated traffic telemetry is provided by Cloudflare Pages Web Analytics.
                 </p>
               </div>
 
               <div>
-                <h3 className="font-semibold text-[#00f0ff] mb-1">3. Affiliate Links &amp; Unofficial Fan Tool Disclaimer</h3>
+                <h3 className="font-semibold text-[#00f0ff] mb-1">3. Voluntary Support &amp; Unofficial Fan Tool Disclaimer</h3>
                 <p className="text-[11px]">
-                  This site participates in affiliate programs (including Amazon Associates and flight peripheral partners) to support hosting costs. Star Citizen Keybinding Architect is an independent open-source community project (AGPL-3.0) and is not affiliated with or endorsed by Cloud Imperium Games (CIG) or Roberts Space Industries (RSI).
+                  This site is free and open-source (AGPL-3.0), optionally supported via voluntary Ko-fi tips and the community Star Citizen Referral Code pool. Star Citizen Keybinding Architect is an independent fan project and is not affiliated with or endorsed by Cloud Imperium Games (CIG) or Roberts Space Industries (RSI).
                 </p>
               </div>
             </div>

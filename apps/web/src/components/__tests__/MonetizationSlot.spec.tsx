@@ -1,187 +1,24 @@
 import React from 'react';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, act, waitFor } from '@testing-library/react';
-import {
-  SupporterFuelBadge,
-  HardwareAffiliateCard,
-  AdSenseSlot
-} from '../MonetizationSlot';
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { SupporterFuelBadge } from '../MonetizationSlot';
 
-describe('Monetization Components', () => {
+describe('Supporter & Site Integrity Components', () => {
   describe('SupporterFuelBadge', () => {
-    it('renders fuel server button with link attributes', () => {
+    it('renders fuel server button with Ko-fi link attributes', () => {
       render(<SupporterFuelBadge />);
       const badge = screen.getByTitle(/Fuel the server/i);
       expect(badge).toBeDefined();
       expect(badge.getAttribute('target')).toBe('_blank');
       expect(badge.getAttribute('rel')).toBe('noopener noreferrer');
+      expect(badge.getAttribute('href')).toBe('https://ko-fi.com/thenom');
       expect(screen.getByText('FUEL SERVER')).toBeDefined();
     });
   });
 
-  describe('HardwareAffiliateCard', () => {
-    it('renders recommended peripherals with affiliate links and specs', () => {
-      render(<HardwareAffiliateCard />);
-      expect(screen.getByText('RECOMMENDED HARDWARE TELEMETRY')).toBeDefined();
-      expect(screen.getByText('VKB Gladiator NXT EVO')).toBeDefined();
-      expect(screen.getByText('VIRPIL VPC MongoosT-50')).toBeDefined();
-      expect(screen.getByText('Heavy-Duty Desk Mounts')).toBeDefined();
-
-      const links = screen.getAllByRole('link');
-      expect(links.length).toBeGreaterThanOrEqual(3);
-      links.forEach(link => {
-        expect(link.getAttribute('target')).toBe('_blank');
-        expect(link.getAttribute('href')).toMatch(/(ref=|tag=)/);
-      });
-    });
-  });
-
-  describe('AdSenseSlot', () => {
-    it('renders visible live Google AdSense unit by default with compliant Advertisement label and no hidden opacity/0px wrapper', () => {
-      const { container } = render(<AdSenseSlot />);
-      const slotContainer = screen.getByTestId('monetization-slot-container');
-      expect(slotContainer).toBeDefined();
-      expect(screen.getByText(/^Advertisement$/i)).toBeDefined();
-      expect(screen.queryByText(/Supports Hosting/i)).toBeNull();
-      // Fallback creative is NOT shown before Google marks data-ad-status="unfilled"
-      expect(screen.queryByText(/Aegis Flight Systems & Precision HOTAS Mounts/i)).toBeNull();
-
-      const wrapper = screen.getByTestId('adsense-unit-wrapper');
-      expect(wrapper.style.display).toBe('block');
-      expect(wrapper.style.minHeight).toBe('90px');
-      expect(wrapper.style.opacity).not.toBe('0');
-
-      const ins = container.querySelector('ins.adsbygoogle');
-      expect(ins).not.toBeNull();
-      expect(ins?.getAttribute('data-ad-client')).toBe('ca-pub-4414971156573564');
-      expect(ins?.getAttribute('data-ad-slot')).toBe('9700539154');
-      expect(ins?.getAttribute('data-ad-format')).toBe('horizontal');
-      expect(ins?.getAttribute('data-full-width-responsive')).toBe('false');
-    });
-
-    it('renders mock simulator creative when in mock mode without breaking layout', () => {
-      vi.stubEnv('VITE_MONETIZATION_MODE', 'mock');
-      render(<AdSenseSlot />);
-      const container = screen.getByTestId('monetization-slot-container');
-      expect(container).toBeDefined();
-      expect(screen.getByText(/Advertisement \/\/ Simulator Mode/i)).toBeDefined();
-      expect(screen.getByText(/SAFE TEST ACTIVE/i)).toBeDefined();
-      expect(screen.getByText(/Aegis Flight Systems & Precision HOTAS Mounts/i)).toBeDefined();
-      vi.unstubAllEnvs();
-    });
-
-    it('returns null when mode is off', () => {
-      vi.stubEnv('VITE_MONETIZATION_MODE', 'off');
-      const { container } = render(<AdSenseSlot />);
-      expect(container.firstChild).toBeNull();
-      vi.unstubAllEnvs();
-    });
-
-    it('injects script in test/live mode and handles onload and onerror', () => {
-      document.head.innerHTML = '';
-      vi.stubEnv('VITE_MONETIZATION_MODE', 'test');
-      vi.stubEnv('VITE_ADSENSE_CLIENT_ID', 'ca-pub-test1234');
-      const { unmount } = render(<AdSenseSlot />);
-
-      const script = document.querySelector('script[src*="adsbygoogle.js"]') as HTMLScriptElement;
-      expect(script).toBeDefined();
-
-      // Trigger onload
-      if (script && script.onload) {
-        act(() => {
-          (script as any).onload(new Event('load'));
-        });
-      }
-
-      unmount();
-      document.head.innerHTML = '';
-
-      // Trigger onerror for adblock detection and verify graceful fallback creative remains visible
-      render(<AdSenseSlot />);
-      const script2 = document.querySelector('script[src*="adsbygoogle.js"]') as HTMLScriptElement;
-      if (script2 && script2.onerror) {
-        act(() => {
-          (script2 as any).onerror(new Event('error'));
-        });
-      }
-
-      expect(screen.getByTestId('monetization-slot-container')).toBeDefined();
-      expect(screen.getByText(/Aegis Flight Systems & Precision HOTAS Mounts/i)).toBeDefined();
-
-      vi.unstubAllEnvs();
-    });
-
-    it('keeps live AdSense unit visible by default and swaps to fallback only when data-ad-status="unfilled"', async () => {
-      vi.stubEnv('VITE_MONETIZATION_MODE', 'live');
-      const { container } = render(<AdSenseSlot />);
-
-      const ins = container.querySelector('ins.adsbygoogle');
-      expect(ins).not.toBeNull();
-      const wrapper = screen.getByTestId('adsense-unit-wrapper');
-      expect(wrapper.style.display).toBe('block');
-      expect(screen.queryByText(/Aegis Flight Systems & Precision HOTAS Mounts/i)).toBeNull();
-
-      act(() => {
-        ins?.setAttribute('data-ad-status', 'unfilled');
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText(/Aegis Flight Systems & Precision HOTAS Mounts/i)).toBeDefined();
-        expect(wrapper.style.display).toBe('none');
-      });
-
-      act(() => {
-        ins?.setAttribute('data-ad-status', 'filled');
-      });
-
-      await waitFor(() => {
-        expect(screen.queryByText(/Aegis Flight Systems & Precision HOTAS Mounts/i)).toBeNull();
-        expect(wrapper.style.display).toBe('block');
-      });
-
-      vi.unstubAllEnvs();
-    });
-
-    it('falls back from placeholder ca-pub-0000000000000000 client ID and 0000000000 slot ID', () => {
-      vi.stubEnv('VITE_MONETIZATION_MODE', 'live');
-      vi.stubEnv('VITE_ADSENSE_CLIENT_ID', 'ca-pub-0000000000000000');
-      vi.stubEnv('VITE_ADSENSE_SLOT_ID', '0000000000');
-
-      const { container } = render(<AdSenseSlot />);
-      const ins = container.querySelector('ins.adsbygoogle');
-      expect(ins).not.toBeNull();
-      expect(ins?.getAttribute('data-ad-client')).toBe('ca-pub-4414971156573564');
-      expect(ins?.getAttribute('data-ad-slot')).toBe('9700539154');
-      expect(ins?.getAttribute('data-ad-format')).toBe('horizontal');
-
-      vi.unstubAllEnvs();
-    });
-
-    it('forces live mode on scbind.com even when VITE_MONETIZATION_MODE is set to test in Cloudflare build env', () => {
-      vi.stubEnv('VITE_MONETIZATION_MODE', 'test');
-      const originalLocation = window.location;
-      Object.defineProperty(window, 'location', {
-        configurable: true,
-        value: { ...originalLocation, hostname: 'scbind.com' }
-      });
-
-      const { container } = render(<AdSenseSlot />);
-      expect(screen.getByText(/^Advertisement$/i)).toBeDefined();
-      expect(screen.queryByText(/SAFE TEST ACTIVE/i)).toBeNull();
-
-      const ins = container.querySelector('ins.adsbygoogle');
-      expect(ins).not.toBeNull();
-      expect(ins?.getAttribute('data-adtest')).toBeNull();
-
-      Object.defineProperty(window, 'location', {
-        configurable: true,
-        value: originalLocation
-      });
-      vi.unstubAllEnvs();
-    });
-
+  describe('Site Assets & CSS Regression Guards', () => {
     it('prevents unscoped [class*="w-*"] CSS substring selectors in index.css from collapsing layout containers', () => {
       const cssPath = path.resolve(__dirname, '../../index.css');
       const cssContent = fs.readFileSync(cssPath, 'utf-8');
@@ -189,12 +26,14 @@ describe('Monetization Components', () => {
       expect(cssContent).not.toMatch(/,\s*\[class\*="h-\d/);
     });
 
-    it('provides crawlable robots.txt, sitemap.xml, privacy.html, and index.html AdSense readiness metadata', () => {
+    it('keeps site ad-free and provides clean robots.txt, sitemap.xml, privacy.html, and index.html metadata', () => {
       const publicDir = path.resolve(__dirname, '../../../public');
       const indexHtmlPath = path.resolve(__dirname, '../../../index.html');
 
+      expect(fs.existsSync(path.join(publicDir, 'ads.txt'))).toBe(false);
+
       const robotsTxt = fs.readFileSync(path.join(publicDir, 'robots.txt'), 'utf-8');
-      expect(robotsTxt).toContain('User-agent: Mediapartners-Google');
+      expect(robotsTxt).toContain('User-agent: *');
       expect(robotsTxt).toContain('Allow: /');
       expect(robotsTxt).toContain('Sitemap: https://scbind.com/sitemap.xml');
 
@@ -203,11 +42,13 @@ describe('Monetization Components', () => {
       expect(sitemapXml).toContain('<loc>https://scbind.com/privacy.html</loc>');
 
       const privacyHtml = fs.readFileSync(path.join(publicDir, 'privacy.html'), 'utf-8');
-      expect(privacyHtml).toContain('Google AdSense');
-      expect(privacyHtml).toContain('adssettings.google.com');
+      expect(privacyHtml).not.toContain('Google AdSense');
+      expect(privacyHtml).not.toContain('google-adsense-account');
+      expect(privacyHtml).toContain('no third-party advertisements');
 
       const indexHtml = fs.readFileSync(indexHtmlPath, 'utf-8');
-      expect(indexHtml).toContain('name="google-adsense-account" content="ca-pub-4414971156573564"');
+      expect(indexHtml).not.toContain('adsbygoogle.js');
+      expect(indexHtml).not.toContain('google-adsense-account');
       expect(indexHtml).toContain('pp_resortdevices');
     });
   });

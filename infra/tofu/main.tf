@@ -46,17 +46,9 @@ resource "cloudflare_pages_project" "app" {
           type  = "plain_text"
           value = var.node_version
         }
-        VITE_MONETIZATION_MODE = {
-          type  = "plain_text"
-          value = "test"
-        }
         VITE_SUPPORTER_URL = {
           type  = "plain_text"
           value = var.supporter_url
-        }
-        VITE_AFFILIATE_AMAZON_TAG = {
-          type  = "plain_text"
-          value = var.affiliate_amazon_tag
         }
       }
     }
@@ -66,25 +58,9 @@ resource "cloudflare_pages_project" "app" {
           type  = "plain_text"
           value = var.node_version
         }
-        VITE_MONETIZATION_MODE = {
-          type  = "plain_text"
-          value = var.monetization_mode != "" ? var.monetization_mode : (var.enable_zero_trust ? "test" : "live")
-        }
         VITE_SUPPORTER_URL = {
           type  = "plain_text"
           value = var.supporter_url
-        }
-        VITE_AFFILIATE_AMAZON_TAG = {
-          type  = "plain_text"
-          value = var.affiliate_amazon_tag
-        }
-        VITE_ADSENSE_CLIENT_ID = {
-          type  = "plain_text"
-          value = var.adsense_client_id
-        }
-        VITE_ADSENSE_SLOT_ID = {
-          type  = "plain_text"
-          value = var.adsense_slot_id
         }
       }
     }
